@@ -4,6 +4,7 @@ import { findPackByHandleAndSlug } from "@/lib/pack-lookup";
 import { readSessionUserId } from "@/lib/session";
 import {
   ensurePackDirs,
+  isRemoteStored,
   readStoredFile,
   removeStoredFile,
   writeAvatarForPack,
@@ -87,7 +88,7 @@ export async function POST(req: Request, { params }: Params) {
   await ensurePackDirs();
   const buf = Buffer.from(await file.arrayBuffer());
 
-  if (pack.avatarRelPath) {
+  if (pack.avatarRelPath && !isRemoteStored(pack.avatarRelPath)) {
     await removeStoredFile(pack.avatarRelPath);
   }
 

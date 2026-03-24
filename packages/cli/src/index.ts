@@ -377,7 +377,7 @@ program
             avatarPath,
             replace,
           });
-          const viewUrl = `${api}${result.viewPath}`;
+          const viewUrl = result.viewUrl ?? `${api}${result.viewPath}`;
           console.error(`上传成功。在浏览器中查看：${viewUrl}`);
           break;
         } catch (e) {

@@ -6,6 +6,7 @@ import { findUserIdByApiToken } from "@/lib/token-api";
 import {
   assertValidSlug,
   ensurePackDirs,
+  isRemoteStored,
   removeStoredFile,
   writeAvatarForPack,
   writeZipForPack,
@@ -20,6 +21,7 @@ import {
   checkPublishRateLimit,
   recordPublishSuccess,
 } from "@/lib/publish-rate-limit";
+import { requestOrigin } from "@/lib/device-auth";
 
 export async function GET() {
   const packs = await prisma.pack.findMany({
@@ -150,7 +152,7 @@ export async function POST(req: Request) {
     } = { title, summary, zipRelPath };
 
     if (avatar instanceof File && avatar.size > 0) {
-      if (dup.avatarRelPath) {
+      if (dup.avatarRelPath && !isRemoteStored(dup.avatarRelPath)) {
         await removeStoredFile(dup.avatarRelPath);
       }
       const ext = path.extname(avatar.name) || ".bin";
@@ -179,12 +181,15 @@ export async function POST(req: Request) {
     recordPublishSuccess(authorId);
     const encH = encodeURIComponent(handle);
     const encS = encodeURIComponent(slug);
+    const viewPath = `/packs/${encH}/${encS}`;
+    const siteOrigin = requestOrigin(req);
     return NextResponse.json({
       ok: true,
       handle,
       slug,
       downloadPath: `/api/packs/${encH}/${encS}/download`,
-      viewPath: `/packs/${encH}/${encS}`,
+      viewPath,
+      viewUrl: `${siteOrigin}${viewPath}`,
     });
   }
 
@@ -237,11 +242,14 @@ export async function POST(req: Request) {
   recordPublishSuccess(authorId);
   const encH = encodeURIComponent(handle);
   const encS = encodeURIComponent(slug);
+  const viewPath = `/packs/${encH}/${encS}`;
+  const siteOrigin = requestOrigin(req);
   return NextResponse.json({
     ok: true,
     handle,
     slug,
     downloadPath: `/api/packs/${encH}/${encS}/download`,
-    viewPath: `/packs/${encH}/${encS}`,
+    viewPath,
+    viewUrl: `${siteOrigin}${viewPath}`,
   });
 }

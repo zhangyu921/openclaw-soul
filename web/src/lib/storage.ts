@@ -104,7 +104,8 @@ export async function writeZipForPack(
     const { put } = await import("@vercel/blob");
     const { url } = await put(rel, buf, {
       access: blobAccess(),
-      addRandomSuffix: false,
+      /** 每次新对象，覆盖发布时不触发「blob 已存在」，且保留历史对象 */
+      addRandomSuffix: true,
       token: process.env.BLOB_READ_WRITE_TOKEN,
     });
     return url;
@@ -125,7 +126,7 @@ export async function writeAvatarForPack(
     const { put } = await import("@vercel/blob");
     const { url } = await put(rel, buf, {
       access: blobAccess(),
-      addRandomSuffix: false,
+      addRandomSuffix: true,
       token: process.env.BLOB_READ_WRITE_TOKEN,
     });
     return url;

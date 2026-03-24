@@ -39,6 +39,8 @@ export type PublishPackResult = {
   slug: string;
   downloadPath: string;
   viewPath: string;
+  /** 服务端按 OPENCLAW_SOUL_SITE_URL / 请求头给出的对外完整链接 */
+  viewUrl?: string;
 };
 
 /** Bearer rejected (expired, revoked, or DB reset). Caller may prompt re-login. */
@@ -194,7 +196,14 @@ export async function publishPack(
     ) {
       throw new Error(`Publish: unexpected response: ${responseText}`);
     }
-    return body as PublishPackResult;
+    const parsed = body as PublishPackResult;
+    if (
+      parsed.viewUrl !== undefined &&
+      typeof parsed.viewUrl !== "string"
+    ) {
+      throw new Error(`Publish: unexpected response: ${responseText}`);
+    }
+    return parsed;
   } finally {
     await fs.promises.unlink(tmpZip).catch(() => {});
   }
