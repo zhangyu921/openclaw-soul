@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, Suspense } from "react";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const search = useSearchParams();
+  const next = search.get("next");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +28,10 @@ export default function RegisterPage() {
         setError(typeof data.error === "string" ? data.error : "Register failed");
         return;
       }
-      router.push("/login");
+      const loginHref = next
+        ? `/login?next=${encodeURIComponent(next)}`
+        : "/login";
+      router.push(loginHref);
     } finally {
       setLoading(false);
     }
@@ -68,7 +73,12 @@ export default function RegisterPage() {
       </form>
       <p className="mt-6 text-sm text-zinc-500">
         Already have an account?{" "}
-        <Link href="/login" className="underline">
+        <Link
+          href={
+            next ? `/login?next=${encodeURIComponent(next)}` : "/login"
+          }
+          className="underline"
+        >
           Login
         </Link>
       </p>
@@ -78,5 +88,13 @@ export default function RegisterPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-sm px-6 py-16 text-zinc-500">Loading…</div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }

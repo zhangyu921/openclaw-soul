@@ -8,12 +8,13 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
+  id           String        @id @default(cuid())
+  email        String        @unique
   passwordHash String
-  createdAt    DateTime  @default(now())
+  createdAt    DateTime      @default(now())
   packs        Pack[]
   apiTokens    ApiToken[]
+  deviceLogins DeviceLogin[]
 }
 
 model ApiToken {
@@ -35,4 +36,17 @@ model Pack {
   authorId      String
   author        User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt     DateTime @default(now())
+}
+
+/// OAuth-style device flow: CLI polls with device_code; user approves in browser with user_code.
+model DeviceLogin {
+  id               String   @id @default(cuid())
+  deviceCodeHash   String   @unique
+  userCode         String   @unique
+  status           String
+  expiresAt        DateTime
+  userId           String?
+  user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  accessTokenPlain String?
+  createdAt        DateTime @default(now())
 }

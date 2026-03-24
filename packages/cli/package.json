@@ -12,6 +12,7 @@
     "ocs": "tsx src/index.ts"
   },
   "dependencies": {
+    "@inquirer/prompts": "^8.1.0",
     "dotenv": "^16.4.7",
     "archiver": "^7.0.1",
     "commander": "^14.0.2",

@@ -3,16 +3,21 @@ import path from "node:path";
 import fs from "node:fs";
 import os from "node:os";
 import { Command } from "commander";
-import { loadCliEnv, resolveWorkspacePath } from "./load-env.js";
-
-loadCliEnv();
+import { loadCliEnv, resolveWorkspacePath, findMonorepoRoot } from "./load-env.js";
 import {
   backupAndWriteWorkspace,
   defaultOpenclawConfigPath,
   readWorkspaceFromConfig,
 } from "./openclaw-config.js";
-import { downloadToFile, extractZip, zipDirectory } from "./zip-utils.js";
+import { downloadToFile, extractZip } from "./zip-utils.js";
 import { importFromManifest } from "./import-pack.js";
+import { publishPack } from "./publish-pack.js";
+import { runPublishWizard } from "./publish-wizard.js";
+import { runDeviceLogin } from "./device-login.js";
+import { upsertEnvCliLine, setEnvCliLineIfMissing } from "./env-cli-file.js";
+import { validateSlug } from "./slug.js";
+
+loadCliEnv();
 
 function apiBase(): string {
   return (
@@ -25,14 +30,6 @@ function openclawConfigPath(): string {
   return process.env.OPENCLAW_CONFIG || defaultOpenclawConfigPath();
 }
 
-function validateSlug(slug: string): void {
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-    throw new Error(
-      "slug must be lowercase letters, digits, and hyphens (e.g. workspace-asuka)"
-    );
-  }
-}
-
 async function renameBackupDir(dir: string): Promise<void> {
   if (!fs.existsSync(dir)) return;
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -43,6 +40,34 @@ async function renameBackupDir(dir: string): Promise<void> {
 
 const program = new Command();
 program.name("ocs").description("OpenClaw Soul — workspace pack CLI");
+
+program
+  .command("login")
+  .description(
+    "Sign in via browser (device flow); saves OPENCLAW_SOUL_TOKEN to .env.cli in monorepo root"
+  )
+  .option("--api <url>", "registry base URL", apiBase())
+  .option("--force", "overwrite existing OPENCLAW_SOUL_TOKEN in .env.cli", false)
+  .action(async (opts: { api: string; force: boolean }) => {
+    const api = opts.api.replace(/\/$/, "");
+    const token = await runDeviceLogin(api);
+    const root = findMonorepoRoot();
+    if (root) {
+      upsertEnvCliLine({
+        rootDir: root,
+        key: "OPENCLAW_SOUL_TOKEN",
+        value: token,
+        force: opts.force,
+      });
+      setEnvCliLineIfMissing(root, "OPENCLAW_SOUL_API", api);
+      console.error(`Updated ${path.join(root, ".env.cli")}`);
+    } else {
+      console.error(
+        "Not inside openclaw-soul monorepo: set OPENCLAW_SOUL_TOKEN yourself."
+      );
+    }
+    console.log(token);
+  });
 
 program
   .command("download")
@@ -87,11 +112,13 @@ program
 
 program
   .command("publish")
-  .description("Zip a workspace directory and upload to registry (needs API token)")
+  .description(
+    "Zip a workspace and upload (needs token or run ocs login). Without --slug/--title, runs an interactive wizard in a TTY."
+  )
   .option("--api <url>", "registry base URL", apiBase())
-  .option("--token <token>", "API token (or set OPENCLAW_SOUL_TOKEN)")
-  .requiredOption("--slug <slug>", "unique slug for this pack")
-  .requiredOption("--title <title>", "display title")
+  .option("--token <token>", "API token (or OPENCLAW_SOUL_TOKEN)")
+  .option("--slug <slug>", "unique slug for this pack")
+  .option("--title <title>", "display title")
   .option("--summary <text>", "short description")
   .option(
     "--source <mode>",
@@ -108,61 +135,84 @@ program
     async (opts: {
       api: string;
       token?: string;
-      slug: string;
-      title: string;
+      slug?: string;
+      title?: string;
       summary?: string;
       source: string;
       avatar?: string;
       config: string;
     }) => {
-      validateSlug(opts.slug);
-      const token = opts.token || process.env.OPENCLAW_SOUL_TOKEN;
-      if (!token) throw new Error("Set --token or OPENCLAW_SOUL_TOKEN");
+      const api = opts.api.replace(/\/$/, "");
+      let slug = (opts.slug ?? "").trim();
+      let title = (opts.title ?? "").trim();
+      let summary = opts.summary?.trim();
+      let source = opts.source;
+      let avatar = opts.avatar;
+      const config = opts.config;
+
+      const bothNames = slug.length > 0 && title.length > 0;
+      if (!bothNames) {
+        if (!process.stdin.isTTY) {
+          throw new Error(
+            "Non-interactive mode: provide both --slug and --title, or run from a terminal for the wizard."
+          );
+        }
+        const w = await runPublishWizard({
+          slug,
+          title,
+          summary,
+          source,
+          avatar,
+        });
+        slug = w.slug;
+        title = w.title;
+        summary = w.summary;
+        source = w.source;
+        avatar = w.avatar;
+      }
+
+      let token = opts.token || process.env.OPENCLAW_SOUL_TOKEN;
+      if (!token) {
+        if (!process.stdin.isTTY) {
+          throw new Error(
+            "Set OPENCLAW_SOUL_TOKEN, use --token, or run ocs login from a terminal."
+          );
+        }
+        console.error("No API token; starting browser login…");
+        token = await runDeviceLogin(api);
+      }
+
+      validateSlug(slug);
 
       let sourceDir: string;
-      if (opts.source === "current") {
-        const w = readWorkspaceFromConfig(opts.config);
-        if (!w) throw new Error(`Could not read workspace from ${opts.config}`);
+      if (source === "current") {
+        const w = readWorkspaceFromConfig(config);
+        if (!w) throw new Error(`Could not read workspace from ${config}`);
         sourceDir = w;
       } else {
-        sourceDir = resolveWorkspacePath(opts.source);
+        sourceDir = resolveWorkspacePath(source);
       }
-      if (!fs.existsSync(sourceDir)) throw new Error(`Source not found: ${sourceDir}`);
-
-      const tmpZip = path.join(
-        os.tmpdir(),
-        `openclaw-soul-publish-${Date.now()}.zip`
-      );
-      console.error(`Zipping ${sourceDir} → ${tmpZip}`);
-      await zipDirectory(sourceDir, tmpZip);
-      const zipBuf = await fs.promises.readFile(tmpZip);
-
-      const base = opts.api.replace(/\/$/, "");
-      const form = new FormData();
-      form.append("slug", opts.slug);
-      form.append("title", opts.title);
-      if (opts.summary) form.append("summary", opts.summary);
-      form.append(
-        "zip",
-        new File([zipBuf], "pack.zip", { type: "application/zip" })
-      );
-      if (opts.avatar) {
-        const ab = await fs.promises.readFile(opts.avatar);
-        const name = path.basename(opts.avatar);
-        form.append(
-          "avatar",
-          new File([ab], name, { type: "application/octet-stream" })
-        );
+      if (!fs.existsSync(sourceDir)) {
+        throw new Error(`Source not found: ${sourceDir}`);
       }
 
-      const res = await fetch(`${base}/api/packs`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: form,
+      let avatarPath: string | undefined;
+      if (avatar) {
+        avatarPath = resolveWorkspacePath(avatar);
+        if (!fs.existsSync(avatarPath)) {
+          throw new Error(`Avatar not found: ${avatarPath}`);
+        }
+      }
+
+      const text = await publishPack({
+        apiBase: api,
+        token,
+        slug,
+        title,
+        summary,
+        sourceDir,
+        avatarPath,
       });
-      await fs.promises.unlink(tmpZip);
-      const text = await res.text();
-      if (!res.ok) throw new Error(`Publish failed: ${res.status} ${text}`);
       console.log(text);
     }
   );

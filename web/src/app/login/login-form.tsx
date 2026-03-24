@@ -70,7 +70,10 @@ export default function LoginForm() {
       </form>
       <p className="mt-6 text-sm text-zinc-500">
         No account?{" "}
-        <Link href="/register" className="underline">
+        <Link
+          href={`/register?next=${encodeURIComponent(next)}`}
+          className="underline"
+        >
           Register
         </Link>
       </p>

@@ -3,7 +3,7 @@
 Registry + CLI for sharing and applying **OpenClaw workspace** packs (full zip, including `MEMORY.md` if present).
 
 - **Web** (`web/`): Next.js gallery, register/login, API tokens, upload/download packs.
-- **CLI** (`packages/cli`, root `npm run ocs` / `bin`): `ocs` — `apply`, `publish`, `download`, `import`, `archive-directory`, `restore-openclaw-config`, `backup-openclaw-config`.
+- **CLI** (`packages/cli`, root `npm run ocs` / `bin`): `ocs` — `login`, `apply`, `publish`, `download`, `import`, `archive-directory`, `restore-openclaw-config`, `backup-openclaw-config`.
 
 Docs: [OpenClaw Agent Workspace](https://docs.openclaw.ai/concepts/agent-workspace).
 
@@ -21,16 +21,33 @@ npm run dev
 
 Web 使用 **Prisma ORM 7**：`prisma.config.ts` 提供数据源 URL；运行时通过 `@prisma/adapter-better-sqlite3` 连接 SQLite。构建前会执行 `prisma generate`，客户端生成到 `web/src/generated/prisma`（已 `.gitignore`）。
 
-Open http://localhost:3000 — register, create an API token at `/dashboard/tokens`, then **在 monorepo 根目录**（无需先 `cd packages/cli`、也无需先 build CLI）：
+Open http://localhost:3000 — register. **在 monorepo 根目录**（无需先 `cd packages/cli`、也无需先 build CLI）：
+
+**推荐：浏览器登录（类 OAuth device flow）**
 
 ```bash
-cp .env.cli.example .env.cli   # 填入 OPENCLAW_SOUL_TOKEN（及可选 OPENCLAW_CONFIG）
+npm run ocs -- login
+```
+
+会打开浏览器，在站点上登录并确认后，CLI 轮询拿到 token；若在仓库根目录会自动写入 `.env.cli`（已存在 `OPENCLAW_SOUL_TOKEN` 时需加 `--force` 覆盖）。
+
+**或** 在 `/dashboard/tokens` 手动创建 token，复制到 `.env.cli`（见 `.env.cli.example`）。
+
+**发布**
+
+```bash
+# 交互式（TTY）：未带齐 --slug 与 --title 时会问答，缺 token 时会自动走浏览器登录
+npm run ocs -- publish
+
+# 自动化 / CI：必须同时带齐 slug、title；token 用环境变量或 --token
 npm run ocs -- publish --slug my-pack --title "My pack" --source current
-# 或指定目录：
+# 指定目录（相对路径会解析 monorepo 根）：
 # npm run ocs -- publish --slug my-pack --title "My pack" --source ./example-pack
 ```
 
-根目录 `npm run ocs` 通过 `tsx` 直接跑 `packages/cli/src`，改代码即生效；`.env.cli` 会在进程启动时自动加载（已 `.gitignore`）。
+非 TTY（如 CI）下若未同时提供 `--slug` 与 `--title`，或没有 `OPENCLAW_SOUL_TOKEN`/`--token`，命令会直接报错退出（不会挂住）。
+
+根目录 `npm run ocs` 通过 `tsx` 直接跑 `packages/cli/src`；`.env.cli` 在进程启动时自动加载（已 `.gitignore`）。
 
 **Manifest-only install**（白名单文件拷入已有 workspace，不下载 zip）：
 
