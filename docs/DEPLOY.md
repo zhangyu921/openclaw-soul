@@ -37,12 +37,17 @@ npm run dev
 
 生产若不用 Blob，须保证运行环境有**持久可写盘**（多数 Serverless 无持久盘，请用 Blob / S3 等）。
 
-## 4. Vercel 示例
+## 4. Vercel（推荐：只部署 Web）
 
-1. 项目 Root Directory 指向 monorepo 根或仅 `web`（若仅 `web`，需把 `prisma`、`prisma.config.ts` 留在该目录内，当前结构已满足）。
-2. **Install**：在根执行 `npm install`（workspaces）。
-3. **Build**：`npm run build`（根脚本会先 build CLI 再 build web）；或在仅 web 场景下 `cd web && npx prisma generate && npx prisma migrate deploy && next build`。
-4. 在 Vercel 项目 Settings → Environment Variables 填入上表变量；在 Storage 开通 Blob 并把 token 写入 `BLOB_READ_WRITE_TOKEN`。
+仓库里已有 `web/vercel.json`：在 **Root Directory** 设为 `web` 时，会从 monorepo 根执行 `npm install`，并在 build 时先 `prisma migrate deploy` 再 `next build`。
+
+1. [Vercel](https://vercel.com) → New Project → 导入本 Git 仓库。
+2. **Root Directory**：填 `web`。
+3. **Settings → Environment Variables**（Production / Preview 按需）：至少 `DATABASE_URL`、`AUTH_SECRET`；上传 pack 需再加 `BLOB_READ_WRITE_TOKEN`（Vercel 项目 → Storage → Blob → 创建并复制 token）。
+4. **首次部署前**必须在 Vercel 里配好 `DATABASE_URL`，否则 build 阶段迁移会失败。
+5. （可选）在 **Settings → General** 打开 **Include files outside of the Root Directory in the Build Step**，若将来有从 `web` 引用仓库根目录文件的构建脚本，可避免缺文件。
+
+若你希望 **从仓库根目录** 一个命令构建（含 CLI），也可把 Root Directory 留空，自行将 Build Command 设为 `npm run db:deploy && npm run build -w web`，并把 **Output Directory** 配成 Next 在子目录的产出（需对照 Vercel 对 subdirectory Next 的说明）；上述 `web` 根目录方式更简单。
 
 ## 5. 部署后自检
 
