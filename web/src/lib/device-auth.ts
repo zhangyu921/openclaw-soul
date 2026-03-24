@@ -21,7 +21,15 @@ export function generateDeviceCode(): string {
   return randomBytes(32).toString("base64url");
 }
 
+/**
+ * 对外展示的站点 origin（device 授权链接等）。
+ * 若 Vercel 同时绑了 `*.vercel.app` 与自定义域，可设 `OPENCLAW_SOUL_SITE_URL=https://你的主域`
+ * 避免用户永远看到默认部署域。
+ */
 export function requestOrigin(req: Request): string {
+  const fixed = process.env.OPENCLAW_SOUL_SITE_URL?.trim().replace(/\/$/, "");
+  if (fixed) return fixed;
+
   const url = new URL(req.url);
   const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
   const proto =
