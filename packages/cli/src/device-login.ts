@@ -17,11 +17,21 @@ export async function runDeviceLogin(apiBase: string): Promise<string> {
   const startRes = await fetch(`${base}/api/auth/device/start`, {
     method: "POST",
   });
+  const startText = await startRes.text();
   if (!startRes.ok) {
-    const t = await startRes.text();
-    throw new Error(`device/start failed: ${startRes.status} ${t}`);
+    let detail = startText.slice(0, 800);
+    try {
+      const j = JSON.parse(startText) as { message?: string; error?: string };
+      if (j.message) detail = j.message;
+      else if (j.error) detail = `${j.error}: ${detail}`;
+    } catch {
+      /* use raw */
+    }
+    throw new Error(
+      `device/start failed (${startRes.status}): ${detail.trim() || startText}`
+    );
   }
-  const start = (await startRes.json()) as DeviceStartResponse;
+  const start = JSON.parse(startText) as DeviceStartResponse;
   if (!start.device_code || !start.verification_uri) {
     throw new Error("device/start: invalid response");
   }

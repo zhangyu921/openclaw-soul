@@ -94,6 +94,10 @@ npm run dev          # web dev server
 
 Global CLI after `npm link` inside `packages/cli`, or use `npx` once published.
 
+## Troubleshooting
+
+- **`device/start failed (500)`** when running `ocs login` / interactive `publish`: almost always the DB schema is behind. From repo root run `npm run db:push` (or `cd web && npx prisma db push`), restart `npm run dev`, then try again.
+
 ## Privacy
 
 Publishing sends the **entire** directory as zip. You are responsible for what you upload.
