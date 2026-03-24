@@ -40,14 +40,16 @@ export default function PrivacyPage() {
             再次上传同一 slug 以重新公开（会清除撤销状态）。
           </p>
           <p>
-            <strong>技术限制（MVP）。</strong> 单包 zip 上限 <strong>2 MiB</strong>；头像单文件上限{" "}
-            <strong>512 KiB</strong>。同一账号约 <strong>每自然小时 20 次</strong>{" "}
+            <strong>技术限制（MVP）。</strong> 单包 zip 上限 <strong>2 MiB</strong>；头像在服务端校验上限{" "}
+            <strong>512 KiB</strong>（网页上传与 CLI 发布会在<strong>你的浏览器或本机</strong>先压缩后再传，一般无需手动缩小）。
+            同一账号约 <strong>每自然小时 20 次</strong>{" "}
             成功发布（新建或覆盖）会触发频率限制，以防止滥用。
           </p>
           <p className="text-zinc-500 dark:text-zinc-400">
             English summary: By uploading, you agree you have read this page and accept full responsibility
             for the content. We store full zips as-is (no redaction in MVP). You may soft-revoke public
-            visibility without deleting server-side data; limits apply as stated above.
+            visibility without deleting server-side data; limits apply as stated above. Avatars are
+            compressed client-side before upload; the server enforces a 512 KiB cap as a safeguard.
           </p>
         </section>
 

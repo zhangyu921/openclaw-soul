@@ -7,8 +7,9 @@ import {
   isTransientNetworkError,
   requestPostRegistry,
 } from "./fetch-registry.js";
+import { prepareAvatarForPublish } from "./compress-avatar.js";
 import { zipDirectory } from "./zip-utils.js";
-import { MAX_AVATAR_BYTES, MAX_PACK_ZIP_BYTES } from "./upload-limits.js";
+import { MAX_PACK_ZIP_BYTES } from "./upload-limits.js";
 
 function parseApiError(text: string): string {
   try {
@@ -85,14 +86,6 @@ export async function publishPack(
         `打包结果超过 ${MAX_PACK_ZIP_BYTES} 字节（2 MiB）上限，请减小工作区后再试。`
       );
     }
-    if (input.avatarPath) {
-      const avStat = await fs.promises.stat(input.avatarPath);
-      if (avStat.size > MAX_AVATAR_BYTES) {
-        throw new Error(
-          `头像超过 ${MAX_AVATAR_BYTES} 字节（512 KiB）上限。`
-        );
-      }
-    }
     const zipBuf = await fs.promises.readFile(tmpZip);
     const base = input.apiBase.replace(/\/$/, "");
     /**
@@ -108,11 +101,10 @@ export async function publishPack(
       contentType: "application/zip",
     });
     if (input.avatarPath) {
-      const ab = await fs.promises.readFile(input.avatarPath);
-      const name = path.basename(input.avatarPath);
-      form.append("avatar", ab, {
-        filename: name,
-        contentType: "application/octet-stream",
+      const av = await prepareAvatarForPublish(input.avatarPath);
+      form.append("avatar", av.buffer, {
+        filename: av.filename,
+        contentType: av.contentType,
       });
     }
     if (input.replace) {
@@ -162,7 +154,7 @@ export async function publishPack(
       if (statusCode === 413) {
         const detail = parseApiError(responseText);
         throw new Error(
-          `上传被拒绝（体积超限）：${detail}（pack zip ≤ 2 MiB，头像 ≤ 512 KiB）`
+          `上传被拒绝（体积超限）：${detail}（pack zip ≤ 2 MiB；头像 ≤ 512 KiB，CLI 会在本机先压缩）`
         );
       }
       if (statusCode === 429) {

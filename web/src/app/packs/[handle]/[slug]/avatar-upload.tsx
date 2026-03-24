@@ -1,5 +1,6 @@
 "use client";
 
+import { compressAvatarForUpload } from "@/lib/compress-avatar-client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -20,8 +21,17 @@ export default function AvatarUpload({
     setStatus(null);
     setLoading(true);
     try {
+      let toSend = file;
+      try {
+        toSend = await compressAvatarForUpload(file);
+      } catch (compressErr) {
+        const msg =
+          compressErr instanceof Error ? compressErr.message : String(compressErr);
+        setStatus(msg);
+        return;
+      }
       const form = new FormData();
-      form.append("avatar", file);
+      form.append("avatar", toSend);
       const res = await fetch(
         `/api/packs/${encodeURIComponent(handle)}/${encodeURIComponent(slug)}/avatar`,
         { method: "POST", body: form }
