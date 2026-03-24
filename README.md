@@ -36,7 +36,7 @@ npm run ocs -- login
 **发布**
 
 ```bash
-# 交互式（TTY）：未带齐 --slug 与 --title 时会问答，缺 token 时会自动走浏览器登录
+# 交互式（TTY）：若未配置 token，会先询问是否在浏览器登录；再按需问答 slug/title 等
 npm run ocs -- publish
 
 # 自动化 / CI：必须同时带齐 slug、title；token 用环境变量或 --token

@@ -1,5 +1,39 @@
 import { openBrowser } from "./open-browser.js";
 
+function isConnectionRefused(e: unknown): boolean {
+  if (!e || typeof e !== "object") return false;
+  const err = e as { code?: string; cause?: unknown };
+  if (err.code === "ECONNREFUSED") return true;
+  const c = err.cause;
+  if (c && typeof c === "object") {
+    const c1 = c as { code?: string; errors?: { code?: string }[] };
+    if (c1.code === "ECONNREFUSED") return true;
+    if (Array.isArray(c1.errors)) {
+      return c1.errors.some((x) => x?.code === "ECONNREFUSED");
+    }
+  }
+  return false;
+}
+
+async function registryFetch(url: string, init?: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch (e) {
+    if (isConnectionRefused(e)) {
+      let origin = url;
+      try {
+        origin = new URL(url).origin;
+      } catch {
+        /* keep */
+      }
+      throw new Error(
+        `无法连接 registry（${origin}，连接被拒绝）。请先在仓库根目录启动站点：npm run dev；若端口不是 3000，请在 .env.cli 或环境中设置 OPENCLAW_SOUL_API。`
+      );
+    }
+    throw e;
+  }
+}
+
 type DeviceStartResponse = {
   device_code: string;
   user_code: string;
@@ -14,7 +48,7 @@ type DeviceTokenResponse =
 /** Browser device flow + poll until token (RFC 8628 style). */
 export async function runDeviceLogin(apiBase: string): Promise<string> {
   const base = apiBase.replace(/\/$/, "");
-  const startRes = await fetch(`${base}/api/auth/device/start`, {
+  const startRes = await registryFetch(`${base}/api/auth/device/start`, {
     method: "POST",
   });
   const startText = await startRes.text();
@@ -48,7 +82,7 @@ export async function runDeviceLogin(apiBase: string): Promise<string> {
     await new Promise((r) => setTimeout(r, delay));
     delay = intervalMs;
 
-    const tokenRes = await fetch(`${base}/api/auth/device/token`, {
+    const tokenRes = await registryFetch(`${base}/api/auth/device/token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

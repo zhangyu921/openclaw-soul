@@ -3,6 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import os from "node:os";
 import { Command } from "commander";
+import { confirm } from "@inquirer/prompts";
 import { loadCliEnv, resolveWorkspacePath, findMonorepoRoot } from "./load-env.js";
 import {
   backupAndWriteWorkspace,
@@ -143,12 +144,33 @@ program
       config: string;
     }) => {
       const api = opts.api.replace(/\/$/, "");
+      const config = opts.config;
+
+      let token = opts.token || process.env.OPENCLAW_SOUL_TOKEN;
+      if (!token) {
+        if (!process.stdin.isTTY) {
+          throw new Error(
+            "Set OPENCLAW_SOUL_TOKEN, use --token, or run ocs login from a terminal."
+          );
+        }
+        const proceed = await confirm({
+          message:
+            "未检测到 API token（尚未登录 registry）。是否在浏览器中登录并授权 CLI？（需本机已启动站点，例如仓库根目录 npm run dev）",
+          default: true,
+        });
+        if (!proceed) {
+          throw new Error(
+            "已取消。可执行 `npm run ocs -- login` 单独登录，或在 .env.cli / 环境变量中设置 OPENCLAW_SOUL_TOKEN 后再 publish。"
+          );
+        }
+        token = await runDeviceLogin(api);
+      }
+
       let slug = (opts.slug ?? "").trim();
       let title = (opts.title ?? "").trim();
       let summary = opts.summary?.trim();
       let source = opts.source;
       let avatar = opts.avatar;
-      const config = opts.config;
 
       const bothNames = slug.length > 0 && title.length > 0;
       if (!bothNames) {
@@ -169,17 +191,6 @@ program
         summary = w.summary;
         source = w.source;
         avatar = w.avatar;
-      }
-
-      let token = opts.token || process.env.OPENCLAW_SOUL_TOKEN;
-      if (!token) {
-        if (!process.stdin.isTTY) {
-          throw new Error(
-            "Set OPENCLAW_SOUL_TOKEN, use --token, or run ocs login from a terminal."
-          );
-        }
-        console.error("No API token; starting browser login…");
-        token = await runDeviceLogin(api);
       }
 
       validateSlug(slug);
