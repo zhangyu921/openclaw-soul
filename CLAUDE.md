@@ -52,6 +52,10 @@
 - **Auth 必做**：注册/登录 + **API Token** 供 `publish`。
 - **Next.js App Router** + **Prisma ORM 7**（`prisma.config.ts` 配数据源；`@prisma/adapter-better-sqlite3` + 本地 **SQLite** 零配置；客户端生成到 `web/src/generated/prisma`）+ 本机目录 **`storage/`** 存 zip/头像（可换 Blob/R2/S3）。
 
+## 展示与上线（当前优先级）
+
+以 **先上线、再秀 Soul 妙用、让人想拥有** 为主轴；可执行 checklist 见 [`docs/SHOWCASE-PLAN.md`](docs/SHOWCASE-PLAN.md)。
+
 ## 沟通偏好
 
 中文交流，技术专有名词保留英文。
