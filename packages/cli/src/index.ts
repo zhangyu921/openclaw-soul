@@ -24,6 +24,7 @@ import { getUserEnvFilePath } from "./user-config-path.js";
 import { validateSlug } from "./slug.js";
 import { readIdentityDefaults } from "./read-identity.js";
 import { ensurePublishPrivacyConsent } from "./privacy-ack.js";
+import { dbg, setCliDebug } from "./cli-debug.js";
 
 loadCliEnv();
 
@@ -62,12 +63,22 @@ function persistOpenclawSoulCredentials(
   console.error(`已写入 ${filePath}，后续命令会自动使用该 token。`);
 }
 
-async function renameBackupDir(dir: string): Promise<void> {
-  if (!fs.existsSync(dir)) return;
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+/**
+ * Rename `dir` to `dir.bak.<stamp>` if it exists.
+ * Pass the same `stamp` as the config backup so both paths are predictable.
+ */
+async function renameBackupDir(
+  dir: string,
+  debug: boolean,
+  stamp: string
+): Promise<{ renamed: boolean; backupPath?: string }> {
+  if (!fs.existsSync(dir)) return { renamed: false };
   const backup = `${dir}.bak.${stamp}`;
   await fs.promises.rename(dir, backup);
-  console.error(`Renamed existing directory to ${backup}`);
+  if (debug) {
+    console.error(`Renamed existing directory to ${backup}`);
+  }
+  return { renamed: true, backupPath: backup };
 }
 
 const program = new Command();
@@ -113,34 +124,107 @@ program
     "path to openclaw.json",
     openclawConfigPath()
   )
-  .action(async (ref: string, opts: { api: string; config: string }) => {
-    const parts = ref.split("/").filter(Boolean);
-    if (parts.length !== 2) {
-      throw new Error(
-        `Expected handle/slug (e.g. alice/my-pack), got: ${ref}`
+  .option("--debug", "print full URLs, backup paths, and openclaw.json notes", false)
+  .option("-y, --yes", "skip confirmation prompt (TTY only)", false)
+  .action(
+    async (
+      ref: string,
+      opts: { api: string; config: string; debug: boolean; yes: boolean }
+    ) => {
+    const debug = Boolean(opts.debug);
+    setCliDebug(debug);
+    try {
+      const parts = ref.split("/").filter(Boolean);
+      if (parts.length !== 2) {
+        throw new Error(
+          `Expected handle/slug (e.g. alice/my-pack), got: ${ref}`
+        );
+      }
+      const [handle, slug] = parts;
+      validateSlug(handle);
+      validateSlug(slug);
+      const base = opts.api.replace(/\/$/, "");
+      const encH = encodeURIComponent(handle);
+      const encS = encodeURIComponent(slug);
+      const zipUrl = `${base}/api/packs/${encH}/${encS}/download`;
+      const dest = path.join(os.homedir(), ".openclaw", `workspace-${slug}`);
+      const configAbs = path.resolve(opts.config);
+      const opStamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const workspaceBackupPlanned =
+        fs.existsSync(dest) ? `${dest}.bak.${opStamp}` : null;
+      const configBackupPlanned = fs.existsSync(configAbs)
+        ? `${configAbs}.bak.${opStamp}`
+        : null;
+
+      if (process.stdin.isTTY && !opts.yes) {
+        console.error("即将执行 apply，请确认：");
+        console.error(`  Registry：${base}`);
+        console.error(`  Pack：${handle}/${slug}`);
+        console.error(`  下载地址：${zipUrl}`);
+        console.error(`  解压到：${dest}`);
+        if (workspaceBackupPlanned) {
+          console.error(`  已存在的工作区目录将改名为：${workspaceBackupPlanned}`);
+        } else {
+          console.error(`  工作区目录尚不存在，将新建：${dest}`);
+        }
+        console.error(`  配置文件：${configAbs}`);
+        if (configBackupPlanned) {
+          console.error(`  若配置文件已存在，将先备份为：${configBackupPlanned}`);
+        }
+        console.error(
+          `  随后写入 agent.workspace 与 agents.defaults.workspace → ${dest}`
+        );
+        const ok = await confirm({ message: "是否继续？", default: true });
+        if (!ok) {
+          throw new Error("已取消 apply。");
+        }
+      }
+
+      const tmpZip = path.join(
+        os.tmpdir(),
+        `openclaw-soul-${handle}-${slug}-${Date.now()}.zip`
       );
+      if (debug) {
+        console.error(`Downloading ${zipUrl}`);
+      } else {
+        console.error(`正在下载并解压 ${handle}/${slug} …`);
+      }
+      await downloadToFile(zipUrl, tmpZip);
+      dbg(`Saved zip to ${tmpZip}`);
+
+      const wsBackup = await renameBackupDir(dest, debug, opStamp);
+      await fs.promises.mkdir(path.dirname(dest), { recursive: true });
+      await extractZip(tmpZip, dest);
+      await fs.promises.unlink(tmpZip);
+      dbg(`Removed temp zip ${tmpZip}`);
+      const { configBackupPath } = backupAndWriteWorkspace(opts.config, dest, {
+        debug,
+        backupStamp: opStamp,
+      });
+      if (!debug) {
+        console.error(`完成：${handle}/${slug}`);
+        if (wsBackup.renamed && wsBackup.backupPath) {
+          console.error(`原工作区已备份：${wsBackup.backupPath}`);
+        }
+        if (configBackupPath) {
+          console.error(`openclaw.json 已备份：${configBackupPath}`);
+        }
+        console.error(`openclaw.json 已更新：${configAbs}`);
+        console.error(
+          `已指向工作区：${dest}（agent.workspace / agents.defaults.workspace）`
+        );
+        console.error("stdout 仅输出工作区绝对路径一行，供脚本使用。");
+      } else {
+        console.error(
+          "完成。工作区路径见 stdout；配置与备份路径见上方 debug 输出。"
+        );
+      }
+      console.log(dest);
+    } finally {
+      setCliDebug(false);
     }
-    const [handle, slug] = parts;
-    validateSlug(handle);
-    validateSlug(slug);
-    const base = opts.api.replace(/\/$/, "");
-    const encH = encodeURIComponent(handle);
-    const encS = encodeURIComponent(slug);
-    const zipUrl = `${base}/api/packs/${encH}/${encS}/download`;
-    const tmpZip = path.join(
-      os.tmpdir(),
-      `openclaw-soul-${handle}-${slug}-${Date.now()}.zip`
-    );
-    console.error(`Downloading ${zipUrl}`);
-    await downloadToFile(zipUrl, tmpZip);
-    const dest = path.join(os.homedir(), ".openclaw", `workspace-${slug}`);
-    await renameBackupDir(dest);
-    await fs.promises.mkdir(path.dirname(dest), { recursive: true });
-    await extractZip(tmpZip, dest);
-    await fs.promises.unlink(tmpZip);
-    backupAndWriteWorkspace(opts.config, dest);
-    console.log(dest);
-  });
+  }
+  );
 
 program
   .command("publish")

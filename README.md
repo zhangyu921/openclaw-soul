@@ -72,11 +72,15 @@ npm run ocs -- import ./example-pack --target ~/.openclaw/workspace
 # 加 --dry-run 只看将要复制的路径
 ```
 
-Apply 已发布的 pack（`ref` = 作者的 **handle** + **pack slug**，若已有 `~/.openclaw/workspace-<slug>` 会先改名备份，并更新 `openclaw.json`；JSON5 写回**仍无法保留原文件注释**）：
+Apply 已发布的 pack（`ref` = 作者的 **handle** + **pack slug**，若已有 `~/.openclaw/workspace-<slug>` 会先改名备份，并更新 `openclaw.json`；**读**仍用 JSON5。**写**：若文件为合法 **JSONC**（标准 JSON + `//` / `/* */` 注释、尾随逗号等），CLI 用 `jsonc-parser` 只改 `agent.workspace` 与 `agents.defaults.workspace`，**尽量保留注释与排版**；若解析失败（例如含 JSON5 专有条目如无引号键），则回退为整文件 **JSON.stringify**（注释会丢失）：
 
 ```bash
 npm run ocs -- apply alice/my-pack
+# 终端（TTY）会先列出完整路径并确认；脚本或非交互可加 -y / --yes 跳过确认
+# 详细日志：--debug
 ```
+
+默认 **stderr**：TTY 下先**确认**（Registry、下载 URL、解压目录、将使用的备份路径、`openclaw.json` 绝对路径）；完成后打印**完整**备份路径与配置路径。**stdout** 仍仅一行工作区绝对路径。`--debug` 打开更细的 **stderr**。
 
 环境变量（推荐 `export` 或写入用户 `env`；在 monorepo 内也可用 `.env.cli` 覆盖开发值）：
 
