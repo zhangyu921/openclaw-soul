@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import FormDataNode from "form-data";
 import {
   fetchRegistry,
   isConnectTimeoutError,
@@ -92,33 +93,40 @@ export async function publishPack(
     }
     const zipBuf = await fs.promises.readFile(tmpZip);
     const base = input.apiBase.replace(/\/$/, "");
-    const form = new FormData();
+    /** 使用 npm `form-data` + `getHeaders()`：undici `fetch` 仅配 `Authorization` 时，Web `FormData`/`File` 偶发不带上 `multipart/form-data; boundary=…`，Next 会返回 400。 */
+    const form = new FormDataNode();
     form.append("slug", input.slug);
     form.append("title", input.title);
     if (input.summary) form.append("summary", input.summary);
-    form.append(
-      "zip",
-      new File([zipBuf], "pack.zip", { type: "application/zip" })
-    );
+    form.append("zip", zipBuf, {
+      filename: "pack.zip",
+      contentType: "application/zip",
+    });
     if (input.avatarPath) {
       const ab = await fs.promises.readFile(input.avatarPath);
       const name = path.basename(input.avatarPath);
-      form.append(
-        "avatar",
-        new File([ab], name, { type: "application/octet-stream" })
-      );
+      form.append("avatar", ab, {
+        filename: name,
+        contentType: "application/octet-stream",
+      });
     }
     if (input.replace) {
       form.append("replace", "true");
     }
 
+    const mergedHeaders: Record<string, string> = {
+      ...(form.getHeaders() as Record<string, string>),
+      Authorization: `Bearer ${input.token}`,
+    };
+
     let res: Response;
     try {
       res = await fetchRegistry(`${base}/api/packs`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${input.token}` },
-        body: form,
-      });
+        headers: mergedHeaders,
+        body: form as unknown as BodyInit,
+        duplex: "half",
+      } as RequestInit);
     } catch (e) {
       if (isConnectTimeoutError(e)) {
         throw new Error(
