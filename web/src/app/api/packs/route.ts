@@ -85,19 +85,79 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "zip file required" }, { status: 400 });
   }
 
+  const zipBuf = Buffer.from(await zip.arrayBuffer());
+
   const dup = await prisma.pack.findFirst({
     where: { authorId, slug },
   });
   if (dup) {
-    return NextResponse.json(
-      { error: "you already have a pack with this slug" },
-      { status: 409 }
-    );
+    const replaceRaw = form.get("replace");
+    const wantsReplace =
+      replaceRaw === "true" ||
+      replaceRaw === "1" ||
+      String(replaceRaw ?? "")
+        .trim()
+        .toLowerCase() === "yes";
+    if (!wantsReplace) {
+      return NextResponse.json(
+        { error: "you already have a pack with this slug" },
+        { status: 409 }
+      );
+    }
+
+    await ensurePackDirs();
+    try {
+      await fs.writeFile(zipPathForPack(dup.id), zipBuf);
+    } catch (e) {
+      console.error(e);
+      return NextResponse.json({ error: "failed to store zip" }, { status: 500 });
+    }
+
+    const updateData: {
+      title: string;
+      summary: string | null;
+      avatarRelPath?: string | null;
+    } = { title, summary };
+
+    if (avatar instanceof File && avatar.size > 0) {
+      if (dup.avatarRelPath) {
+        const oldExt = path.extname(dup.avatarRelPath) || ".bin";
+        await fs.unlink(avatarPathForPack(dup.id, oldExt)).catch(() => {});
+      }
+      const ext = path.extname(avatar.name) || ".bin";
+      const ap = avatarPathForPack(dup.id, ext);
+      try {
+        await fs.writeFile(ap, Buffer.from(await avatar.arrayBuffer()));
+        updateData.avatarRelPath = `avatars/${dup.id}${ext}`;
+      } catch (e) {
+        console.error(e);
+        return NextResponse.json({ error: "failed to store avatar" }, { status: 500 });
+      }
+    }
+
+    try {
+      await prisma.pack.update({
+        where: { id: dup.id },
+        data: updateData,
+      });
+    } catch (e) {
+      console.error(e);
+      return NextResponse.json({ error: "failed to update pack" }, { status: 500 });
+    }
+
+    const encH = encodeURIComponent(handle);
+    const encS = encodeURIComponent(slug);
+    return NextResponse.json({
+      ok: true,
+      handle,
+      slug,
+      downloadPath: `/api/packs/${encH}/${encS}/download`,
+      viewPath: `/packs/${encH}/${encS}`,
+    });
   }
 
   await ensurePackDirs();
   const id = randomUUID();
-  const zipBuf = Buffer.from(await zip.arrayBuffer());
 
   try {
     await fs.writeFile(zipPathForPack(id), zipBuf);

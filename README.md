@@ -61,6 +61,8 @@ npm run ocs -- publish --slug my-pack --source current
 
 `publish` 成功后仅在 **stderr** 打印可点击查看的 pack 页面完整 URL。
 
+若服务端返回 **409**（你已用过该 `slug`）：交互模式下会询问是否**覆盖**（仅更新 ZIP、标题、摘要；`--avatar` 未传则保留原头像；URL 不变）。非交互请显式加 **`--replace`**。
+
 根目录 `npm run ocs` 通过 `tsx` 直接跑 `packages/cli/src`；启动时会按上表加载用户 `env` 与可选的 `.env.cli`（已 `.gitignore`）。
 
 **Manifest-only install**（白名单文件拷入已有 workspace，不下载 zip）：

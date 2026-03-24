@@ -12,7 +12,11 @@ import {
 } from "./openclaw-config.js";
 import { downloadToFile, extractZip } from "./zip-utils.js";
 import { importFromManifest } from "./import-pack.js";
-import { publishPack, PublishAuthError } from "./publish-pack.js";
+import {
+  publishPack,
+  PublishAuthError,
+  PublishConflictError,
+} from "./publish-pack.js";
 import { runPublishWizard } from "./publish-wizard.js";
 import { runDeviceLogin } from "./device-login.js";
 import { upsertEnvKeyInFile, setEnvKeyIfMissing } from "./env-cli-file.js";
@@ -154,6 +158,11 @@ program
   )
   .option("--avatar <file>", "optional avatar image file")
   .option(
+    "--replace",
+    "if you already have a pack with this slug, overwrite zip/title/summary (URL unchanged; avatar only updated if --avatar is set)",
+    false
+  )
+  .option(
     "--config <path>",
     "path to openclaw.json (for --source current)",
     openclawConfigPath()
@@ -167,10 +176,12 @@ program
       summary?: string;
       source: string;
       avatar?: string;
+      replace: boolean;
       config: string;
     }) => {
       const api = opts.api.replace(/\/$/, "");
       const config = opts.config;
+      let replace = Boolean(opts.replace);
 
       let token = opts.token || process.env.OPENCLAW_SOUL_TOKEN;
       if (!token) {
@@ -268,34 +279,58 @@ program
             summary,
             sourceDir,
             avatarPath,
+            replace,
           });
           const viewUrl = `${api}${result.viewPath}`;
           console.error(`上传成功。在浏览器中查看：${viewUrl}`);
           break;
         } catch (e) {
+          if (e instanceof PublishConflictError) {
+            if (replace) {
+              throw new Error(`上传失败（已请求覆盖仍冲突）：${e.body}`);
+            }
+            if (!process.stdin.isTTY) {
+              throw new Error(
+                "该 slug 下你已有一个 pack。请加 `--replace` 覆盖上传，或换一个 `--slug`。"
+              );
+            }
+            const ok = await confirm({
+              message:
+                "你已用该 slug 发布过 pack。是否覆盖更新（ZIP、标题与摘要会替换；未传 --avatar 时保留原头像；页面链接不变）？",
+              default: true,
+            });
+            if (!ok) {
+              throw new Error(
+                "已取消。可换一个 slug，或执行 `ocs publish --replace`（可加 `--slug`）覆盖上传。"
+              );
+            }
+            replace = true;
+            continue;
+          }
           if (
-            !(e instanceof PublishAuthError) ||
-            authAttempt >= maxReauthAttempts
+            e instanceof PublishAuthError &&
+            authAttempt < maxReauthAttempts
           ) {
-            throw e;
+            if (!process.stdin.isTTY) {
+              throw new Error(
+                "上传失败：API token 无效或已过期（例如服务端数据库已重置）。请在终端执行 `ocs login --force`，或设置有效的 OPENCLAW_SOUL_TOKEN / --token 后重试。"
+              );
+            }
+            const proceed = await confirm({
+              message:
+                "API token 无效或已过期（常见于服务端重置数据库或 token 被撤销）。是否在浏览器中重新登录并再次上传？",
+              default: true,
+            });
+            if (!proceed) {
+              throw new Error(
+                "已取消。可执行 `ocs login --force` 写入新 token，或更新 OPENCLAW_SOUL_TOKEN / --token 后再执行 publish。"
+              );
+            }
+            token = await runDeviceLogin(api);
+            persistOpenclawSoulCredentials(api, token, true);
+            continue;
           }
-          if (!process.stdin.isTTY) {
-            throw new Error(
-              "上传失败：API token 无效或已过期（例如服务端数据库已重置）。请在终端执行 `ocs login --force`，或设置有效的 OPENCLAW_SOUL_TOKEN / --token 后重试。"
-            );
-          }
-          const proceed = await confirm({
-            message:
-              "API token 无效或已过期（常见于服务端重置数据库或 token 被撤销）。是否在浏览器中重新登录并再次上传？",
-            default: true,
-          });
-          if (!proceed) {
-            throw new Error(
-              "已取消。可执行 `ocs login --force` 写入新 token，或更新 OPENCLAW_SOUL_TOKEN / --token 后再执行 publish。"
-            );
-          }
-          token = await runDeviceLogin(api);
-          persistOpenclawSoulCredentials(api, token, true);
+          throw e;
         }
       }
     }

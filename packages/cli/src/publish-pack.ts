@@ -11,6 +11,8 @@ export type PublishPackInput = {
   summary?: string;
   sourceDir: string;
   avatarPath?: string;
+  /** Same author + slug already exists: overwrite zip / metadata (URL unchanged). */
+  replace?: boolean;
 };
 
 /** Successful JSON body from POST /api/packs */
@@ -29,6 +31,18 @@ export class PublishAuthError extends Error {
   constructor(status: number, body: string) {
     super(`Publish auth failed: ${status} ${body}`);
     this.name = "PublishAuthError";
+    this.status = status;
+    this.body = body;
+  }
+}
+
+/** Slug already taken for this account; retry with replace or pick another slug. */
+export class PublishConflictError extends Error {
+  readonly status: number;
+  readonly body: string;
+  constructor(status: number, body: string) {
+    super(`Publish conflict: ${status} ${body}`);
+    this.name = "PublishConflictError";
     this.status = status;
     this.body = body;
   }
@@ -64,6 +78,9 @@ export async function publishPack(
         new File([ab], name, { type: "application/octet-stream" })
       );
     }
+    if (input.replace) {
+      form.append("replace", "true");
+    }
 
     const res = await fetch(`${base}/api/packs`, {
       method: "POST",
@@ -74,6 +91,9 @@ export async function publishPack(
     if (!res.ok) {
       if (res.status === 401) {
         throw new PublishAuthError(res.status, text);
+      }
+      if (res.status === 409) {
+        throw new PublishConflictError(res.status, text);
       }
       throw new Error(`Publish failed: ${res.status} ${text}`);
     }
