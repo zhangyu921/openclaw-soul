@@ -2,6 +2,7 @@ import { openBrowser } from "./open-browser.js";
 import {
   fetchRegistry,
   isConnectTimeoutError,
+  isTransientNetworkError,
 } from "./fetch-registry.js";
 
 function isConnectionRefused(e: unknown): boolean {
@@ -42,7 +43,18 @@ async function registryFetch(url: string, init?: RequestInit): Promise<Response>
         /* keep */
       }
       throw new Error(
-        `无法及时连上 registry（${origin}，连接超时）。可调大 OPENCLAW_SOUL_CONNECT_TIMEOUT_MS（默认 60000）；从国内访问 Vercel 若持续失败请检查网络或代理。`
+        `无法及时连上 registry（${origin}，连接超时）。可调大 OPENCLAW_SOUL_CONNECT_TIMEOUT_MS（默认 60000）；若浏览器能开站点但 CLI 不行，可设 HTTPS_PROXY 与浏览器一致。`
+      );
+    }
+    if (isTransientNetworkError(e)) {
+      let origin = url;
+      try {
+        origin = new URL(url).origin;
+      } catch {
+        /* keep */
+      }
+      throw new Error(
+        `与 registry 通信中断（${origin}）。已内置重试仍失败时请检查网络，或设置 HTTPS_PROXY；可调大 OPENCLAW_SOUL_FETCH_MAX_RETRIES。`
       );
     }
     throw e;

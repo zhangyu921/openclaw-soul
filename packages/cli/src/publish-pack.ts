@@ -1,7 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import { fetchRegistry, isConnectTimeoutError } from "./fetch-registry.js";
+import {
+  fetchRegistry,
+  isConnectTimeoutError,
+  isTransientNetworkError,
+} from "./fetch-registry.js";
 import { zipDirectory } from "./zip-utils.js";
 import { MAX_AVATAR_BYTES, MAX_PACK_ZIP_BYTES } from "./upload-limits.js";
 
@@ -119,7 +123,13 @@ export async function publishPack(
       if (isConnectTimeoutError(e)) {
         throw new Error(
           `连接 registry 超时（${base}）。可调大 OPENCLAW_SOUL_CONNECT_TIMEOUT_MS（默认 60000）、` +
-            `OPENCLAW_SOUL_BODY_TIMEOUT_MS（大 zip 上传，默认 300000）；从国内访问 Vercel 若仍失败请检查网络或代理。`
+            `OPENCLAW_SOUL_BODY_TIMEOUT_MS（大 zip 上传，默认 300000）；从国内访问若仍失败请检查网络或设置 HTTPS_PROXY。`
+        );
+      }
+      if (isTransientNetworkError(e)) {
+        throw new Error(
+          `上传过程中网络中断（${base}，如 ECONNRESET）。CLI 已自动重试仍失败时可：增大 OPENCLAW_SOUL_FETCH_MAX_RETRIES（默认 3）、` +
+            `检查 Wi‑Fi/运营商；若浏览器走系统代理，请在同一终端设置 HTTPS_PROXY=http://127.0.0.1:端口 后再执行 publish。`
         );
       }
       throw e;
