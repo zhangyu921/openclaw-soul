@@ -63,7 +63,7 @@ pnpm run ocs -- publish --slug my-pack --source current
 
 非 TTY 下若未提供 `--slug`，或没有 `OPENCLAW_SOUL_TOKEN`/`--token`，命令会直接报错退出（不会挂住）。
 
-`publish` 成功后仅在 **stderr** 打印可点击查看的 pack 页面完整 URL。
+`publish` 成功后仅在 **stderr** 打印可点击查看的 pack 页面完整 URL（服务端返回的 **`viewUrl`**，优先于用 `OPENCLAW_SOUL_API` 拼接；生产请配 **`OPENCLAW_SOUL_SITE_URL`** 与主域一致）。
 
 若服务端返回 **409**（你已用过该 `slug`）：交互模式下会询问是否**覆盖**（仅更新 ZIP、标题、摘要；`--avatar` 未传则保留原头像；URL 不变）。非交互请显式加 **`--replace`**。
 
@@ -89,6 +89,7 @@ pnpm run ocs -- apply alice/my-pack
 环境变量（推荐 `export` 或写入用户 `env`；在 monorepo 内也可用 `.env.cli` 覆盖开发值）：
 
 - `OPENCLAW_SOUL_API` — registry base URL（默认 `http://localhost:3000`）
+- `OPENCLAW_SOUL_SITE_URL` — 可选；生产建议设为对外主域（`https://…`，无尾 `/`）。用于浏览器里 device 授权链接、**`publish` 成功时打印的 pack 页 `viewUrl`**（避免一直显示 `*.vercel.app`），以及站内依赖 canonical origin 的片段；详见 [`docs/DEPLOY.md`](docs/DEPLOY.md)。
 - `OPENCLAW_SOUL_TOKEN` — `publish` 用 API token
 - `OPENCLAW_SOUL_CONFIG_DIR` — 自定义 CLI 配置目录（其下文件名为 `env`）
 - `OPENCLAW_CONFIG` — `openclaw.json` 路径（默认 `~/.openclaw/openclaw.json`）
@@ -99,6 +100,8 @@ pnpm run ocs -- apply alice/my-pack
 - `HTTPS_PROXY` / `HTTP_PROXY` — CLI 内 undici 会走代理（与浏览器分开时，若浏览器能上站而终端不能，可在终端设此变量）
 
 若使用根目录 `package.json` 的 `bin`（`npx ocs` / `pnpm link --global` 在 `packages/cli`），需先执行一次 `pnpm --filter @openclaw-soul/cli build`（走编译后的 `dist`）。
+
+**`publish --avatar`**：CLI 依赖 **`sharp`**（本机压缩头像至 512 KiB 内再上传）；安装失败时请检查平台是否支持该原生依赖。
 
 Uploaded files：默认在 `web/storage/`（可用 `STORAGE_PATH`）。生产 Serverless 建议设置 **`BLOB_READ_WRITE_TOKEN`**（或 `STORAGE_DRIVER=vercel-blob`）使用 [Vercel Blob](https://vercel.com/docs/storage/vercel-blob)；此时 DB 中 zip/头像字段存 Blob 的 **https URL**。
 

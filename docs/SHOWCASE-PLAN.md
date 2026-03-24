@@ -61,4 +61,5 @@
 
 | 日期 | 进展 |
 |------|------|
+| 2026-03-24 | P0 闭环：Postgres + Vercel Blob、自定义域与 `OPENCLAW_SOUL_SITE_URL`；CLI 弱网/代理/重试与 publish multipart（undici）；上架成功提示 `viewUrl` 对齐主域；Blob 上传 `addRandomSuffix` 保留历史对象；头像在浏览器与 CLI（sharp）本机压缩至 512 KiB 内。 |
 | （填） | （填） |

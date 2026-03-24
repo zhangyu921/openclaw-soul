@@ -35,6 +35,9 @@
   - **显式路径**：用户指定目录。
 - **MVP：全量上传**，目录里有什么就打什么进 zip，**不做脱敏、不过滤文件**。
 - **Registry**：用户注册填 **public handle**；pack 的 **slug** 在作者内唯一；画廊与 API 路径为 `/packs/<handle>/<slug>`；CLI `apply <handle>/<slug>`。可选从 `IDENTITY.md` 的 **Name** 推导默认 slug / title。
+- **上架成功链接**：`POST /api/packs` 返回 **`viewUrl`**（`requestOrigin` / **`OPENCLAW_SOUL_SITE_URL`**），CLI 打印时优先用它，避免 `OPENCLAW_SOUL_API` 指向 `*.vercel.app` 时提示错域。
+- **头像**：网页用 Canvas 在浏览器压缩；CLI 用 **`sharp`** 本机压缩；服务端仍校验 ≤512 KiB。
+- **Vercel Blob**：`put` 使用 **`addRandomSuffix`**，同 slug 覆盖时旧 blob 不删（历史对象仍占存储）；私有库需 **`BLOB_ACCESS=private`**。
 
 ### 备份 / 还原
 

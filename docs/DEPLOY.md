@@ -32,6 +32,7 @@ cd .. && pnpm run dev
 | `DATABASE_URL` | Postgres 连接串（必填） |
 | `AUTH_SECRET` | 至少 16 字符，用于 session JWT |
 | `BLOB_READ_WRITE_TOKEN` | 可选；若设置则 zip/头像走 [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) |
+| `BLOB_ACCESS` | 可选；Blob 控制台为 **私有** 时设为 `private`（与默认 `public` 冲突会 500）；与 `web/.env.example` 一致 |
 | `STORAGE_DRIVER` | 可选；设为 `vercel-blob` 与设 token 等价，显式启用 Blob |
 | `STORAGE_PATH` | 可选；仅 **未** 用 Blob 时，本地/容器盘上的存储根目录（默认 `web/storage`） |
 | `OPENCLAW_SOUL_SITE_URL` | 可选；`https://主域`（无末尾 `/`）。**固定对外主域**：`ocs login` 里打开的 device 链接、以及依赖 `requestOrigin` 的 JSON 里的 URL 都会用这个；多域名指向同一部署、或以后要换主域时，建议始终设成「用户应记住的那一个」。 |
@@ -48,7 +49,7 @@ cd .. && pnpm run dev
 2. **环境变量**：把 **`OPENCLAW_SOUL_SITE_URL`** 改成新主域（`https://新域`），与 **Vercel Primary Domain** 心智一致；重部署。
 3. **所有 CLI 用户**（含你自己）：在 `~/.config/openclaw-soul/env`（或 `OPENCLAW_SOUL_CONFIG_DIR`）里把 **`OPENCLAW_SOUL_API`** 改成新域名的根 URL；一般 **不必** 换 token。若曾混用两个域、两套库，再各自 `ocs login` 一次最干净。
 4. **站内链接**：画廊与 pack 路径是相对站点的（`/packs/...`），换域后页面照常；**别人保存的完整旧 URL** 要靠你在 Vercel 上保留旧域并重定向到新域来续命。
-5. **Blob**：若已用 Vercel Blob，zip/头像 URL 在 Blob 域名上，**不**随你自定义域变化；无需为换域迁文件。
+5. **Blob**：若已用 Vercel Blob，zip/头像 URL 在 Blob 域名上，**不**随你自定义域变化；无需为换域迁文件。每次上传使用带随机后缀的对象键，**覆盖同一 slug 时旧 zip/头像对象仍留在 Blob**（仅 DB 指向新 URL）；需控成本可在控制台或后续脚本做生命周期清理。
 
 ## 4. Vercel（推荐：只部署 Web）
 
