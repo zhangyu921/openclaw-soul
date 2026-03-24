@@ -50,7 +50,7 @@
 ## Web / API（MVP）
 
 - **Auth 必做**：注册/登录 + **API Token** 供 `publish`。
-- **Next.js App Router** + **Prisma ORM 7**（`prisma.config.ts` 配数据源；`@prisma/adapter-better-sqlite3` + 本地 **SQLite** 零配置；客户端生成到 `web/src/generated/prisma`）+ 本机目录 **`storage/`** 存 zip/头像（可换 Blob/R2/S3）。
+- **Next.js App Router** + **Prisma ORM 7**（`prisma.config.ts` 配数据源；**PostgreSQL** + `@prisma/adapter-pg`；`prisma migrate`；客户端生成到 `web/src/generated/prisma`）+ 本机 **`storage/`** 或 **`BLOB_READ_WRITE_TOKEN`**（Vercel Blob）存 zip/头像。
 
 ## 展示与上线（当前优先级）
 

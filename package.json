@@ -11,7 +11,8 @@
   "scripts": {
     "dev": "npm run dev -w web",
     "build": "npm run build -w @openclaw-soul/cli && npm run build -w web",
-    "db:push": "npm run db:push -w web",
+    "db:migrate": "npm run db:migrate -w web",
+    "db:deploy": "npm run db:deploy -w web",
     "db:studio": "npm run db:studio -w web",
     "ocs": "npm run ocs -w @openclaw-soul/cli --"
   }

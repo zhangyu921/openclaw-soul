@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
-import fs from "node:fs/promises";
 import path from "node:path";
 import { findPackByHandleAndSlug } from "@/lib/pack-lookup";
 import { readSessionUserId } from "@/lib/session";
-import { ensurePackDirs, storageRoot } from "@/lib/storage";
+import {
+  ensurePackDirs,
+  readStoredFile,
+  removeStoredFile,
+  writeAvatarForPack,
+} from "@/lib/storage";
 import { prisma } from "@/lib/prisma";
 import { MAX_AVATAR_BYTES, avatarTooLargeMessage } from "@/lib/upload-limits";
 
@@ -25,12 +29,11 @@ export async function GET(_req: Request, { params }: Params) {
   if (!pack?.avatarRelPath) {
     return NextResponse.json({ error: "no avatar" }, { status: 404 });
   }
-  const abs = path.join(storageRoot(), pack.avatarRelPath);
   try {
-    const buf = await fs.readFile(abs);
+    const buf = await readStoredFile(pack.avatarRelPath);
     const ext = path.extname(pack.avatarRelPath).toLowerCase();
     const type = MIME[ext] || "application/octet-stream";
-    return new NextResponse(buf, {
+    return new NextResponse(new Uint8Array(buf), {
       status: 200,
       headers: {
         "Content-Type": type,
@@ -85,18 +88,15 @@ export async function POST(req: Request, { params }: Params) {
   const buf = Buffer.from(await file.arrayBuffer());
 
   if (pack.avatarRelPath) {
-    const oldAbs = path.join(storageRoot(), pack.avatarRelPath);
-    await fs.unlink(oldAbs).catch(() => {});
+    await removeStoredFile(pack.avatarRelPath);
   }
 
-  const rel = `avatars/${pack.id}${ext}`;
-  const abs = path.join(storageRoot(), rel);
-  await fs.writeFile(abs, buf);
+  const avatarRelPath = await writeAvatarForPack(pack.id, ext, buf);
 
   await prisma.pack.update({
     where: { id: pack.id },
-    data: { avatarRelPath: rel },
+    data: { avatarRelPath },
   });
 
-  return NextResponse.json({ ok: true, avatarRelPath: rel });
+  return NextResponse.json({ ok: true, avatarRelPath });
 }

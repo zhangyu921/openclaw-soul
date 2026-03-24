@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import fs from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { findUserIdByApiToken } from "@/lib/token-api";
 import {
   assertValidSlug,
-  avatarPathForPack,
   ensurePackDirs,
-  zipPathForPack,
+  removeStoredFile,
+  writeAvatarForPack,
+  writeZipForPack,
 } from "@/lib/storage";
 import {
   MAX_AVATAR_BYTES,
@@ -134,8 +134,9 @@ export async function POST(req: Request) {
     }
 
     await ensurePackDirs();
+    let zipRelPath: string;
     try {
-      await fs.writeFile(zipPathForPack(dup.id), zipBuf);
+      zipRelPath = await writeZipForPack(dup.id, zipBuf);
     } catch (e) {
       console.error(e);
       return NextResponse.json({ error: "failed to store zip" }, { status: 500 });
@@ -144,19 +145,21 @@ export async function POST(req: Request) {
     const updateData: {
       title: string;
       summary: string | null;
+      zipRelPath: string;
       avatarRelPath?: string | null;
-    } = { title, summary };
+    } = { title, summary, zipRelPath };
 
     if (avatar instanceof File && avatar.size > 0) {
       if (dup.avatarRelPath) {
-        const oldExt = path.extname(dup.avatarRelPath) || ".bin";
-        await fs.unlink(avatarPathForPack(dup.id, oldExt)).catch(() => {});
+        await removeStoredFile(dup.avatarRelPath);
       }
       const ext = path.extname(avatar.name) || ".bin";
-      const ap = avatarPathForPack(dup.id, ext);
       try {
-        await fs.writeFile(ap, Buffer.from(await avatar.arrayBuffer()));
-        updateData.avatarRelPath = `avatars/${dup.id}${ext}`;
+        updateData.avatarRelPath = await writeAvatarForPack(
+          dup.id,
+          ext,
+          Buffer.from(await avatar.arrayBuffer())
+        );
       } catch (e) {
         console.error(e);
         return NextResponse.json({ error: "failed to store avatar" }, { status: 500 });
@@ -188,8 +191,9 @@ export async function POST(req: Request) {
   await ensurePackDirs();
   const id = randomUUID();
 
+  let zipRelPath: string;
   try {
-    await fs.writeFile(zipPathForPack(id), zipBuf);
+    zipRelPath = await writeZipForPack(id, zipBuf);
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "failed to store zip" }, { status: 500 });
@@ -198,13 +202,15 @@ export async function POST(req: Request) {
   let avatarRelPath: string | null = null;
   if (avatar instanceof File && avatar.size > 0) {
     const ext = path.extname(avatar.name) || ".bin";
-    const ap = avatarPathForPack(id, ext);
     try {
-      await fs.writeFile(ap, Buffer.from(await avatar.arrayBuffer()));
-      avatarRelPath = `avatars/${id}${ext}`;
+      avatarRelPath = await writeAvatarForPack(
+        id,
+        ext,
+        Buffer.from(await avatar.arrayBuffer())
+      );
     } catch (e) {
       console.error(e);
-      await fs.unlink(zipPathForPack(id)).catch(() => {});
+      await removeStoredFile(zipRelPath);
       return NextResponse.json({ error: "failed to store avatar" }, { status: 500 });
     }
   }
@@ -216,18 +222,15 @@ export async function POST(req: Request) {
         slug,
         title,
         summary,
-        zipRelPath: `packs/${id}.zip`,
+        zipRelPath,
         avatarRelPath,
         authorId,
       },
     });
   } catch (e) {
     console.error(e);
-    await fs.unlink(zipPathForPack(id)).catch(() => {});
-    if (avatarRelPath) {
-      const ext = path.extname(avatarRelPath) || ".bin";
-      await fs.unlink(avatarPathForPack(id, ext)).catch(() => {});
-    }
+    await removeStoredFile(zipRelPath);
+    if (avatarRelPath) await removeStoredFile(avatarRelPath);
     return NextResponse.json({ error: "failed to save pack" }, { status: 500 });
   }
 

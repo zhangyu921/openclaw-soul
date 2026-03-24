@@ -1,35 +1,18 @@
-import path from "node:path";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
-
-function resolveDatabaseUrl(): string {
-  const u = process.env.DATABASE_URL;
-  if (!u) {
-    return `file:${path.join(
-      /* turbopackIgnore: true */ process.cwd(),
-      "prisma",
-      "dev.db"
-    )}`;
-  }
-  if (u.startsWith("file:")) {
-    const rest = u.slice("file:".length);
-    if (rest.startsWith("./") || rest.startsWith("../")) {
-      return `file:${path.resolve(
-        /* turbopackIgnore: true */ process.cwd(),
-        rest
-      )}`;
-    }
-  }
-  return u;
-}
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
 function createPrisma(): PrismaClient {
-  const adapter = new PrismaBetterSqlite3({
-    url: resolveDatabaseUrl(),
+  const url = process.env.DATABASE_URL;
+  if (!url?.trim()) {
+    throw new Error("DATABASE_URL is required (PostgreSQL connection string)");
+  }
+  const adapter = new PrismaPg({
+    connectionString: url,
+    max: process.env.NODE_ENV === "production" ? 10 : 5,
   });
   return new PrismaClient({
     adapter,

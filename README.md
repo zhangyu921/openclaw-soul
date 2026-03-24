@@ -9,17 +9,20 @@ Docs: [OpenClaw Agent Workspace](https://docs.openclaw.ai/concepts/agent-workspa
 
 ## Quick start (local)
 
-From monorepo root:
+From monorepo root：
 
 ```bash
 npm install
+docker compose up -d
 cd web
 cp .env.example .env
-npx prisma db push
+npx prisma migrate dev
 npm run dev
 ```
 
-Web 使用 **Prisma ORM 7**：`prisma.config.ts` 提供数据源 URL；运行时通过 `@prisma/adapter-better-sqlite3` 连接 SQLite。构建前会执行 `prisma generate`，客户端生成到 `web/src/generated/prisma`（已 `.gitignore`）。
+Web 使用 **Prisma ORM 7** + **PostgreSQL**（`docker-compose.yml` 将容器 `5432` 映射到本机 **`55432`**，避免与本机已有 Postgres 冲突；可在 compose 里改端口）。`prisma.config.ts` 提供默认 `DATABASE_URL`；运行时用 `@prisma/adapter-pg` + `pg` Pool。构建会执行 `prisma generate`，客户端在 `web/src/generated/prisma`（已 `.gitignore`）。
+
+生产部署步骤见 [`docs/DEPLOY.md`](docs/DEPLOY.md)。
 
 Open http://localhost:3000 — **注册时需填写 public handle**（全站唯一，用于 `/packs/<handle>/<slug>` 与 CLI `apply`）。**在 monorepo 根目录**（无需先 `cd packages/cli`、也无需先 build CLI）：
 
@@ -44,7 +47,7 @@ npm run ocs -- login
 
 从旧版升级、此前只在仓库用过 `.env.cli`：可把其中内容合并进 `~/.config/openclaw-soul/env`，或再执行一次 `ocs login`。
 
-**数据库**：`Pack.slug` 改为「同一作者内唯一」、并新增 `User.handle` 时，本地 SQLite 可执行 `cd web && npx prisma db push --accept-data-loss`（若提示唯一约束冲突请先备份）。生产环境请用迁移策略，勿随意丢数据。
+**数据库**：表结构变更请用 `cd web && npx prisma migrate dev`（开发）或 `npx prisma migrate deploy`（CI/生产）。勿在生产对已有数据随意 `db push`。
 
 **发布**
 
@@ -91,7 +94,7 @@ npm run ocs -- apply alice/my-pack
 
 若使用根目录 `package.json` 的 `bin`（`npx ocs` / `npm link`），需先执行一次 `npm run build -w @openclaw-soul/cli`（走编译后的 `dist`）。
 
-Uploaded files are stored under `web/storage/` unless `STORAGE_PATH` is set.
+Uploaded files：默认在 `web/storage/`（可用 `STORAGE_PATH`）。生产 Serverless 建议设置 **`BLOB_READ_WRITE_TOKEN`**（或 `STORAGE_DRIVER=vercel-blob`）使用 [Vercel Blob](https://vercel.com/docs/storage/vercel-blob)；此时 DB 中 zip/头像字段存 Blob 的 **https URL**。
 
 **备份 / 改名（无 rm）**
 
@@ -117,7 +120,7 @@ Global CLI after `npm link` inside `packages/cli`, or use `npx` once published.
 
 ## Troubleshooting
 
-- **`device/start failed (500)`** when running `ocs login` / interactive `publish`: almost always the DB schema is behind. From repo root run `npm run db:push` (or `cd web && npx prisma db push`), restart `npm run dev`, then try again.
+- **`device/start failed (500)`**（`ocs login` / 交互 `publish`）：多为数据库未迁移。确保 `docker compose up -d` 且 `DATABASE_URL` 正确，执行 `cd web && npx prisma migrate dev`（或生产 `migrate deploy`），重启 `npm run dev` 再试。
 
 ## Privacy
 

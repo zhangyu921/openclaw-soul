@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     console.error("[device/start]", e);
     const hint =
       message.includes("DeviceLogin") || message.includes("does not exist")
-        ? " Run `cd web && npx prisma db push` to apply the schema (DeviceLogin table)."
+        ? " Run `cd web && npx prisma migrate dev` (or `migrate deploy` in production) to apply the schema (DeviceLogin table)."
         : "";
     return NextResponse.json(
       {
