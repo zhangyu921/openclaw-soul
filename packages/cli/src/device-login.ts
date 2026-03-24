@@ -1,4 +1,8 @@
 import { openBrowser } from "./open-browser.js";
+import {
+  fetchRegistry,
+  isConnectTimeoutError,
+} from "./fetch-registry.js";
 
 function isConnectionRefused(e: unknown): boolean {
   if (!e || typeof e !== "object") return false;
@@ -17,7 +21,7 @@ function isConnectionRefused(e: unknown): boolean {
 
 async function registryFetch(url: string, init?: RequestInit): Promise<Response> {
   try {
-    return await fetch(url, init);
+    return await fetchRegistry(url, init);
   } catch (e) {
     if (isConnectionRefused(e)) {
       let origin = url;
@@ -27,7 +31,18 @@ async function registryFetch(url: string, init?: RequestInit): Promise<Response>
         /* keep */
       }
       throw new Error(
-        `无法连接 registry（${origin}，连接被拒绝）。请先在仓库根目录启动站点：npm run dev；若端口不是 3000，请在用户配置 env、仓库 .env.cli 或环境中设置 OPENCLAW_SOUL_API。`
+        `无法连接 registry（${origin}，连接被拒绝）。请先在仓库根目录启动站点：pnpm run dev；若端口不是 3000，请在用户配置 env、仓库 .env.cli 或环境中设置 OPENCLAW_SOUL_API。`
+      );
+    }
+    if (isConnectTimeoutError(e)) {
+      let origin = url;
+      try {
+        origin = new URL(url).origin;
+      } catch {
+        /* keep */
+      }
+      throw new Error(
+        `无法及时连上 registry（${origin}，连接超时）。可调大 OPENCLAW_SOUL_CONNECT_TIMEOUT_MS（默认 60000）；从国内访问 Vercel 若持续失败请检查网络或代理。`
       );
     }
     throw e;

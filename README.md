@@ -92,6 +92,9 @@ pnpm run ocs -- apply alice/my-pack
 - `OPENCLAW_SOUL_TOKEN` — `publish` 用 API token
 - `OPENCLAW_SOUL_CONFIG_DIR` — 自定义 CLI 配置目录（其下文件名为 `env`）
 - `OPENCLAW_CONFIG` — `openclaw.json` 路径（默认 `~/.openclaw/openclaw.json`）
+- `OPENCLAW_SOUL_CONNECT_TIMEOUT_MS` — CLI 连 registry 的 TCP 连接超时（默认 `60000`；Node 内置 `fetch` 仅约 10s，易在访问 Vercel 时超时）
+- `OPENCLAW_SOUL_HEADERS_TIMEOUT_MS` — 默认 `60000`
+- `OPENCLAW_SOUL_BODY_TIMEOUT_MS` — 读/写 body（如上传 zip）超时，默认 `300000`
 
 若使用根目录 `package.json` 的 `bin`（`npx ocs` / `pnpm link --global` 在 `packages/cli`），需先执行一次 `pnpm --filter @openclaw-soul/cli build`（走编译后的 `dist`）。
 

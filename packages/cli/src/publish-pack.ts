@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { fetchRegistry, isConnectTimeoutError } from "./fetch-registry.js";
 import { zipDirectory } from "./zip-utils.js";
 import { MAX_AVATAR_BYTES, MAX_PACK_ZIP_BYTES } from "./upload-limits.js";
 
@@ -107,11 +108,22 @@ export async function publishPack(
       form.append("replace", "true");
     }
 
-    const res = await fetch(`${base}/api/packs`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${input.token}` },
-      body: form,
-    });
+    let res: Response;
+    try {
+      res = await fetchRegistry(`${base}/api/packs`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${input.token}` },
+        body: form,
+      });
+    } catch (e) {
+      if (isConnectTimeoutError(e)) {
+        throw new Error(
+          `连接 registry 超时（${base}）。可调大 OPENCLAW_SOUL_CONNECT_TIMEOUT_MS（默认 60000）、` +
+            `OPENCLAW_SOUL_BODY_TIMEOUT_MS（大 zip 上传，默认 300000）；从国内访问 Vercel 若仍失败请检查网络或代理。`
+        );
+      }
+      throw e;
+    }
     const text = await res.text();
     if (!res.ok) {
       if (res.status === 401) {

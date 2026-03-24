@@ -4,6 +4,7 @@ import { pipeline } from "node:stream/promises";
 import { createWriteStream } from "node:fs";
 import archiver from "archiver";
 import extract from "extract-zip";
+import { fetchRegistry, isConnectTimeoutError } from "./fetch-registry.js";
 
 export async function zipDirectory(
   sourceDir: string,
@@ -28,7 +29,17 @@ export async function extractZip(zipPath: string, destDir: string): Promise<void
 }
 
 export async function downloadToFile(url: string, filePath: string): Promise<void> {
-  const res = await fetch(url);
+  let res: Response;
+  try {
+    res = await fetchRegistry(url);
+  } catch (e) {
+    if (isConnectTimeoutError(e)) {
+      throw new Error(
+        `下载超时（${url}）。可调大 OPENCLAW_SOUL_CONNECT_TIMEOUT_MS / OPENCLAW_SOUL_BODY_TIMEOUT_MS，或检查网络。`
+      );
+    }
+    throw e;
+  }
   if (!res.ok) throw new Error(`Download failed: ${res.status} ${res.statusText}`);
   const buf = Buffer.from(await res.arrayBuffer());
   await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
