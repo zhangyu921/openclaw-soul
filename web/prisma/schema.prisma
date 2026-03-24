@@ -10,6 +10,7 @@ datasource db {
 model User {
   id           String        @id @default(cuid())
   email        String        @unique
+  handle       String?       @unique
   passwordHash String
   createdAt    DateTime      @default(now())
   packs        Pack[]
@@ -28,7 +29,7 @@ model ApiToken {
 
 model Pack {
   id            String   @id @default(cuid())
-  slug          String   @unique
+  slug          String
   title         String
   summary       String?
   zipRelPath    String
@@ -36,6 +37,8 @@ model Pack {
   authorId      String
   author        User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt     DateTime @default(now())
+
+  @@unique([authorId, slug])
 }
 
 /// OAuth-style device flow: CLI polls with device_code; user approves in browser with user_code.

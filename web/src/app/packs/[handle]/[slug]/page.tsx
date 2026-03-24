@@ -6,13 +6,13 @@ import AvatarUpload from "./avatar-upload";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = { params: Promise<{ handle: string; slug: string }> };
 
 export default async function PackDetailPage({ params }: Props) {
-  const { slug } = await params;
+  const { handle, slug } = await params;
   const userId = await readSessionUserId();
-  const pack = await prisma.pack.findUnique({
-    where: { slug },
+  const pack = await prisma.pack.findFirst({
+    where: { slug, author: { handle } },
     select: {
       slug: true,
       title: true,
@@ -20,12 +20,15 @@ export default async function PackDetailPage({ params }: Props) {
       avatarRelPath: true,
       createdAt: true,
       authorId: true,
+      author: { select: { handle: true } },
     },
   });
-  if (!pack) notFound();
+  if (!pack || !pack.author.handle) notFound();
   const isAuthor = Boolean(userId && pack.authorId === userId);
 
-  const downloadUrl = `/api/packs/${encodeURIComponent(pack.slug)}/download`;
+  const encH = encodeURIComponent(pack.author.handle);
+  const encS = encodeURIComponent(pack.slug);
+  const downloadUrl = `/api/packs/${encH}/${encS}/download`;
 
   return (
     <div className="min-h-full bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
@@ -42,7 +45,7 @@ export default async function PackDetailPage({ params }: Props) {
             {pack.avatarRelPath ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={`/api/packs/${encodeURIComponent(pack.slug)}/avatar`}
+                src={`/api/packs/${encH}/${encS}/avatar`}
                 alt=""
                 className="h-full w-full object-cover"
               />
@@ -54,14 +57,16 @@ export default async function PackDetailPage({ params }: Props) {
           </div>
           <div>
             <h1 className="text-2xl font-semibold">{pack.title}</h1>
-            <p className="mt-1 font-mono text-sm text-zinc-500">{pack.slug}</p>
+            <p className="mt-1 font-mono text-sm text-zinc-500">
+              {pack.author.handle}/{pack.slug}
+            </p>
             {pack.summary ? (
               <p className="mt-4 text-zinc-600 dark:text-zinc-400">{pack.summary}</p>
             ) : null}
           </div>
         </div>
 
-        {isAuthor ? <AvatarUpload slug={pack.slug} /> : null}
+        {isAuthor ? <AvatarUpload handle={pack.author.handle} slug={pack.slug} /> : null}
 
         <section className="mt-10 space-y-4 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
           <h2 className="text-sm font-medium text-zinc-500">CLI</h2>
@@ -75,7 +80,7 @@ export default async function PackDetailPage({ params }: Props) {
           </p>
           <pre className="overflow-x-auto rounded-lg bg-zinc-100 p-4 text-sm dark:bg-zinc-950">
             {`export OPENCLAW_SOUL_API=http://localhost:3000
-ocs apply ${pack.slug}`}
+ocs apply ${pack.author.handle}/${pack.slug}`}
           </pre>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">Raw zip:</p>
           <a

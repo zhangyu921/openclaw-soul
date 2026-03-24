@@ -6,13 +6,23 @@ import { useState } from "react";
 
 type Row = { id: string; label: string | null; createdAt: string };
 
-export default function TokenPanel({ initialTokens }: { initialTokens: Row[] }) {
+export default function TokenPanel({
+  initialTokens,
+  publicHandle,
+}: {
+  initialTokens: Row[];
+  publicHandle: string | null;
+}) {
   const router = useRouter();
   const [tokens, setTokens] = useState(initialTokens);
   const [newToken, setNewToken] = useState<string | null>(null);
   const [label, setLabel] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [handleInput, setHandleInput] = useState("");
+  const [handleError, setHandleError] = useState<string | null>(null);
+  const [handleSaving, setHandleSaving] = useState(false);
+  const [handleDone, setHandleDone] = useState(publicHandle);
 
   async function createToken() {
     setError(null);
@@ -53,6 +63,28 @@ export default function TokenPanel({ initialTokens }: { initialTokens: Row[] }) 
     router.refresh();
   }
 
+  async function saveHandle() {
+    setHandleError(null);
+    setHandleSaving(true);
+    try {
+      const res = await fetch("/api/me/handle", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ handle: handleInput.trim().toLowerCase() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setHandleError(typeof data.error === "string" ? data.error : "Failed");
+        return;
+      }
+      if (typeof data.handle === "string") setHandleDone(data.handle);
+      setHandleInput("");
+      router.refresh();
+    } finally {
+      setHandleSaving(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-lg px-6 py-12">
       <div className="mb-8 flex items-center justify-between">
@@ -65,6 +97,43 @@ export default function TokenPanel({ initialTokens }: { initialTokens: Row[] }) 
           Log out
         </button>
       </div>
+
+      {!handleDone ? (
+        <div className="mb-8 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-900 dark:bg-amber-950">
+          <p className="mb-2 font-medium text-amber-900 dark:text-amber-100">
+            Set your public handle (required for <code className="rounded px-1">ocs publish</code> and
+            pack URLs). Lowercase letters, digits, hyphens only. One-time.
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+            <label className="flex flex-1 flex-col gap-1 text-amber-950 dark:text-amber-50">
+              Handle
+              <input
+                value={handleInput}
+                onChange={(e) => setHandleInput(e.target.value)}
+                className="rounded border border-amber-300 bg-white px-3 py-2 text-zinc-900 dark:border-amber-800 dark:bg-zinc-900 dark:text-zinc-100"
+                placeholder="your-handle"
+                autoComplete="off"
+              />
+            </label>
+            <button
+              type="button"
+              disabled={handleSaving || !handleInput.trim()}
+              onClick={() => saveHandle()}
+              className="rounded bg-amber-900 px-4 py-2 text-white disabled:opacity-50 dark:bg-amber-200 dark:text-amber-950"
+            >
+              {handleSaving ? "…" : "Save handle"}
+            </button>
+          </div>
+          {handleError ? <p className="mt-2 text-red-600 dark:text-red-400">{handleError}</p> : null}
+        </div>
+      ) : (
+        <p className="mb-6 text-sm text-zinc-500">
+          Public handle:{" "}
+          <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">{handleDone}</code> (used in
+          /packs/&lt;handle&gt;/&lt;slug&gt;)
+        </p>
+      )}
+
       <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
         Prefer browser login: run{" "}
         <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">ocs login</code>{" "}
@@ -73,7 +142,7 @@ export default function TokenPanel({ initialTokens }: { initialTokens: Row[] }) 
         <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">env</code> file. Or paste a
         token below for scripts / CI:{" "}
         <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">
-          OPENCLAW_SOUL_TOKEN=... ocs publish --slug ... --title ...
+          OPENCLAW_SOUL_TOKEN=... ocs publish ...
         </code>
       </p>
 

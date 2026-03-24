@@ -4,10 +4,16 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { findUserIdByApiToken } from "@/lib/token-api";
-import { assertValidSlug, avatarPathForPack, ensurePackDirs, zipPathForPack } from "@/lib/storage";
+import {
+  assertValidSlug,
+  avatarPathForPack,
+  ensurePackDirs,
+  zipPathForPack,
+} from "@/lib/storage";
 
 export async function GET() {
   const packs = await prisma.pack.findMany({
+    where: { author: { handle: { not: null } } },
     orderBy: { createdAt: "desc" },
     select: {
       slug: true,
@@ -15,6 +21,7 @@ export async function GET() {
       summary: true,
       avatarRelPath: true,
       createdAt: true,
+      author: { select: { handle: true } },
     },
   });
   return NextResponse.json({ packs });
@@ -32,6 +39,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid token" }, { status: 401 });
   }
 
+  const user = await prisma.user.findUnique({
+    where: { id: authorId },
+    select: { handle: true },
+  });
+  if (!user?.handle?.trim()) {
+    return NextResponse.json(
+      {
+        error:
+          "account has no public handle; set it in the dashboard (or register with a handle) before publishing",
+      },
+      { status: 400 }
+    );
+  }
+  const handle = user.handle.trim();
+
   const ct = req.headers.get("content-type") || "";
   if (!ct.includes("multipart/form-data")) {
     return NextResponse.json({ error: "expected multipart/form-data" }, { status: 400 });
@@ -39,15 +61,16 @@ export async function POST(req: Request) {
 
   const form = await req.formData();
   const slug = String(form.get("slug") || "").trim();
-  const title = String(form.get("title") || "").trim();
+  const titleRaw = String(form.get("title") || "").trim();
+  const title = titleRaw || slug;
   const summaryRaw = form.get("summary");
   const summary =
     typeof summaryRaw === "string" && summaryRaw.trim() ? summaryRaw.trim() : null;
   const zip = form.get("zip");
   const avatar = form.get("avatar");
 
-  if (!slug || !title) {
-    return NextResponse.json({ error: "slug and title required" }, { status: 400 });
+  if (!slug) {
+    return NextResponse.json({ error: "slug required" }, { status: 400 });
   }
   try {
     assertValidSlug(slug);
@@ -62,9 +85,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "zip file required" }, { status: 400 });
   }
 
-  const dup = await prisma.pack.findUnique({ where: { slug } });
+  const dup = await prisma.pack.findFirst({
+    where: { authorId, slug },
+  });
   if (dup) {
-    return NextResponse.json({ error: "slug already taken" }, { status: 409 });
+    return NextResponse.json(
+      { error: "you already have a pack with this slug" },
+      { status: 409 }
+    );
   }
 
   await ensurePackDirs();
@@ -114,9 +142,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "failed to save pack" }, { status: 500 });
   }
 
+  const encH = encodeURIComponent(handle);
+  const encS = encodeURIComponent(slug);
   return NextResponse.json({
     ok: true,
+    handle,
     slug,
-    downloadPath: `/api/packs/${encodeURIComponent(slug)}/download`,
+    downloadPath: `/api/packs/${encH}/${encS}/download`,
+    viewPath: `/packs/${encH}/${encS}`,
   });
 }

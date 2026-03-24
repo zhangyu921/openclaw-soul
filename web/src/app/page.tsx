@@ -5,8 +5,16 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const packs = await prisma.pack.findMany({
+    where: { author: { handle: { not: null } } },
     orderBy: { createdAt: "desc" },
-    select: { slug: true, title: true, summary: true, avatarRelPath: true },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      summary: true,
+      avatarRelPath: true,
+      author: { select: { handle: true } },
+    },
   });
 
   return (
@@ -34,45 +42,52 @@ export default async function Home() {
         <p className="mb-8 text-zinc-600 dark:text-zinc-400">
           Browse OpenClaw workspace packs. Apply with CLI:{" "}
           <code className="rounded bg-zinc-200 px-1.5 py-0.5 text-sm dark:bg-zinc-800">
-            ocs apply &lt;slug&gt;
+            ocs apply &lt;handle&gt;/&lt;slug&gt;
           </code>
         </p>
         {packs.length === 0 ? (
           <p className="text-zinc-500">No packs yet. Publish one with the CLI.</p>
         ) : (
           <ul className="grid gap-6 sm:grid-cols-2">
-            {packs.map((p) => (
-              <li key={p.slug}>
-                <Link
-                  href={`/packs/${p.slug}`}
-                  className="flex gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
-                >
-                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
-                    {p.avatarRelPath ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={`/api/packs/${encodeURIComponent(p.slug)}/avatar`}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-xs text-zinc-400">
-                        no avatar
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <h2 className="font-medium text-zinc-900 dark:text-zinc-50">{p.title}</h2>
-                    <p className="truncate text-sm text-zinc-500">{p.slug}</p>
-                    {p.summary ? (
-                      <p className="mt-1 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">
-                        {p.summary}
+            {packs.map((p) => {
+              const h = p.author.handle!;
+              const encH = encodeURIComponent(h);
+              const encS = encodeURIComponent(p.slug);
+              return (
+                <li key={p.id}>
+                  <Link
+                    href={`/packs/${h}/${p.slug}`}
+                    className="flex gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
+                  >
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                      {p.avatarRelPath ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={`/api/packs/${encH}/${encS}/avatar`}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xs text-zinc-400">
+                          no avatar
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="font-medium text-zinc-900 dark:text-zinc-50">{p.title}</h2>
+                      <p className="truncate text-sm text-zinc-500">
+                        {h}/{p.slug}
                       </p>
-                    ) : null}
-                  </div>
-                </Link>
-              </li>
-            ))}
+                      {p.summary ? (
+                        <p className="mt-1 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">
+                          {p.summary}
+                        </p>
+                      ) : null}
+                    </div>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </main>

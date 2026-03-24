@@ -3,7 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function AvatarUpload({ slug }: { slug: string }) {
+export default function AvatarUpload({
+  handle,
+  slug,
+}: {
+  handle: string;
+  slug: string;
+}) {
   const router = useRouter();
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -16,10 +22,10 @@ export default function AvatarUpload({ slug }: { slug: string }) {
     try {
       const form = new FormData();
       form.append("avatar", file);
-      const res = await fetch(`/api/packs/${encodeURIComponent(slug)}/avatar`, {
-        method: "POST",
-        body: form,
-      });
+      const res = await fetch(
+        `/api/packs/${encodeURIComponent(handle)}/${encodeURIComponent(slug)}/avatar`,
+        { method: "POST", body: form }
+      );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setStatus(typeof data.error === "string" ? data.error : "Upload failed");

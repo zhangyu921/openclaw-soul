@@ -12,12 +12,13 @@ import {
 } from "./openclaw-config.js";
 import { downloadToFile, extractZip } from "./zip-utils.js";
 import { importFromManifest } from "./import-pack.js";
-import { publishPack } from "./publish-pack.js";
+import { publishPack, PublishAuthError } from "./publish-pack.js";
 import { runPublishWizard } from "./publish-wizard.js";
 import { runDeviceLogin } from "./device-login.js";
 import { upsertEnvKeyInFile, setEnvKeyIfMissing } from "./env-cli-file.js";
 import { getUserEnvFilePath } from "./user-config-path.js";
 import { validateSlug } from "./slug.js";
+import { readIdentityDefaults } from "./read-identity.js";
 
 loadCliEnv();
 
@@ -98,22 +99,32 @@ program
 program
   .command("apply")
   .description(
-    "Download pack from registry by slug, extract to ~/.openclaw/workspace-<slug>, update openclaw.json"
+    "Download pack from registry (ref = authorHandle/packSlug), extract to ~/.openclaw/workspace-<slug>, update openclaw.json"
   )
-  .argument("<slug>", "pack slug on registry")
+  .argument("<ref>", "handle/slug (e.g. alice/my-persona)")
   .option("--api <url>", "registry base URL", apiBase())
   .option(
     "--config <path>",
     "path to openclaw.json",
     openclawConfigPath()
   )
-  .action(async (slug: string, opts: { api: string; config: string }) => {
+  .action(async (ref: string, opts: { api: string; config: string }) => {
+    const parts = ref.split("/").filter(Boolean);
+    if (parts.length !== 2) {
+      throw new Error(
+        `Expected handle/slug (e.g. alice/my-pack), got: ${ref}`
+      );
+    }
+    const [handle, slug] = parts;
+    validateSlug(handle);
     validateSlug(slug);
     const base = opts.api.replace(/\/$/, "");
-    const zipUrl = `${base}/api/packs/${encodeURIComponent(slug)}/download`;
+    const encH = encodeURIComponent(handle);
+    const encS = encodeURIComponent(slug);
+    const zipUrl = `${base}/api/packs/${encH}/${encS}/download`;
     const tmpZip = path.join(
       os.tmpdir(),
-      `openclaw-soul-${slug}-${Date.now()}.zip`
+      `openclaw-soul-${handle}-${slug}-${Date.now()}.zip`
     );
     console.error(`Downloading ${zipUrl}`);
     await downloadToFile(zipUrl, tmpZip);
@@ -129,7 +140,7 @@ program
 program
   .command("publish")
   .description(
-    "Zip a workspace and upload (needs token or run ocs login). Without --slug/--title, runs an interactive wizard in a TTY."
+    "Zip a workspace and upload (needs token or run ocs login). Without --slug, runs an interactive wizard in a TTY; title defaults from IDENTITY.md Name or slug."
   )
   .option("--api <url>", "registry base URL", apiBase())
   .option("--token <token>", "API token (or OPENCLAW_SOUL_TOKEN)")
@@ -188,14 +199,29 @@ program
       let source = opts.source;
       let avatar = opts.avatar;
 
-      const bothNames = slug.length > 0 && title.length > 0;
-      if (!bothNames) {
+      if (slug && !title) {
+        let sourceDir: string | null = null;
+        if (source === "current") {
+          sourceDir = readWorkspaceFromConfig(config);
+        } else {
+          const p = resolveWorkspacePath(source);
+          if (fs.existsSync(p)) sourceDir = p;
+        }
+        if (sourceDir) {
+          const id = readIdentityDefaults(sourceDir);
+          if (id) title = id.displayName;
+        }
+        if (!title) title = slug;
+      }
+
+      if (!slug) {
         if (!process.stdin.isTTY) {
           throw new Error(
-            "Non-interactive mode: provide both --slug and --title, or run from a terminal for the wizard."
+            "Non-interactive mode: provide --slug, or run from a terminal for the wizard."
           );
         }
         const w = await runPublishWizard({
+          configPath: config,
           slug,
           title,
           summary,
@@ -231,18 +257,47 @@ program
         }
       }
 
-      const result = await publishPack({
-        apiBase: api,
-        token,
-        slug,
-        title,
-        summary,
-        sourceDir,
-        avatarPath,
-      });
-      const viewUrl = `${api}/packs/${encodeURIComponent(result.slug)}`;
-      console.error(`上传成功。在浏览器中查看：${viewUrl}`);
-      console.log(JSON.stringify(result));
+      const maxReauthAttempts = 1;
+      for (let authAttempt = 0; ; authAttempt++) {
+        try {
+          const result = await publishPack({
+            apiBase: api,
+            token,
+            slug,
+            title,
+            summary,
+            sourceDir,
+            avatarPath,
+          });
+          const viewUrl = `${api}${result.viewPath}`;
+          console.error(`上传成功。在浏览器中查看：${viewUrl}`);
+          break;
+        } catch (e) {
+          if (
+            !(e instanceof PublishAuthError) ||
+            authAttempt >= maxReauthAttempts
+          ) {
+            throw e;
+          }
+          if (!process.stdin.isTTY) {
+            throw new Error(
+              "上传失败：API token 无效或已过期（例如服务端数据库已重置）。请在终端执行 `ocs login --force`，或设置有效的 OPENCLAW_SOUL_TOKEN / --token 后重试。"
+            );
+          }
+          const proceed = await confirm({
+            message:
+              "API token 无效或已过期（常见于服务端重置数据库或 token 被撤销）。是否在浏览器中重新登录并再次上传？",
+            default: true,
+          });
+          if (!proceed) {
+            throw new Error(
+              "已取消。可执行 `ocs login --force` 写入新 token，或更新 OPENCLAW_SOUL_TOKEN / --token 后再执行 publish。"
+            );
+          }
+          token = await runDeviceLogin(api);
+          persistOpenclawSoulCredentials(api, token, true);
+        }
+      }
     }
   );
 

@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { prisma } from "@/lib/prisma";
+import { findPackByHandleAndSlug } from "@/lib/pack-lookup";
 import { readSessionUserId } from "@/lib/session";
 import { ensurePackDirs, storageRoot } from "@/lib/storage";
+import { prisma } from "@/lib/prisma";
 
-type Params = { params: Promise<{ slug: string }> };
+type Params = { params: Promise<{ handle: string; slug: string }> };
 
 const ALLOWED_EXT = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp"]);
 
@@ -18,11 +19,8 @@ const MIME: Record<string, string> = {
 };
 
 export async function GET(_req: Request, { params }: Params) {
-  const { slug } = await params;
-  const pack = await prisma.pack.findUnique({
-    where: { slug },
-    select: { avatarRelPath: true },
-  });
+  const { handle, slug } = await params;
+  const pack = await findPackByHandleAndSlug(handle, slug);
   if (!pack?.avatarRelPath) {
     return NextResponse.json({ error: "no avatar" }, { status: 404 });
   }
@@ -49,11 +47,8 @@ export async function POST(req: Request, { params }: Params) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const { slug } = await params;
-  const pack = await prisma.pack.findUnique({
-    where: { slug },
-    select: { id: true, authorId: true, avatarRelPath: true },
-  });
+  const { handle, slug } = await params;
+  const pack = await findPackByHandleAndSlug(handle, slug);
   if (!pack) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }

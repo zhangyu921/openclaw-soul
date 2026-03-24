@@ -26,3 +26,8 @@ export function assertValidSlug(slug: string): void {
     throw new Error("Invalid slug");
   }
 }
+
+/** Public username in URLs; same character rules as pack slug. */
+export function assertValidHandle(handle: string): void {
+  assertValidSlug(handle);
+}

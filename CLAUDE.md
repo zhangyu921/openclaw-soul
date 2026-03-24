@@ -34,6 +34,7 @@
   - **当前默认目录**：读取 `openclaw.json` 里正在使用的 workspace 路径，整目录打 zip；或
   - **显式路径**：用户指定目录。
 - **MVP：全量上传**，目录里有什么就打什么进 zip，**不做脱敏、不过滤文件**。
+- **Registry**：用户注册填 **public handle**；pack 的 **slug** 在作者内唯一；画廊与 API 路径为 `/packs/<handle>/<slug>`；CLI `apply <handle>/<slug>`。可选从 `IDENTITY.md` 的 **Name** 推导默认 slug / title。
 
 ### 备份 / 还原
 

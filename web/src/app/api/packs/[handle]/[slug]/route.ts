@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-type Params = { params: Promise<{ slug: string }> };
+type Params = { params: Promise<{ handle: string; slug: string }> };
 
 export async function GET(_req: Request, { params }: Params) {
-  const { slug } = await params;
-  const pack = await prisma.pack.findUnique({
-    where: { slug },
+  const { handle, slug } = await params;
+  const pack = await prisma.pack.findFirst({
+    where: { slug, author: { handle } },
     select: {
       slug: true,
       title: true,
       summary: true,
       avatarRelPath: true,
       createdAt: true,
-      author: { select: { email: true } },
+      author: { select: { email: true, handle: true } },
     },
   });
   if (!pack) {
@@ -22,7 +22,10 @@ export async function GET(_req: Request, { params }: Params) {
   return NextResponse.json({
     pack: {
       ...pack,
-      author: { email: maskEmail(pack.author.email) },
+      author: {
+        handle: pack.author.handle,
+        email: maskEmail(pack.author.email),
+      },
     },
   });
 }

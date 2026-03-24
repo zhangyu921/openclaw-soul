@@ -16,9 +16,23 @@ export type PublishPackInput = {
 /** Successful JSON body from POST /api/packs */
 export type PublishPackResult = {
   ok: true;
+  handle: string;
   slug: string;
   downloadPath: string;
+  viewPath: string;
 };
+
+/** Bearer rejected (expired, revoked, or DB reset). Caller may prompt re-login. */
+export class PublishAuthError extends Error {
+  readonly status: number;
+  readonly body: string;
+  constructor(status: number, body: string) {
+    super(`Publish auth failed: ${status} ${body}`);
+    this.name = "PublishAuthError";
+    this.status = status;
+    this.body = body;
+  }
+}
 
 export async function publishPack(
   input: PublishPackInput
@@ -27,7 +41,9 @@ export async function publishPack(
     os.tmpdir(),
     `openclaw-soul-publish-${Date.now()}.zip`
   );
-  console.error(`Zipping ${input.sourceDir} → ${tmpZip}`);
+  console.error(
+    `正在打包：${input.sourceDir}（临时 zip 在系统临时目录，上传后删除）`
+  );
   await zipDirectory(input.sourceDir, tmpZip);
   try {
     const zipBuf = await fs.promises.readFile(tmpZip);
@@ -56,6 +72,9 @@ export async function publishPack(
     });
     const text = await res.text();
     if (!res.ok) {
+      if (res.status === 401) {
+        throw new PublishAuthError(res.status, text);
+      }
       throw new Error(`Publish failed: ${res.status} ${text}`);
     }
     let body: unknown;
@@ -68,8 +87,10 @@ export async function publishPack(
       typeof body !== "object" ||
       body === null ||
       (body as { ok?: unknown }).ok !== true ||
+      typeof (body as { handle?: unknown }).handle !== "string" ||
       typeof (body as { slug?: unknown }).slug !== "string" ||
-      typeof (body as { downloadPath?: unknown }).downloadPath !== "string"
+      typeof (body as { downloadPath?: unknown }).downloadPath !== "string" ||
+      typeof (body as { viewPath?: unknown }).viewPath !== "string"
     ) {
       throw new Error(`Publish: unexpected response: ${text}`);
     }
