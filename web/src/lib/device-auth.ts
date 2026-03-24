@@ -26,6 +26,30 @@ export function generateDeviceCode(): string {
  * 若 Vercel 同时绑了 `*.vercel.app` 与自定义域，可设 `OPENCLAW_SOUL_SITE_URL=https://你的主域`
  * 避免用户永远看到默认部署域。
  */
+function canonicalSiteUrlFromHeaders(h: Headers): string {
+  const rawHost =
+    h.get("x-forwarded-host")?.split(",")[0]?.trim() || h.get("host") || "";
+  const host = rawHost || "localhost:3000";
+  const rawProto =
+    h.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase() || "";
+  const proto =
+    rawProto === "http" || rawProto === "https"
+      ? rawProto
+      : process.env.VERCEL
+        ? "https"
+        : "http";
+  return `${proto}://${host}`;
+}
+
+/**
+ * 与 `requestOrigin` 一致：优先 `OPENCLAW_SOUL_SITE_URL`，供 App Router `headers()` 场景使用。
+ */
+export function siteOriginFromNextHeaders(h: Headers): string {
+  const fixed = process.env.OPENCLAW_SOUL_SITE_URL?.trim().replace(/\/$/, "");
+  if (fixed) return fixed;
+  return canonicalSiteUrlFromHeaders(h);
+}
+
 export function requestOrigin(req: Request): string {
   const fixed = process.env.OPENCLAW_SOUL_SITE_URL?.trim().replace(/\/$/, "");
   if (fixed) return fixed;

@@ -15,6 +15,32 @@ function useVercelBlob(): boolean {
   );
 }
 
+/**
+ * Vercel 新建 Blob 存储多为 **private**；与 `put({ access: "public" })` 不兼容。
+ * 设为 `private` 时上传与读取均走 SDK（`get`），不依赖匿名 URL。
+ */
+function blobAccess(): "public" | "private" {
+  const v = process.env.BLOB_ACCESS?.trim().toLowerCase();
+  return v === "private" ? "private" : "public";
+}
+
+async function readableStreamToBuffer(
+  stream: ReadableStream<Uint8Array>
+): Promise<Buffer> {
+  const reader = stream.getReader();
+  const chunks: Buffer[] = [];
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) chunks.push(Buffer.from(value));
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  return Buffer.concat(chunks);
+}
+
 /** DB 里存相对路径，或 Vercel Blob 的完整 https URL。 */
 export function isRemoteStored(ref: string): boolean {
   return ref.startsWith("http://") || ref.startsWith("https://");
@@ -41,6 +67,21 @@ export function avatarPathForPack(packId: string, ext: string): string {
 
 export async function readStoredFile(ref: string): Promise<Buffer> {
   if (isRemoteStored(ref)) {
+    if (useVercelBlob() && blobAccess() === "private") {
+      const token = process.env.BLOB_READ_WRITE_TOKEN;
+      if (!token?.trim()) {
+        throw new Error("BLOB_READ_WRITE_TOKEN required for private blob reads");
+      }
+      const { get } = await import("@vercel/blob");
+      const result = await get(ref, {
+        access: "private",
+        token,
+      });
+      if (!result || result.statusCode !== 200 || !result.stream) {
+        throw new Error(`blob get failed (${ref})`);
+      }
+      return readableStreamToBuffer(result.stream);
+    }
     const res = await fetch(ref);
     if (!res.ok) {
       throw new Error(`blob fetch ${res.status}`);
@@ -62,7 +103,7 @@ export async function writeZipForPack(
   if (useVercelBlob()) {
     const { put } = await import("@vercel/blob");
     const { url } = await put(rel, buf, {
-      access: "public",
+      access: blobAccess(),
       addRandomSuffix: false,
       token: process.env.BLOB_READ_WRITE_TOKEN,
     });
@@ -83,7 +124,7 @@ export async function writeAvatarForPack(
   if (useVercelBlob()) {
     const { put } = await import("@vercel/blob");
     const { url } = await put(rel, buf, {
-      access: "public",
+      access: blobAccess(),
       addRandomSuffix: false,
       token: process.env.BLOB_READ_WRITE_TOKEN,
     });

@@ -3,9 +3,9 @@ import path from "node:path";
 import os from "node:os";
 import FormDataNode from "form-data";
 import {
-  fetchRegistry,
   isConnectTimeoutError,
   isTransientNetworkError,
+  requestPostRegistry,
 } from "./fetch-registry.js";
 import { zipDirectory } from "./zip-utils.js";
 import { MAX_AVATAR_BYTES, MAX_PACK_ZIP_BYTES } from "./upload-limits.js";
@@ -93,7 +93,10 @@ export async function publishPack(
     }
     const zipBuf = await fs.promises.readFile(tmpZip);
     const base = input.apiBase.replace(/\/$/, "");
-    /** 使用 npm `form-data` + `getHeaders()`：undici `fetch` 仅配 `Authorization` 时，Web `FormData`/`File` 偶发不带上 `multipart/form-data; boundary=…`，Next 会返回 400。 */
+    /**
+     * npm `form-data` + `getBuffer()`，上传用 `requestPostRegistry`（undici `request` + Buffer），
+     * 不经 Web `fetch`，避免 Node 22 + undici 下 multipart 仍触发 `UND_ERR_REQ_CONTENT_LENGTH_MISMATCH`。
+     */
     const form = new FormDataNode();
     form.append("slug", input.slug);
     form.append("title", input.title);
@@ -114,19 +117,24 @@ export async function publishPack(
       form.append("replace", "true");
     }
 
-    const mergedHeaders: Record<string, string> = {
-      ...(form.getHeaders() as Record<string, string>),
-      Authorization: `Bearer ${input.token}`,
-    };
-
-    let res: Response;
+    const multipartBody = form.getBuffer();
+    const formHeaders = form.getHeaders() as Record<string, string>;
+    const multipartType = formHeaders["content-type"];
+    if (!multipartType || typeof multipartType !== "string") {
+      throw new Error("form-data 未提供 content-type（multipart boundary）");
+    }
+    let statusCode: number;
+    let responseText: string;
     try {
-      res = await fetchRegistry(`${base}/api/packs`, {
-        method: "POST",
-        headers: mergedHeaders,
-        body: form as unknown as BodyInit,
-        duplex: "half",
-      } as RequestInit);
+      const out = await requestPostRegistry(`${base}/api/packs`, {
+        body: Buffer.from(multipartBody),
+        headers: {
+          "content-type": multipartType,
+          authorization: `Bearer ${input.token}`,
+        },
+      });
+      statusCode = out.statusCode;
+      responseText = out.text;
     } catch (e) {
       if (isConnectTimeoutError(e)) {
         throw new Error(
@@ -142,33 +150,38 @@ export async function publishPack(
       }
       throw e;
     }
-    const text = await res.text();
-    if (!res.ok) {
-      if (res.status === 401) {
-        throw new PublishAuthError(res.status, text);
+    if (statusCode < 200 || statusCode >= 300) {
+      if (statusCode === 401) {
+        throw new PublishAuthError(statusCode, responseText);
       }
-      if (res.status === 409) {
-        throw new PublishConflictError(res.status, text);
+      if (statusCode === 409) {
+        throw new PublishConflictError(statusCode, responseText);
       }
-      if (res.status === 413) {
-        const detail = parseApiError(text);
+      if (statusCode === 413) {
+        const detail = parseApiError(responseText);
         throw new Error(
           `上传被拒绝（体积超限）：${detail}（pack zip ≤ 2 MiB，头像 ≤ 512 KiB）`
         );
       }
-      if (res.status === 429) {
-        const detail = parseApiError(text);
+      if (statusCode === 429) {
+        const detail = parseApiError(responseText);
         throw new Error(
           `发布过于频繁（429），请稍后再试。${detail}`
         );
       }
-      throw new Error(`Publish failed: ${res.status} ${text}`);
+      if (statusCode >= 500) {
+        const detail = parseApiError(responseText);
+        throw new Error(
+          `registry 服务端错误（${statusCode}）：${detail}（请到 Vercel 该次部署的 Logs 查看堆栈，常见：数据库、BLOB_READ_WRITE_TOKEN、Prisma migrate）`
+        );
+      }
+      throw new Error(`Publish failed: ${statusCode} ${responseText}`);
     }
     let body: unknown;
     try {
-      body = JSON.parse(text) as unknown;
+      body = JSON.parse(responseText) as unknown;
     } catch {
-      throw new Error(`Publish: expected JSON response, got: ${text}`);
+      throw new Error(`Publish: expected JSON response, got: ${responseText}`);
     }
     if (
       typeof body !== "object" ||
@@ -179,7 +192,7 @@ export async function publishPack(
       typeof (body as { downloadPath?: unknown }).downloadPath !== "string" ||
       typeof (body as { viewPath?: unknown }).viewPath !== "string"
     ) {
-      throw new Error(`Publish: unexpected response: ${text}`);
+      throw new Error(`Publish: unexpected response: ${responseText}`);
     }
     return body as PublishPackResult;
   } finally {

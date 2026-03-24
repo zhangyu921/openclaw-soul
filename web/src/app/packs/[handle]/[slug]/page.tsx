@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { siteOriginFromNextHeaders } from "@/lib/device-auth";
 import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
 import AvatarUpload from "./avatar-upload";
@@ -10,24 +11,9 @@ export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ handle: string; slug: string }> };
 
-function siteOriginFromHeaders(h: Headers): string {
-  const rawHost =
-    h.get("x-forwarded-host")?.split(",")[0]?.trim() || h.get("host") || "";
-  const host = rawHost || "localhost:3000";
-  const rawProto =
-    h.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase() || "";
-  const proto =
-    rawProto === "http" || rawProto === "https"
-      ? rawProto
-      : process.env.VERCEL
-        ? "https"
-        : "http";
-  return `${proto}://${host}`;
-}
-
 export default async function PackDetailPage({ params }: Props) {
   const { handle, slug } = await params;
-  const siteOrigin = siteOriginFromHeaders(await headers());
+  const siteOrigin = siteOriginFromNextHeaders(await headers());
   const userId = await readSessionUserId();
   const pack = await prisma.pack.findFirst({
     where: { slug, author: { handle } },

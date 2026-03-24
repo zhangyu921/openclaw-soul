@@ -1,7 +1,9 @@
+import { text } from "node:stream/consumers";
 import {
   EnvHttpProxyAgent,
   RetryAgent,
   fetch as undiciFetch,
+  request as undiciRequest,
 } from "undici";
 
 function parseMs(env: string | undefined, fallback: number): number {
@@ -21,6 +23,8 @@ const DEFAULT_BODY_MS = 300_000;
 const DEFAULT_MAX_RETRIES = 3;
 
 let dispatcher: RetryAgent | undefined;
+/** 大体积 POST（publish）：不重试 5xx，避免 RetryAgent 抛 UND_ERR_REQ_RETRY 且看不到首包响应体。 */
+let uploadDispatcher: EnvHttpProxyAgent | undefined;
 
 function agentOpts() {
   return {
@@ -81,6 +85,13 @@ function getDispatcher(): RetryAgent {
   return dispatcher;
 }
 
+function getUploadDispatcher(): EnvHttpProxyAgent {
+  if (!uploadDispatcher) {
+    uploadDispatcher = new EnvHttpProxyAgent(agentOpts());
+  }
+  return uploadDispatcher;
+}
+
 export function isConnectTimeoutError(e: unknown): boolean {
   if (!e || typeof e !== "object") return false;
   const err = e as { cause?: unknown; code?: string };
@@ -117,4 +128,25 @@ export async function fetchRegistry(
     dispatcher: getDispatcher(),
   } as Parameters<typeof undiciFetch>[1]);
   return res as unknown as Response;
+}
+
+/**
+ * POST 原始字节（如 multipart）。走 undici `request()` + Buffer，**不**经 Web `fetch` 的 body 管线，
+ * 可避免 `UND_ERR_REQ_CONTENT_LENGTH_MISMATCH`（见 publish-pack）。
+ */
+export async function requestPostRegistry(
+  url: string,
+  options: {
+    body: Buffer;
+    headers: Record<string, string>;
+  }
+): Promise<{ statusCode: number; text: string }> {
+  const { statusCode, body } = await undiciRequest(url, {
+    method: "POST",
+    body: options.body,
+    headers: options.headers,
+    dispatcher: getUploadDispatcher(),
+  });
+  const responseText = await text(body);
+  return { statusCode, text: responseText };
 }
