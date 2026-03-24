@@ -27,7 +27,7 @@ async function registryFetch(url: string, init?: RequestInit): Promise<Response>
         /* keep */
       }
       throw new Error(
-        `无法连接 registry（${origin}，连接被拒绝）。请先在仓库根目录启动站点：npm run dev；若端口不是 3000，请在 .env.cli 或环境中设置 OPENCLAW_SOUL_API。`
+        `无法连接 registry（${origin}，连接被拒绝）。请先在仓库根目录启动站点：npm run dev；若端口不是 3000，请在用户配置 env、仓库 .env.cli 或环境中设置 OPENCLAW_SOUL_API。`
       );
     }
     throw e;

@@ -67,8 +67,11 @@ export default function TokenPanel({ initialTokens }: { initialTokens: Row[] }) 
       </div>
       <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
         Prefer browser login: run{" "}
-        <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">npm run ocs -- login</code>{" "}
-        in the monorepo root. Or paste a token below for scripts / CI:{" "}
+        <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">ocs login</code>{" "}
+        (or <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">npm run ocs -- login</code>{" "}
+        from the repo root) — token is saved to your user config{" "}
+        <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">env</code> file. Or paste a
+        token below for scripts / CI:{" "}
         <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">
           OPENCLAW_SOUL_TOKEN=... ocs publish --slug ... --title ...
         </code>

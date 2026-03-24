@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { config as loadDotenv } from "dotenv";
+import { getUserEnvFilePath } from "./user-config-path.js";
 
 /** Walk up from `start` to find the `openclaw-soul` monorepo root (for `.env.cli` and path resolution). */
 export function findMonorepoRoot(start: string = process.cwd()): string | null {
@@ -41,12 +42,21 @@ export function resolveWorkspacePath(userPath: string): string {
   return fromCwd;
 }
 
-/** Load OPENCLAW_* from repo-root `.env.cli` (before Commander reads default option values). */
+/**
+ * Load OPENCLAW_* before Commander reads defaults:
+ * 1. User config `env` (production) — does not override existing process.env (CI/shell).
+ * 2. Monorepo `.env.cli` if present — overrides for local dev when cwd is inside the repo.
+ */
 export function loadCliEnv(): void {
+  const userEnv = getUserEnvFilePath();
+  if (fs.existsSync(userEnv)) {
+    loadDotenv({ path: userEnv, override: false });
+  }
   const root = findMonorepoRoot(process.cwd());
-  if (!root) return;
-  const envPath = path.join(root, ".env.cli");
-  if (fs.existsSync(envPath)) {
-    loadDotenv({ path: envPath });
+  if (root) {
+    const repoCli = path.join(root, ".env.cli");
+    if (fs.existsSync(repoCli)) {
+      loadDotenv({ path: repoCli, override: true });
+    }
   }
 }

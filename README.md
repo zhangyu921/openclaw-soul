@@ -29,9 +29,20 @@ Open http://localhost:3000 — register. **在 monorepo 根目录**（无需先 
 npm run ocs -- login
 ```
 
-会打开浏览器，在站点上登录并确认后，CLI 轮询拿到 token；若在仓库根目录会自动写入 `.env.cli`（已存在 `OPENCLAW_SOUL_TOKEN` 时需加 `--force` 覆盖）。
+会打开浏览器，在站点上登录并确认后，CLI 轮询拿到 token，并写入**用户级**配置文件（见下）；`ocs login` 若已存在 `OPENCLAW_SOUL_TOKEN` 需加 `--force` 覆盖。交互式 `publish` 里若触发浏览器登录，成功后同样写入该文件，之后再次 `publish` 会直接使用该 token。
 
-**或** 在 `/dashboard/tokens` 手动创建 token，复制到 `.env.cli`（见 `.env.cli.example`）。
+**或** 在 `/dashboard/tokens` 手动创建 token，粘贴进用户配置 `env` 文件中的 `OPENCLAW_SOUL_TOKEN=`（见 `.env.cli.example` 说明）。
+
+**CLI 凭证加载顺序（production 优先）**
+
+1. Shell / CI 已设置的**环境变量**（不被文件覆盖）。
+2. **用户配置** `env`（`ocs login` / `publish` 登录后写入）：
+   - macOS / Linux：`~/.config/openclaw-soul/env`（若设置 `XDG_CONFIG_HOME` 则为 `$XDG_CONFIG_HOME/openclaw-soul/env`）
+   - Windows：`%APPDATA%\openclaw-soul\env`
+   - 可选：设置 `OPENCLAW_SOUL_CONFIG_DIR` 指向目录时，使用该目录下的 `env`。
+3. 若当前目录在 **本 monorepo** 内且存在根目录 **`.env.cli`**：后加载并**覆盖**上述同名变量（仅本地开发指向 `localhost` 等）。见 `.env.cli.example`。
+
+从旧版升级、此前只在仓库用过 `.env.cli`：可把其中内容合并进 `~/.config/openclaw-soul/env`，或再执行一次 `ocs login`。
 
 **发布**
 
@@ -47,7 +58,9 @@ npm run ocs -- publish --slug my-pack --title "My pack" --source current
 
 非 TTY（如 CI）下若未同时提供 `--slug` 与 `--title`，或没有 `OPENCLAW_SOUL_TOKEN`/`--token`，命令会直接报错退出（不会挂住）。
 
-根目录 `npm run ocs` 通过 `tsx` 直接跑 `packages/cli/src`；`.env.cli` 在进程启动时自动加载（已 `.gitignore`）。
+`publish` 成功后会在 **stderr** 打印可在浏览器打开的 pack 页面地址（`/packs/<slug>`，与当前 `OPENCLAW_SOUL_API` / `--api` 同源）；stdout 仍为 JSON（`ok`、`slug`、`downloadPath`），便于脚本解析。
+
+根目录 `npm run ocs` 通过 `tsx` 直接跑 `packages/cli/src`；启动时会按上表加载用户 `env` 与可选的 `.env.cli`（已 `.gitignore`）。
 
 **Manifest-only install**（白名单文件拷入已有 workspace，不下载 zip）：
 
@@ -62,10 +75,11 @@ Apply 已发布的 pack（若已有 `~/.openclaw/workspace-<slug>` 会先改名�
 npm run ocs -- apply my-pack
 ```
 
-环境变量（可写进根目录 `.env.cli`，或照常 `export`）：
+环境变量（推荐 `export` 或写入用户 `env`；在 monorepo 内也可用 `.env.cli` 覆盖开发值）：
 
 - `OPENCLAW_SOUL_API` — registry base URL（默认 `http://localhost:3000`）
 - `OPENCLAW_SOUL_TOKEN` — `publish` 用 API token
+- `OPENCLAW_SOUL_CONFIG_DIR` — 自定义 CLI 配置目录（其下文件名为 `env`）
 - `OPENCLAW_CONFIG` — `openclaw.json` 路径（默认 `~/.openclaw/openclaw.json`）
 
 若使用根目录 `package.json` 的 `bin`（`npx ocs` / `npm link`），需先执行一次 `npm run build -w @openclaw-soul/cli`（走编译后的 `dist`）。

@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import { Command } from "commander";
 import { confirm } from "@inquirer/prompts";
-import { loadCliEnv, resolveWorkspacePath, findMonorepoRoot } from "./load-env.js";
+import { loadCliEnv, resolveWorkspacePath } from "./load-env.js";
 import {
   backupAndWriteWorkspace,
   defaultOpenclawConfigPath,
@@ -15,7 +15,8 @@ import { importFromManifest } from "./import-pack.js";
 import { publishPack } from "./publish-pack.js";
 import { runPublishWizard } from "./publish-wizard.js";
 import { runDeviceLogin } from "./device-login.js";
-import { upsertEnvCliLine, setEnvCliLineIfMissing } from "./env-cli-file.js";
+import { upsertEnvKeyInFile, setEnvKeyIfMissing } from "./env-cli-file.js";
+import { getUserEnvFilePath } from "./user-config-path.js";
 import { validateSlug } from "./slug.js";
 
 loadCliEnv();
@@ -29,6 +30,30 @@ function apiBase(): string {
 
 function openclawConfigPath(): string {
   return process.env.OPENCLAW_CONFIG || defaultOpenclawConfigPath();
+}
+
+/** Write token (and API base if missing) to user config `env` (production path). */
+function persistOpenclawSoulCredentials(
+  api: string,
+  token: string,
+  forceToken: boolean
+): void {
+  const filePath = getUserEnvFilePath();
+  upsertEnvKeyInFile({
+    filePath,
+    key: "OPENCLAW_SOUL_TOKEN",
+    value: token,
+    force: forceToken,
+  });
+  setEnvKeyIfMissing(filePath, "OPENCLAW_SOUL_API", api);
+  if (process.platform !== "win32") {
+    try {
+      fs.chmodSync(filePath, 0o600);
+    } catch {
+      /* ignore */
+    }
+  }
+  console.error(`已写入 ${filePath}，后续命令会自动使用该 token。`);
 }
 
 async function renameBackupDir(dir: string): Promise<void> {
@@ -45,28 +70,18 @@ program.name("ocs").description("OpenClaw Soul — workspace pack CLI");
 program
   .command("login")
   .description(
-    "Sign in via browser (device flow); saves OPENCLAW_SOUL_TOKEN to .env.cli in monorepo root"
+    "Sign in via browser (device flow); saves OPENCLAW_SOUL_TOKEN to user config env file (~/.config/openclaw-soul/env or %APPDATA%\\openclaw-soul\\env)"
   )
   .option("--api <url>", "registry base URL", apiBase())
-  .option("--force", "overwrite existing OPENCLAW_SOUL_TOKEN in .env.cli", false)
+  .option(
+    "--force",
+    "overwrite existing OPENCLAW_SOUL_TOKEN in user config env file",
+    false
+  )
   .action(async (opts: { api: string; force: boolean }) => {
     const api = opts.api.replace(/\/$/, "");
     const token = await runDeviceLogin(api);
-    const root = findMonorepoRoot();
-    if (root) {
-      upsertEnvCliLine({
-        rootDir: root,
-        key: "OPENCLAW_SOUL_TOKEN",
-        value: token,
-        force: opts.force,
-      });
-      setEnvCliLineIfMissing(root, "OPENCLAW_SOUL_API", api);
-      console.error(`Updated ${path.join(root, ".env.cli")}`);
-    } else {
-      console.error(
-        "Not inside openclaw-soul monorepo: set OPENCLAW_SOUL_TOKEN yourself."
-      );
-    }
+    persistOpenclawSoulCredentials(api, token, opts.force);
     console.log(token);
   });
 
@@ -160,10 +175,11 @@ program
         });
         if (!proceed) {
           throw new Error(
-            "已取消。可执行 `npm run ocs -- login` 单独登录，或在 .env.cli / 环境变量中设置 OPENCLAW_SOUL_TOKEN 后再 publish。"
+            "已取消。可执行 `npm run ocs -- login` 单独登录，或在用户配置 env 文件 / 仓库 `.env.cli` / 环境变量中设置 OPENCLAW_SOUL_TOKEN 后再 publish。"
           );
         }
         token = await runDeviceLogin(api);
+        persistOpenclawSoulCredentials(api, token, true);
       }
 
       let slug = (opts.slug ?? "").trim();
@@ -215,7 +231,7 @@ program
         }
       }
 
-      const text = await publishPack({
+      const result = await publishPack({
         apiBase: api,
         token,
         slug,
@@ -224,7 +240,9 @@ program
         sourceDir,
         avatarPath,
       });
-      console.log(text);
+      const viewUrl = `${api}/packs/${encodeURIComponent(result.slug)}`;
+      console.error(`上传成功。在浏览器中查看：${viewUrl}`);
+      console.log(JSON.stringify(result));
     }
   );
 

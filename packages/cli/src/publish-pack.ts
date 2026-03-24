@@ -13,7 +13,16 @@ export type PublishPackInput = {
   avatarPath?: string;
 };
 
-export async function publishPack(input: PublishPackInput): Promise<string> {
+/** Successful JSON body from POST /api/packs */
+export type PublishPackResult = {
+  ok: true;
+  slug: string;
+  downloadPath: string;
+};
+
+export async function publishPack(
+  input: PublishPackInput
+): Promise<PublishPackResult> {
   const tmpZip = path.join(
     os.tmpdir(),
     `openclaw-soul-publish-${Date.now()}.zip`
@@ -49,7 +58,22 @@ export async function publishPack(input: PublishPackInput): Promise<string> {
     if (!res.ok) {
       throw new Error(`Publish failed: ${res.status} ${text}`);
     }
-    return text;
+    let body: unknown;
+    try {
+      body = JSON.parse(text) as unknown;
+    } catch {
+      throw new Error(`Publish: expected JSON response, got: ${text}`);
+    }
+    if (
+      typeof body !== "object" ||
+      body === null ||
+      (body as { ok?: unknown }).ok !== true ||
+      typeof (body as { slug?: unknown }).slug !== "string" ||
+      typeof (body as { downloadPath?: unknown }).downloadPath !== "string"
+    ) {
+      throw new Error(`Publish: unexpected response: ${text}`);
+    }
+    return body as PublishPackResult;
   } finally {
     await fs.promises.unlink(tmpZip).catch(() => {});
   }
