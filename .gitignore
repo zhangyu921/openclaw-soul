@@ -1,0 +1,11 @@
+node_modules/
+.DS_Store
+*.log
+.env
+.env.local
+.env.cli
+web/storage/
+packages/cli/dist/
+web/.next/
+web/prisma/**/*.db
+web/prisma/**/*.db-journal

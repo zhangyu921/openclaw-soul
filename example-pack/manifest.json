@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "pack": {
+    "name": "example",
+    "slug": "example",
+    "version": "0.0.1"
+  },
+  "files": [
+    { "src": "SOUL.md", "dest": "SOUL.md" },
+    { "src": "USER.md", "dest": "USER.md" },
+    { "src": "IDENTITY.md", "dest": "IDENTITY.md" },
+    { "src": "MEMORY.md", "dest": "MEMORY.md" }
+  ]
+}

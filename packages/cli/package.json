@@ -1,0 +1,28 @@
+{
+  "name": "@openclaw-soul/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "ocs": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "ocs": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "archiver": "^7.0.1",
+    "commander": "^14.0.2",
+    "extract-zip": "^2.0.1",
+    "form-data": "^4.0.5",
+    "json5": "^2.2.3"
+  },
+  "devDependencies": {
+    "@types/archiver": "^7.0.0",
+    "@types/node": "^20",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}
