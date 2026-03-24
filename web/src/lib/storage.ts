@@ -8,7 +8,7 @@ export function storageRoot(): string {
   return root;
 }
 
-function useVercelBlob(): boolean {
+function isVercelBlobStorage(): boolean {
   return (
     process.env.STORAGE_DRIVER === "vercel-blob" ||
     Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim())
@@ -47,7 +47,7 @@ export function isRemoteStored(ref: string): boolean {
 }
 
 export async function ensurePackDirs(): Promise<void> {
-  if (useVercelBlob()) return;
+  if (isVercelBlobStorage()) return;
   const root = /* turbopackIgnore: true */ storageRoot();
   await fs.mkdir(path.join(root, "packs"), { recursive: true });
   await fs.mkdir(path.join(root, "avatars"), { recursive: true });
@@ -67,7 +67,7 @@ export function avatarPathForPack(packId: string, ext: string): string {
 
 export async function readStoredFile(ref: string): Promise<Buffer> {
   if (isRemoteStored(ref)) {
-    if (useVercelBlob() && blobAccess() === "private") {
+    if (isVercelBlobStorage() && blobAccess() === "private") {
       const token = process.env.BLOB_READ_WRITE_TOKEN;
       if (!token?.trim()) {
         throw new Error("BLOB_READ_WRITE_TOKEN required for private blob reads");
@@ -100,7 +100,7 @@ export async function writeZipForPack(
   buf: Buffer
 ): Promise<string> {
   const rel = `packs/${packId}.zip`;
-  if (useVercelBlob()) {
+  if (isVercelBlobStorage()) {
     const { put } = await import("@vercel/blob");
     const { url } = await put(rel, buf, {
       access: blobAccess(),
@@ -121,7 +121,7 @@ export async function writeAvatarForPack(
   buf: Buffer
 ): Promise<string> {
   const rel = `avatars/${packId}${ext}`;
-  if (useVercelBlob()) {
+  if (isVercelBlobStorage()) {
     const { put } = await import("@vercel/blob");
     const { url } = await put(rel, buf, {
       access: blobAccess(),
