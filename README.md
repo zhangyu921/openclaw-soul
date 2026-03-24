@@ -3,21 +3,22 @@
 Registry + CLI for sharing and applying **OpenClaw workspace** packs (full zip, including `MEMORY.md` if present).
 
 - **Web** (`web/`): Next.js gallery, register/login, API tokens, upload/download packs.
-- **CLI** (`packages/cli`, root `npm run ocs` / `bin`): `ocs` — `login`, `apply`, `publish`, `download`, `import`, `archive-directory`, `restore-openclaw-config`, `backup-openclaw-config`.
+- **CLI** (`packages/cli`, root `pnpm run ocs -- …` / `bin`): `ocs` — `login`, `apply`, `publish`, `download`, `import`, `archive-directory`, `restore-openclaw-config`, `backup-openclaw-config`.
 
 Docs: [OpenClaw Agent Workspace](https://docs.openclaw.ai/concepts/agent-workspace).
 
 ## Quick start (local)
 
-From monorepo root：
+Monorepo 使用 **pnpm**（见根目录 `packageManager` 与 `pnpm-workspace.yaml`；可选先执行 `corepack enable`）。在仓库根目录：
 
 ```bash
-npm install
+pnpm install
 docker compose up -d
 cd web
 cp .env.example .env
-npx prisma migrate dev
-npm run dev
+pnpm exec prisma migrate dev
+cd ..
+pnpm run dev
 ```
 
 Web 使用 **Prisma ORM 7** + **PostgreSQL**（`docker-compose.yml` 将容器 `5432` 映射到本机 **`55432`**，避免与本机已有 Postgres 冲突；可在 compose 里改端口）。`prisma.config.ts` 提供默认 `DATABASE_URL`；运行时用 `@prisma/adapter-pg` + `pg` Pool。构建会执行 `prisma generate`，客户端在 `web/src/generated/prisma`（已 `.gitignore`）。
@@ -29,7 +30,7 @@ Open http://localhost:3000 — **注册时需填写 public handle**（全站唯�
 **推荐：浏览器登录（类 OAuth device flow）**
 
 ```bash
-npm run ocs -- login
+pnpm run ocs -- login
 ```
 
 会打开浏览器，在站点上登录并确认后，CLI 轮询拿到 token，并写入**用户级**配置文件（见下）；`ocs login` 若已存在 `OPENCLAW_SOUL_TOKEN` 需加 `--force` 覆盖。交互式 `publish` 里若触发浏览器登录，成功后同样写入该文件，之后再次 `publish` 会直接使用该 token。
@@ -47,17 +48,17 @@ npm run ocs -- login
 
 从旧版升级、此前只在仓库用过 `.env.cli`：可把其中内容合并进 `~/.config/openclaw-soul/env`，或再执行一次 `ocs login`。
 
-**数据库**：表结构变更请用 `cd web && npx prisma migrate dev`（开发）或 `npx prisma migrate deploy`（CI/生产）。勿在生产对已有数据随意 `db push`。
+**数据库**：表结构变更请用 `cd web && pnpm exec prisma migrate dev`（开发）或 `pnpm exec prisma migrate deploy`（CI/生产）。勿在生产对已有数据随意 `db push`。
 
 **发布**
 
 ```bash
 # 交互式（TTY）：未带 --slug 时会引导选择目录，并从 IDENTITY.md 的 Name 建议 slug/title
-npm run ocs -- publish
+pnpm run ocs -- publish
 
 # 自动化 / CI：必须提供 --slug；--title 可省略（会用 IDENTITY Name 或回退为 slug）；token 用环境变量或 --token
-npm run ocs -- publish --slug my-pack --source current
-# npm run ocs -- publish --slug my-pack --title "My pack" --source ./example-pack
+pnpm run ocs -- publish --slug my-pack --source current
+# pnpm run ocs -- publish --slug my-pack --title "My pack" --source ./example-pack
 ```
 
 非 TTY 下若未提供 `--slug`，或没有 `OPENCLAW_SOUL_TOKEN`/`--token`，命令会直接报错退出（不会挂住）。
@@ -66,19 +67,19 @@ npm run ocs -- publish --slug my-pack --source current
 
 若服务端返回 **409**（你已用过该 `slug`）：交互模式下会询问是否**覆盖**（仅更新 ZIP、标题、摘要；`--avatar` 未传则保留原头像；URL 不变）。非交互请显式加 **`--replace`**。
 
-根目录 `npm run ocs` 通过 `tsx` 直接跑 `packages/cli/src`；启动时会按上表加载用户 `env` 与可选的 `.env.cli`（已 `.gitignore`）。
+根目录 `pnpm run ocs -- …` 经 `scripts/run-ocs.mjs` 在 `packages/cli` 下用 `tsx` 跑源码；启动时会按上表加载用户 `env` 与可选的 `.env.cli`（已 `.gitignore`）。
 
 **Manifest-only install**（白名单文件拷入已有 workspace，不下载 zip）：
 
 ```bash
-npm run ocs -- import ./example-pack --target ~/.openclaw/workspace
+pnpm run ocs -- import ./example-pack --target ~/.openclaw/workspace
 # 加 --dry-run 只看将要复制的路径
 ```
 
 Apply 已发布的 pack（`ref` = 作者的 **handle** + **pack slug**，若已有 `~/.openclaw/workspace-<slug>` 会先改名备份，并更新 `openclaw.json`；**读**仍用 JSON5。**写**：若文件为合法 **JSONC**（标准 JSON + `//` / `/* */` 注释、尾随逗号等），CLI 用 `jsonc-parser` 只改 `agent.workspace` 与 `agents.defaults.workspace`，**尽量保留注释与排版**；若解析失败（例如含 JSON5 专有条目如无引号键），则回退为整文件 **JSON.stringify**（注释会丢失）：
 
 ```bash
-npm run ocs -- apply alice/my-pack
+pnpm run ocs -- apply alice/my-pack
 # 终端（TTY）会先列出完整路径并确认；脚本或非交互可加 -y / --yes 跳过确认
 # 详细日志：--debug
 ```
@@ -92,18 +93,18 @@ npm run ocs -- apply alice/my-pack
 - `OPENCLAW_SOUL_CONFIG_DIR` — 自定义 CLI 配置目录（其下文件名为 `env`）
 - `OPENCLAW_CONFIG` — `openclaw.json` 路径（默认 `~/.openclaw/openclaw.json`）
 
-若使用根目录 `package.json` 的 `bin`（`npx ocs` / `npm link`），需先执行一次 `npm run build -w @openclaw-soul/cli`（走编译后的 `dist`）。
+若使用根目录 `package.json` 的 `bin`（`npx ocs` / `pnpm link --global` 在 `packages/cli`），需先执行一次 `pnpm --filter @openclaw-soul/cli build`（走编译后的 `dist`）。
 
 Uploaded files：默认在 `web/storage/`（可用 `STORAGE_PATH`）。生产 Serverless 建议设置 **`BLOB_READ_WRITE_TOKEN`**（或 `STORAGE_DRIVER=vercel-blob`）使用 [Vercel Blob](https://vercel.com/docs/storage/vercel-blob)；此时 DB 中 zip/头像字段存 Blob 的 **https URL**。
 
 **备份 / 改名（无 rm）**
 
 ```bash
-npm run ocs -- archive-directory ~/.openclaw/workspace-demo
-npm run ocs -- backup-openclaw-config
-npm run ocs -- restore-openclaw-config --list
-npm run ocs -- restore-openclaw-config --latest
-# npm run ocs -- restore-openclaw-config --from ~/.openclaw/openclaw.json.bak.2026-03-24T12-00-00-000Z
+pnpm run ocs -- archive-directory ~/.openclaw/workspace-demo
+pnpm run ocs -- backup-openclaw-config
+pnpm run ocs -- restore-openclaw-config --list
+pnpm run ocs -- restore-openclaw-config --latest
+# pnpm run ocs -- restore-openclaw-config --from ~/.openclaw/openclaw.json.bak.2026-03-24T12-00-00-000Z
 ```
 
 登录后打开某个 pack 详情页，**作者**可见「Upload / replace avatar」；也可在 `publish` 时带 `--avatar`。
@@ -111,16 +112,18 @@ npm run ocs -- restore-openclaw-config --latest
 ## Monorepo
 
 ```bash
-npm install          # root workspaces
-npm run build        # CLI + web
-npm run dev          # web dev server
+pnpm install         # workspace（lockfile: pnpm-lock.yaml）
+pnpm run build       # CLI + web
+pnpm run dev         # web dev server
 ```
 
-Global CLI after `npm link` inside `packages/cli`, or use `npx` once published.
+选用 **pnpm** 的原因之一：在 CI / Vercel（Linux）上 **Tailwind v4 的 `@tailwindcss/oxide` / `lightningcss` 等平台可选原生依赖** 用 npm workspaces 时容易装不齐（[npm#4828](https://github.com/npm/cli/issues/4828)），pnpm 更稳，因而不必在 `package.json` 里手写 `*-linux-x64-gnu` 的 pin。
+
+Global CLI：`cd packages/cli && pnpm link --global`，或发布后使用 `npx`。
 
 ## Troubleshooting
 
-- **`device/start failed (500)`**（`ocs login` / 交互 `publish`）：多为数据库未迁移。确保 `docker compose up -d` 且 `DATABASE_URL` 正确，执行 `cd web && npx prisma migrate dev`（或生产 `migrate deploy`），重启 `npm run dev` 再试。
+- **`device/start failed (500)`**（`ocs login` / 交互 `publish`）：多为数据库未迁移。确保 `docker compose up -d` 且 `DATABASE_URL` 正确，执行 `cd web && pnpm exec prisma migrate dev`（或生产 `migrate deploy`），重启 `pnpm run dev` 再试。
 
 ## Privacy
 

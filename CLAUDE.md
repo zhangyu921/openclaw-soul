@@ -5,7 +5,7 @@
 为 **OpenClaw** 提供 **人设 / workspace 的社区分享与一键切换**：
 
 1. **Registry + Web（MVP）** — 用户注册登录、画廊展示（可简陋）、为 CLI 签发 **API Token**；存储完整 workspace **zip** 与**头像**（头像可先传后在页面上再配置）。
-2. **CLI**（`ocs` / 根目录 `npm run ocs`）— `apply`、`publish`（`--source current` 或目录路径）、`download`、`import`（`manifest.json` + 白名单 → `--target`）、`archive-directory`、`restore-openclaw-config`、`backup-openclaw-config`；`apply` 与写配置前 **rename / copy 备份**，**不用 `rm`**。
+2. **CLI**（`ocs` / 根目录 `pnpm run ocs -- …`）— `apply`、`publish`（`--source current` 或目录路径）、`download`、`import`（`manifest.json` + 白名单 → `--target`）、`archive-directory`、`restore-openclaw-config`、`backup-openclaw-config`；`apply` 与写配置前 **rename / copy 备份**，**不用 `rm`**。
 
 官方 workspace 说明：<https://docs.openclaw.ai/concepts/agent-workspace#default-location>（默认 `~/.openclaw/workspace`，实际路径以本机 `~/.openclaw/openclaw.json` 为准。）
 

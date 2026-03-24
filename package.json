@@ -1,19 +1,16 @@
 {
   "name": "openclaw-soul",
   "private": true,
-  "workspaces": [
-    "web",
-    "packages/cli"
-  ],
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "dev": "pnpm --filter @openclaw-soul/web dev",
+    "build": "pnpm --filter @openclaw-soul/cli build && pnpm --filter @openclaw-soul/web build",
+    "db:migrate": "pnpm --filter @openclaw-soul/web db:migrate",
+    "db:deploy": "pnpm --filter @openclaw-soul/web db:deploy",
+    "db:studio": "pnpm --filter @openclaw-soul/web db:studio",
+    "ocs": "node scripts/run-ocs.mjs"
+  },
   "bin": {
     "ocs": "./packages/cli/dist/index.js"
-  },
-  "scripts": {
-    "dev": "npm run dev -w web",
-    "build": "npm run build -w @openclaw-soul/cli && npm run build -w web",
-    "db:migrate": "npm run db:migrate -w web",
-    "db:deploy": "npm run db:deploy -w web",
-    "db:studio": "npm run db:studio -w web",
-    "ocs": "npm run ocs -w @openclaw-soul/cli --"
   }
 }

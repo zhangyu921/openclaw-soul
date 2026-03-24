@@ -5,14 +5,10 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 First, run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
 pnpm dev
-# or
-bun dev
 ```
+
+（本 monorepo 在仓库根目录用 `pnpm install`；也可在根目录执行 `pnpm run dev` 启动 web。）
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 

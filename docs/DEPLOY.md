@@ -9,10 +9,10 @@
 
 ## 2. 构建前迁移
 
-CI 或 Vercel **Build command** 里在 `web` 下执行迁移（生成 client 已由 `npm run build` 内 `prisma generate` 覆盖）：
+CI 或 Vercel **Build command** 里在 `web` 下执行迁移（生成 client 已由 `pnpm run build` 内 `prisma generate` 覆盖）：
 
 ```bash
-cd web && npx prisma migrate deploy
+cd web && pnpm exec prisma migrate deploy
 ```
 
 本地首次对空库建表：
@@ -21,8 +21,8 @@ cd web && npx prisma migrate deploy
 docker compose up -d
 # compose 默认把 Postgres 映射到本机 55432，避免与已有 5432 冲突
 cd web && cp .env.example .env   # 填好 DATABASE_URL（示例已指向 localhost:55432）
-npx prisma migrate dev
-npm run dev
+pnpm exec prisma migrate dev
+cd .. && pnpm run dev
 ```
 
 ## 3. 环境变量清单
@@ -39,7 +39,7 @@ npm run dev
 
 ## 4. Vercel（推荐：只部署 Web）
 
-仓库里已有 `web/vercel.json`：在 **Root Directory** 设为 `web` 时，会从 monorepo 根执行 `npm install`，并在 build 时先 `prisma migrate deploy` 再 `next build`。
+仓库里已有 `web/vercel.json`：在 **Root Directory** 设为 `web` 时，会从 monorepo 根执行 `pnpm install --frozen-lockfile`（根目录须提交 `pnpm-lock.yaml`），并在 build 时先 `prisma migrate deploy` 再 `pnpm run build`。Vercel 会根据 `packageManager` 字段使用对应 **pnpm** 版本。
 
 1. [Vercel](https://vercel.com) → New Project → 导入本 Git 仓库。
 2. **Root Directory**：填 `web`。
@@ -47,7 +47,7 @@ npm run dev
 4. **首次部署前**必须在 Vercel 里配好 `DATABASE_URL`，否则 build 阶段迁移会失败。
 5. （可选）在 **Settings → General** 打开 **Include files outside of the Root Directory in the Build Step**，若将来有从 `web` 引用仓库根目录文件的构建脚本，可避免缺文件。
 
-若你希望 **从仓库根目录** 一个命令构建（含 CLI），也可把 Root Directory 留空，自行将 Build Command 设为 `npm run db:deploy && npm run build -w web`，并把 **Output Directory** 配成 Next 在子目录的产出（需对照 Vercel 对 subdirectory Next 的说明）；上述 `web` 根目录方式更简单。
+若你希望 **从仓库根目录** 一个命令构建（含 CLI），也可把 Root Directory 留空，自行将 Install 设为 `pnpm install --frozen-lockfile`、Build 设为 `pnpm run db:deploy && pnpm --filter @openclaw-soul/web build`，并把 **Output Directory** 配成 Next 在子目录的产出（需对照 Vercel 对 subdirectory Next 的说明）；上述 `web` 根目录方式更简单。
 
 ## 5. 部署后自检
 
