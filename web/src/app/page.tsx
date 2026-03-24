@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const packs = await prisma.pack.findMany({
-    where: { author: { handle: { not: null } } },
+    where: { revokedAt: null, author: { handle: { not: null } } },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -35,12 +35,19 @@ export default async function Home() {
             >
               API tokens
             </Link>
+            <Link href="/privacy" className="text-zinc-600 hover:underline dark:text-zinc-400">
+              Privacy
+            </Link>
           </nav>
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-6 py-10">
         <p className="mb-8 text-zinc-600 dark:text-zinc-400">
-          Browse OpenClaw workspace packs. Apply with CLI:{" "}
+          Browse OpenClaw workspace packs. Upload terms:{" "}
+          <Link href="/privacy" className="underline">
+            Privacy
+          </Link>
+          . Apply with CLI:{" "}
           <code className="rounded bg-zinc-200 px-1.5 py-0.5 text-sm dark:bg-zinc-800">
             ocs apply &lt;handle&gt;/&lt;slug&gt;
           </code>

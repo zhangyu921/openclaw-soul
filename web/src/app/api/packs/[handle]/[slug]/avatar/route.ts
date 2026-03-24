@@ -5,6 +5,7 @@ import { findPackByHandleAndSlug } from "@/lib/pack-lookup";
 import { readSessionUserId } from "@/lib/session";
 import { ensurePackDirs, storageRoot } from "@/lib/storage";
 import { prisma } from "@/lib/prisma";
+import { MAX_AVATAR_BYTES, avatarTooLargeMessage } from "@/lib/upload-limits";
 
 type Params = { params: Promise<{ handle: string; slug: string }> };
 
@@ -48,7 +49,9 @@ export async function POST(req: Request, { params }: Params) {
   }
 
   const { handle, slug } = await params;
-  const pack = await findPackByHandleAndSlug(handle, slug);
+  const pack = await findPackByHandleAndSlug(handle, slug, {
+    allowRevoked: true,
+  });
   if (!pack) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
@@ -65,6 +68,9 @@ export async function POST(req: Request, { params }: Params) {
   const file = form.get("avatar");
   if (!(file instanceof File) || file.size === 0) {
     return NextResponse.json({ error: "avatar file required" }, { status: 400 });
+  }
+  if (file.size > MAX_AVATAR_BYTES) {
+    return NextResponse.json({ error: avatarTooLargeMessage() }, { status: 413 });
   }
 
   const ext = path.extname(file.name).toLowerCase() || ".bin";

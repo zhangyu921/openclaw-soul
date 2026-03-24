@@ -23,6 +23,7 @@ import { upsertEnvKeyInFile, setEnvKeyIfMissing } from "./env-cli-file.js";
 import { getUserEnvFilePath } from "./user-config-path.js";
 import { validateSlug } from "./slug.js";
 import { readIdentityDefaults } from "./read-identity.js";
+import { ensurePublishPrivacyConsent } from "./privacy-ack.js";
 
 loadCliEnv();
 
@@ -144,7 +145,7 @@ program
 program
   .command("publish")
   .description(
-    "Zip a workspace and upload (needs token or run ocs login). Without --slug, runs an interactive wizard in a TTY; title defaults from IDENTITY.md Name or slug."
+    "Zip a workspace and upload (needs token or run ocs login). TTY: privacy consent once (cached in user config). Non-TTY: use --accept-privacy or OPENCLAW_SOUL_ACCEPT_PRIVACY=1. Without --slug, runs an interactive wizard; title defaults from IDENTITY.md Name or slug."
   )
   .option("--api <url>", "registry base URL", apiBase())
   .option("--token <token>", "API token (or OPENCLAW_SOUL_TOKEN)")
@@ -163,6 +164,11 @@ program
     false
   )
   .option(
+    "--accept-privacy",
+    "acknowledge privacy & upload terms (required for non-TTY publish; see /privacy on the registry)",
+    false
+  )
+  .option(
     "--config <path>",
     "path to openclaw.json (for --source current)",
     openclawConfigPath()
@@ -177,6 +183,7 @@ program
       source: string;
       avatar?: string;
       replace: boolean;
+      acceptPrivacy: boolean;
       config: string;
     }) => {
       const api = opts.api.replace(/\/$/, "");
@@ -267,6 +274,11 @@ program
           throw new Error(`Avatar not found: ${avatarPath}`);
         }
       }
+
+      await ensurePublishPrivacyConsent({
+        apiBase: api,
+        acceptPrivacyFlag: Boolean(opts.acceptPrivacy),
+      });
 
       const maxReauthAttempts = 1;
       for (let authAttempt = 0; ; authAttempt++) {

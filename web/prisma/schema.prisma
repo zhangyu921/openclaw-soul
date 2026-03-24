@@ -28,15 +28,17 @@ model ApiToken {
 }
 
 model Pack {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   slug          String
   title         String
   summary       String?
   zipRelPath    String
   avatarRelPath String?
   authorId      String
-  author        User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  createdAt     DateTime @default(now())
+  author        User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  /// Soft-unpublish: hidden from gallery & download; row and files kept.
+  revokedAt     DateTime?
 
   @@unique([authorId, slug])
 }

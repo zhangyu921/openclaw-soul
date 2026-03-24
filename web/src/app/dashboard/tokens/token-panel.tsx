@@ -134,6 +134,13 @@ export default function TokenPanel({
         </p>
       )}
 
+      <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+        <Link href="/privacy" className="underline">
+          Privacy &amp; uploads
+        </Link>
+        ：使用 <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">ocs publish</code>{" "}
+        即表示你同意其中关于全量 zip、无自动脱敏及撤销不删库等说明。
+      </p>
       <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
         Prefer browser login: run{" "}
         <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">ocs login</code>{" "}

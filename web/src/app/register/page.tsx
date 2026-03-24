@@ -11,6 +11,7 @@ function RegisterForm() {
   const [email, setEmail] = useState("");
   const [handle, setHandle] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -26,6 +27,7 @@ function RegisterForm() {
           email,
           password,
           handle: handle.trim().toLowerCase(),
+          acceptPrivacy,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -79,10 +81,25 @@ function RegisterForm() {
             className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
           />
         </label>
+        <label className="flex cursor-pointer items-start gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+          <input
+            type="checkbox"
+            checked={acceptPrivacy}
+            onChange={(e) => setAcceptPrivacy(e.target.checked)}
+            className="mt-1"
+          />
+          <span>
+            我已阅读并同意{" "}
+            <Link href="/privacy" className="underline" target="_blank" rel="noreferrer">
+              隐私与上传说明
+            </Link>
+            （含全量 workspace 上传风险、无自动脱敏、撤销不删库等）。
+          </span>
+        </label>
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !acceptPrivacy}
           className="rounded bg-zinc-900 px-4 py-2 text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
         >
           {loading ? "…" : "Create account"}
@@ -99,8 +116,12 @@ function RegisterForm() {
           Login
         </Link>
       </p>
-      <p className="mt-4 text-sm">
-        <Link href="/" className="text-zinc-500 underline">
+      <p className="mt-4 text-sm text-zinc-500">
+        <Link href="/privacy" className="underline">
+          Privacy &amp; uploads
+        </Link>
+        {" · "}
+        <Link href="/" className="underline">
           ← Home
         </Link>
       </p>

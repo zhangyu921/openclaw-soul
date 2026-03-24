@@ -77,8 +77,12 @@ export default function LoginForm() {
           Register
         </Link>
       </p>
-      <p className="mt-4 text-sm">
-        <Link href="/" className="text-zinc-500 underline">
+      <p className="mt-4 text-sm text-zinc-500">
+        <Link href="/privacy" className="underline">
+          Privacy &amp; uploads
+        </Link>
+        {" · "}
+        <Link href="/" className="underline">
           ← Home
         </Link>
       </p>

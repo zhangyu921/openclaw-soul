@@ -117,4 +117,10 @@ Global CLI after `npm link` inside `packages/cli`, or use `npx` once published.
 
 ## Privacy
 
-Publishing sends the **entire** directory as zip. You are responsible for what you upload.
+- 完整说明与同意条款：站点路径 **`/privacy`**（本地即 `http://localhost:3000/privacy`）。
+- 注册须勾选同意；`ocs publish` 在 TTY 下会提示（同意后写入 `~/.config/openclaw-soul/privacy-ack`，不必每次确认）；**非 TTY / CI** 须加 **`--accept-privacy`** 或环境变量 **`OPENCLAW_SOUL_ACCEPT_PRIVACY=1`**。
+- **体积**：pack **zip ≤ 2 MiB**，头像 **≤ 512 KiB**（CLI 会先本地校验）。
+- **频率**：同一账号约 **每自然小时 20 次**成功发布（新建或覆盖）；超限返回 **429**。
+- 作者可在 pack 详情页 **撤销公开展示**（不删数据库与文件；`ocs publish --replace` 同 slug 可再次公开）。
+
+Publishing still sends the **entire** workspace as zip unless you exclude files locally; you are responsible for what you upload.

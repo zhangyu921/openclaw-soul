@@ -4,7 +4,7 @@ import { hashPassword } from "@/lib/password";
 import { assertValidHandle } from "@/lib/storage";
 
 export async function POST(req: Request) {
-  let body: { email?: string; password?: string; handle?: string };
+  let body: { email?: string; password?: string; handle?: string; acceptPrivacy?: boolean };
   try {
     body = await req.json();
   } catch {
@@ -16,6 +16,12 @@ export async function POST(req: Request) {
   if (!email || !password || !handle) {
     return NextResponse.json(
       { error: "email, password, and public handle required" },
+      { status: 400 }
+    );
+  }
+  if (body.acceptPrivacy !== true) {
+    return NextResponse.json(
+      { error: "you must accept the privacy & upload terms to register" },
       { status: 400 }
     );
   }

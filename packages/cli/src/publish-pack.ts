@@ -2,6 +2,17 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { zipDirectory } from "./zip-utils.js";
+import { MAX_AVATAR_BYTES, MAX_PACK_ZIP_BYTES } from "./upload-limits.js";
+
+function parseApiError(text: string): string {
+  try {
+    const j = JSON.parse(text) as { error?: string };
+    if (typeof j.error === "string") return j.error;
+  } catch {
+    /* ignore */
+  }
+  return text;
+}
 
 export type PublishPackInput = {
   apiBase: string;
@@ -60,6 +71,20 @@ export async function publishPack(
   );
   await zipDirectory(input.sourceDir, tmpZip);
   try {
+    const zipStat = await fs.promises.stat(tmpZip);
+    if (zipStat.size > MAX_PACK_ZIP_BYTES) {
+      throw new Error(
+        `打包结果超过 ${MAX_PACK_ZIP_BYTES} 字节（2 MiB）上限，请减小工作区后再试。`
+      );
+    }
+    if (input.avatarPath) {
+      const avStat = await fs.promises.stat(input.avatarPath);
+      if (avStat.size > MAX_AVATAR_BYTES) {
+        throw new Error(
+          `头像超过 ${MAX_AVATAR_BYTES} 字节（512 KiB）上限。`
+        );
+      }
+    }
     const zipBuf = await fs.promises.readFile(tmpZip);
     const base = input.apiBase.replace(/\/$/, "");
     const form = new FormData();
@@ -94,6 +119,18 @@ export async function publishPack(
       }
       if (res.status === 409) {
         throw new PublishConflictError(res.status, text);
+      }
+      if (res.status === 413) {
+        const detail = parseApiError(text);
+        throw new Error(
+          `上传被拒绝（体积超限）：${detail}（pack zip ≤ 2 MiB，头像 ≤ 512 KiB）`
+        );
+      }
+      if (res.status === 429) {
+        const detail = parseApiError(text);
+        throw new Error(
+          `发布过于频繁（429），请稍后再试。${detail}`
+        );
       }
       throw new Error(`Publish failed: ${res.status} ${text}`);
     }

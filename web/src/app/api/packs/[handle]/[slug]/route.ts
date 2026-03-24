@@ -6,7 +6,7 @@ type Params = { params: Promise<{ handle: string; slug: string }> };
 export async function GET(_req: Request, { params }: Params) {
   const { handle, slug } = await params;
   const pack = await prisma.pack.findFirst({
-    where: { slug, author: { handle } },
+    where: { slug, author: { handle }, revokedAt: null },
     select: {
       slug: true,
       title: true,

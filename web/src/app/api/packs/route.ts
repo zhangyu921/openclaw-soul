@@ -10,10 +10,20 @@ import {
   ensurePackDirs,
   zipPathForPack,
 } from "@/lib/storage";
+import {
+  MAX_AVATAR_BYTES,
+  MAX_PACK_ZIP_BYTES,
+  avatarTooLargeMessage,
+  zipTooLargeMessage,
+} from "@/lib/upload-limits";
+import {
+  checkPublishRateLimit,
+  recordPublishSuccess,
+} from "@/lib/publish-rate-limit";
 
 export async function GET() {
   const packs = await prisma.pack.findMany({
-    where: { author: { handle: { not: null } } },
+    where: { revokedAt: null, author: { handle: { not: null } } },
     orderBy: { createdAt: "desc" },
     select: {
       slug: true,
@@ -54,6 +64,17 @@ export async function POST(req: Request) {
   }
   const handle = user.handle.trim();
 
+  const rl = checkPublishRateLimit(authorId);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "publish rate limit exceeded; try again later" },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rl.retryAfterSec) },
+      }
+    );
+  }
+
   const ct = req.headers.get("content-type") || "";
   if (!ct.includes("multipart/form-data")) {
     return NextResponse.json({ error: "expected multipart/form-data" }, { status: 400 });
@@ -68,6 +89,10 @@ export async function POST(req: Request) {
     typeof summaryRaw === "string" && summaryRaw.trim() ? summaryRaw.trim() : null;
   const zip = form.get("zip");
   const avatar = form.get("avatar");
+
+  if (avatar instanceof File && avatar.size > MAX_AVATAR_BYTES) {
+    return NextResponse.json({ error: avatarTooLargeMessage() }, { status: 413 });
+  }
 
   if (!slug) {
     return NextResponse.json({ error: "slug required" }, { status: 400 });
@@ -86,6 +111,9 @@ export async function POST(req: Request) {
   }
 
   const zipBuf = Buffer.from(await zip.arrayBuffer());
+  if (zipBuf.length > MAX_PACK_ZIP_BYTES) {
+    return NextResponse.json({ error: zipTooLargeMessage() }, { status: 413 });
+  }
 
   const dup = await prisma.pack.findFirst({
     where: { authorId, slug },
@@ -138,13 +166,14 @@ export async function POST(req: Request) {
     try {
       await prisma.pack.update({
         where: { id: dup.id },
-        data: updateData,
+        data: { ...updateData, revokedAt: null },
       });
     } catch (e) {
       console.error(e);
       return NextResponse.json({ error: "failed to update pack" }, { status: 500 });
     }
 
+    recordPublishSuccess(authorId);
     const encH = encodeURIComponent(handle);
     const encS = encodeURIComponent(slug);
     return NextResponse.json({
@@ -202,6 +231,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "failed to save pack" }, { status: 500 });
   }
 
+  recordPublishSuccess(authorId);
   const encH = encodeURIComponent(handle);
   const encS = encodeURIComponent(slug);
   return NextResponse.json({
