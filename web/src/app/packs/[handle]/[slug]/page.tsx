@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
@@ -9,8 +10,24 @@ export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ handle: string; slug: string }> };
 
+function siteOriginFromHeaders(h: Headers): string {
+  const rawHost =
+    h.get("x-forwarded-host")?.split(",")[0]?.trim() || h.get("host") || "";
+  const host = rawHost || "localhost:3000";
+  const rawProto =
+    h.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase() || "";
+  const proto =
+    rawProto === "http" || rawProto === "https"
+      ? rawProto
+      : process.env.VERCEL
+        ? "https"
+        : "http";
+  return `${proto}://${host}`;
+}
+
 export default async function PackDetailPage({ params }: Props) {
   const { handle, slug } = await params;
+  const siteOrigin = siteOriginFromHeaders(await headers());
   const userId = await readSessionUserId();
   const pack = await prisma.pack.findFirst({
     where: { slug, author: { handle } },
@@ -101,7 +118,7 @@ export default async function PackDetailPage({ params }: Props) {
                 ):
               </p>
               <pre className="overflow-x-auto rounded-lg bg-zinc-100 p-4 text-sm dark:bg-zinc-950">
-                {`export OPENCLAW_SOUL_API=http://localhost:3000
+                {`export OPENCLAW_SOUL_API=${siteOrigin}
 ocs apply ${pack.author.handle}/${pack.slug}`}
               </pre>
               <p className="text-sm text-zinc-600 dark:text-zinc-400">Raw zip:</p>
