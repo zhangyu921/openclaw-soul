@@ -52,6 +52,8 @@ pnpm run ocs -- login
 
 **发布**
 
+默认只把 workspace **根目录**下的 `SOUL.md` 与 `MEMORY.md` 打进 zip（缺任一则报错）。**`--full`** 恢复整目录打包（旧行为）；**`--include`** 可重复指定额外根文件（如 `AGENTS.md`）。交互式向导里用多选：`SOUL.md` 必选不可取消，其余可选，也可选「整个目录」。
+
 ```bash
 # 交互式（TTY）：未带 --slug 时会引导选择目录，并从 IDENTITY.md 的 Name 建议 slug/title
 pnpm run ocs -- publish
@@ -59,6 +61,8 @@ pnpm run ocs -- publish
 # 自动化 / CI：必须提供 --slug；--title 可省略（会用 IDENTITY Name 或回退为 slug）；token 用环境变量或 --token
 pnpm run ocs -- publish --slug my-pack --source current
 # pnpm run ocs -- publish --slug my-pack --title "My pack" --source ./example-pack
+# 整目录 zip：pnpm run ocs -- publish --slug my-pack --source current --full
+# 附加根文件：pnpm run ocs -- publish --slug my-pack --source current --include AGENTS.md --include TOOLS.md
 ```
 
 非 TTY 下若未提供 `--slug`，或没有 `OPENCLAW_SOUL_TOKEN`/`--token`，命令会直接报错退出（不会挂住）。

@@ -10,7 +10,11 @@ import {
   defaultOpenclawConfigPath,
   readWorkspaceFromConfig,
 } from "./openclaw-config.js";
-import { downloadToFile, extractZip } from "./zip-utils.js";
+import {
+  assertSafeRootRelativeFile,
+  downloadToFile,
+  extractZip,
+} from "./zip-utils.js";
 import { importFromManifest } from "./import-pack.js";
 import {
   publishPack,
@@ -229,7 +233,7 @@ program
 program
   .command("publish")
   .description(
-    "Zip a workspace and upload (needs token or run ocs login). TTY: privacy consent once (cached in user config). Non-TTY: use --accept-privacy or OPENCLAW_SOUL_ACCEPT_PRIVACY=1. Without --slug, runs an interactive wizard; title defaults from IDENTITY.md Name or slug."
+    "Zip a workspace and upload (needs token or run ocs login). Default zip: SOUL.md + MEMORY.md at workspace root only; use --full for the whole tree or --include for extra root files. TTY: privacy consent once (cached in user config). Non-TTY: use --accept-privacy or OPENCLAW_SOUL_ACCEPT_PRIVACY=1. Without --slug, runs an interactive wizard; title defaults from IDENTITY.md Name or slug."
   )
   .option("--api <url>", "registry base URL", apiBase())
   .option("--token <token>", "API token (or OPENCLAW_SOUL_TOKEN)")
@@ -257,6 +261,17 @@ program
     "path to openclaw.json (for --source current)",
     openclawConfigPath()
   )
+  .option(
+    "--full",
+    "zip entire workspace directory (all files and subfolders; legacy behavior)",
+    false
+  )
+  .option(
+    "--include <file>",
+    "include an extra workspace root file (repeatable); only used when not using --full",
+    (value: string, prev: string[]) => [...prev, value],
+    [] as string[]
+  )
   .action(
     async (opts: {
       api: string;
@@ -269,6 +284,8 @@ program
       replace: boolean;
       acceptPrivacy: boolean;
       config: string;
+      full: boolean;
+      include: string[];
     }) => {
       const api = opts.api.replace(/\/$/, "");
       const config = opts.config;
@@ -300,6 +317,8 @@ program
       let summary = opts.summary?.trim();
       let source = opts.source;
       let avatar = opts.avatar;
+      let wizardFullZip: boolean | undefined;
+      let wizardRootFiles: string[] | undefined;
 
       if (slug && !title) {
         let sourceDir: string | null = null;
@@ -329,12 +348,15 @@ program
           summary,
           source,
           avatar,
+          skipPackRootPrompt: Boolean(opts.full),
         });
         slug = w.slug;
         title = w.title;
         summary = w.summary;
         source = w.source;
         avatar = w.avatar;
+        wizardFullZip = w.fullZip;
+        wizardRootFiles = w.selectedRootFiles;
       }
 
       validateSlug(slug);
@@ -364,6 +386,24 @@ program
         acceptPrivacyFlag: Boolean(opts.acceptPrivacy),
       });
 
+      const packFull = Boolean(opts.full) || wizardFullZip === true;
+      const includeList = opts.include ?? [];
+      if (packFull && includeList.length > 0) {
+        console.error("提示：已使用 --full / 整目录打包，忽略 --include。");
+      }
+
+      let subsetFiles: string[] | undefined;
+      if (!packFull) {
+        if (wizardRootFiles !== undefined) {
+          subsetFiles = wizardRootFiles;
+        } else {
+          const extra = includeList.map((f) =>
+            assertSafeRootRelativeFile(sourceDir, f)
+          );
+          subsetFiles = [...new Set(["SOUL.md", "MEMORY.md", ...extra])];
+        }
+      }
+
       const maxReauthAttempts = 1;
       for (let authAttempt = 0; ; authAttempt++) {
         try {
@@ -376,6 +416,8 @@ program
             sourceDir,
             avatarPath,
             replace,
+            fullZip: packFull,
+            subsetFiles,
           });
           const viewUrl = result.viewUrl ?? `${api}${result.viewPath}`;
           console.error(`上传成功。在浏览器中查看：${viewUrl}`);

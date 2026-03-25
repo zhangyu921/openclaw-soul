@@ -8,7 +8,7 @@ import {
   requestPostRegistry,
 } from "./fetch-registry.js";
 import { prepareAvatarForPublish } from "./compress-avatar.js";
-import { zipDirectory } from "./zip-utils.js";
+import { zipDirectory, zipSelectedFiles } from "./zip-utils.js";
 import { MAX_PACK_ZIP_BYTES } from "./upload-limits.js";
 
 function parseApiError(text: string): string {
@@ -31,6 +31,10 @@ export type PublishPackInput = {
   avatarPath?: string;
   /** Same author + slug already exists: overwrite zip / metadata (URL unchanged). */
   replace?: boolean;
+  /** Zip entire workspace tree (legacy). When true, `subsetFiles` is ignored. */
+  fullZip?: boolean;
+  /** Workspace root file names only; required when `fullZip` is false. */
+  subsetFiles?: string[];
 };
 
 /** Successful JSON body from POST /api/packs */
@@ -75,10 +79,22 @@ export async function publishPack(
     os.tmpdir(),
     `openclaw-soul-publish-${Date.now()}.zip`
   );
-  console.error(
-    `正在打包：${input.sourceDir}（临时 zip 在系统临时目录，上传后删除）`
-  );
-  await zipDirectory(input.sourceDir, tmpZip);
+  const fullZip = Boolean(input.fullZip);
+  const subset = input.subsetFiles;
+  if (!fullZip && (!subset || subset.length === 0)) {
+    throw new Error("publishPack: subsetFiles required when fullZip is false");
+  }
+  if (fullZip) {
+    console.error(
+      `正在打包（整个目录）：${input.sourceDir}（临时 zip 在系统临时目录，上传后删除）`
+    );
+    await zipDirectory(input.sourceDir, tmpZip);
+  } else {
+    console.error(
+      `正在打包（根文件）：${subset!.join(", ")} ← ${input.sourceDir}（临时 zip 在系统临时目录，上传后删除）`
+    );
+    await zipSelectedFiles(input.sourceDir, subset!, tmpZip);
+  }
   try {
     const zipStat = await fs.promises.stat(tmpZip);
     if (zipStat.size > MAX_PACK_ZIP_BYTES) {

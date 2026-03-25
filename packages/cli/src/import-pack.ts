@@ -3,7 +3,7 @@ import path from "node:path";
 import JSON5 from "json5";
 
 /** OpenClaw workspace root files only — no path traversal, no memory/ subtree in v1 import. */
-const ALLOWED_DEST = new Set([
+export const WORKSPACE_ROOT_FILE_ALLOWLIST = new Set([
   "SOUL.md",
   "IDENTITY.md",
   "USER.md",
@@ -45,9 +45,9 @@ export function importFromManifest(
     if (f.dest.includes("..") || f.src.includes("..")) {
       throw new Error("paths must not contain '..'");
     }
-    if (!ALLOWED_DEST.has(f.dest)) {
+    if (!WORKSPACE_ROOT_FILE_ALLOWLIST.has(f.dest)) {
       throw new Error(
-        `dest not allowed: ${f.dest} (allowed: ${[...ALLOWED_DEST].join(", ")})`
+        `dest not allowed: ${f.dest} (allowed: ${[...WORKSPACE_ROOT_FILE_ALLOWLIST].join(", ")})`
       );
     }
     const srcFull = path.resolve(packDir, f.src);

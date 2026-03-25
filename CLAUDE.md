@@ -31,9 +31,10 @@
 ### `publish`（分享）
 
 - 用户**选择打包源**：
-  - **当前默认目录**：读取 `openclaw.json` 里正在使用的 workspace 路径（优先 **`agents.defaults.workspace`**，兼容旧版 `agent.workspace`），整目录打 zip；或
+  - **当前默认目录**：读取 `openclaw.json` 里正在使用的 workspace 路径（优先 **`agents.defaults.workspace`**，兼容旧版 `agent.workspace`）；或
   - **显式路径**：用户指定目录。
-- **MVP：全量上传**，目录里有什么就打什么进 zip，**不做脱敏、不过滤文件**。
+- **默认 zip 范围**：仅 workspace **根**下 `SOUL.md` + `MEMORY.md`（缺一则报错）；**`--full`** 整目录（旧行为）；**`--include`** 重复指定额外根文件（防路径穿越）。交互向导多选：`SOUL.md` 必选，其余可选或选整目录。
+- **MVP**：**不做脱敏、不过滤**；默认子集仍可能含 `MEMORY.md`，全量模式与旧版一致。
 - **Registry**：用户注册填 **public handle**；pack 的 **slug** 在作者内唯一；画廊与 API 路径为 `/packs/<handle>/<slug>`；CLI `apply <handle>/<slug>`。可选从 `IDENTITY.md` 的 **Name** 推导默认 slug / title。
 - **上架成功链接**：`POST /api/packs` 返回 **`viewUrl`**（`requestOrigin` / **`OPENCLAW_SOUL_SITE_URL`**），CLI 打印时优先用它，避免 `OPENCLAW_SOUL_API` 指向 `*.vercel.app` 时提示错域。
 - **头像**：网页用 Canvas 在浏览器压缩；CLI 用 **`sharp`** 本机压缩；服务端仍校验 ≤512 KiB。
