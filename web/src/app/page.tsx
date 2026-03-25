@@ -22,7 +22,7 @@ export default async function Home() {
   });
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <main className="mx-auto max-w-[var(--container-max)] px-4 py-10 sm:px-6">
       <div className="mb-10 text-center sm:mb-12">
         <Badge variant="secondary" className="mb-4 gap-1 px-3 py-1 text-xs font-medium">
           <Sparkles className="size-3.5" aria-hidden />
@@ -58,7 +58,7 @@ export default async function Home() {
           </CardContent>
         </Card>
       ) : (
-        <div className="columns-1 gap-5 sm:columns-2 lg:columns-3 [&>*]:mb-5">
+        <div className="columns-1 gap-[var(--pin-gap)] sm:columns-2 lg:columns-3 [&>*]:mb-[var(--pin-gap)]">
           {packs.map((p) => {
             const h = p.author.handle!;
             const encH = encodeURIComponent(h);
@@ -69,7 +69,7 @@ export default async function Home() {
                 href={`/packs/${h}/${p.slug}`}
                 className="block break-inside-avoid"
               >
-                <Card className="overflow-hidden border-0 shadow-md ring-1 ring-border/80 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:ring-primary/25">
+                <Card className="card-pinterest overflow-hidden border-0 ring-1 ring-border/80 hover:ring-primary/25">
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                     {p.avatarRelPath ? (
                       // eslint-disable-next-line @next/next/no-img-element
