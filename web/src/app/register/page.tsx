@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, Suspense } from "react";
+import { Suspense, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 function RegisterForm() {
   const router = useRouter();
@@ -45,94 +51,115 @@ function RegisterForm() {
   }
 
   return (
-    <div className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="mb-6 text-2xl font-semibold">Register</h1>
-      <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm">
-          Email
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Public handle (for /packs/&lt;handle&gt;/… — lowercase, letters, digits, hyphens)
-          <input
-            type="text"
-            required
-            value={handle}
-            onChange={(e) => setHandle(e.target.value)}
-            autoComplete="username"
-            className="rounded border border-zinc-300 px-3 py-2 font-mono dark:border-zinc-700 dark:bg-zinc-900"
-            placeholder="your-handle"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Password (min 8)
-          <input
-            type="password"
-            required
-            minLength={8}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
-          />
-        </label>
-        <label className="flex cursor-pointer items-start gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-          <input
-            type="checkbox"
-            checked={acceptPrivacy}
-            onChange={(e) => setAcceptPrivacy(e.target.checked)}
-            className="mt-1"
-          />
-          <span>
-            我已阅读并同意{" "}
-            <Link href="/privacy" className="underline" target="_blank" rel="noreferrer">
-              隐私与上传说明
-            </Link>
-            。
-          </span>
-        </label>
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
-        <button
-          type="submit"
-          disabled={loading || !acceptPrivacy}
-          className="rounded bg-zinc-900 px-4 py-2 text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
-        >
-          {loading ? "…" : "Create account"}
-        </button>
-      </form>
-      <p className="mt-6 text-sm text-zinc-500">
-        Already have an account?{" "}
-        <Link
-          href={
-            next ? `/login?next=${encodeURIComponent(next)}` : "/login"
-          }
-          className="underline"
-        >
-          Login
-        </Link>
-      </p>
-      <p className="mt-4 text-sm text-zinc-500">
-        <Link href="/privacy" className="underline">
-          Privacy &amp; uploads
-        </Link>
-        {" · "}
-        <Link href="/" className="underline">
-          ← Home
-        </Link>
-      </p>
-    </div>
+    <Card className="w-full max-w-md border-0 shadow-lg ring-1 ring-border/80">
+      <CardHeader className="space-y-1 text-center">
+        <CardTitle className="font-heading text-2xl">Create account</CardTitle>
+        <CardDescription>注册后即可发布与展示你的 OpenClaw pack</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={onSubmit} className="flex flex-col gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="reg-email">Email</Label>
+            <Input
+              id="reg-email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              className="h-10"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reg-handle">Public handle</Label>
+            <Input
+              id="reg-handle"
+              type="text"
+              required
+              value={handle}
+              onChange={(e) => setHandle(e.target.value)}
+              autoComplete="username"
+              placeholder="your-handle"
+              className="h-10 font-mono text-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              小写字母、数字、连字符；用于 /packs/&lt;handle&gt;/…
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reg-password">Password (min 8)</Label>
+            <Input
+              id="reg-password"
+              type="password"
+              required
+              minLength={8}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
+              className="h-10"
+            />
+          </div>
+          <div className="flex items-start gap-3 rounded-lg border border-border/80 bg-muted/30 p-3">
+            <Checkbox
+              id="reg-privacy"
+              checked={acceptPrivacy}
+              onCheckedChange={(v) => setAcceptPrivacy(v === true)}
+              className="mt-0.5"
+            />
+            <Label htmlFor="reg-privacy" className="cursor-pointer font-normal leading-snug text-muted-foreground">
+              我已阅读并同意{" "}
+              <Link href="/privacy" className="font-medium text-primary underline-offset-4 hover:underline" target="_blank" rel="noreferrer">
+                隐私与上传说明
+              </Link>
+              。
+            </Label>
+          </div>
+          {error ? (
+            <p className="text-sm font-medium text-destructive" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <Button type="submit" size="lg" className="w-full" disabled={loading || !acceptPrivacy}>
+            {loading ? "…" : "Create account"}
+          </Button>
+        </form>
+      </CardContent>
+      <CardFooter className="flex flex-col gap-2 text-center text-sm text-muted-foreground">
+        <p>
+          Already have an account?{" "}
+          <Link
+            href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Login
+          </Link>
+        </p>
+        <p>
+          <Link href="/privacy" className="underline-offset-4 hover:underline">
+            Privacy
+          </Link>
+          {" · "}
+          <Link href="/" className="underline-offset-4 hover:underline">
+            Home
+          </Link>
+        </p>
+      </CardFooter>
+    </Card>
   );
 }
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-sm px-6 py-16 text-zinc-500">Loading…</div>}>
-      <RegisterForm />
-    </Suspense>
+    <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
+      <Suspense
+        fallback={
+          <p className="text-sm text-muted-foreground" aria-live="polite">
+            Loading…
+          </p>
+        }
+      >
+        <RegisterForm />
+      </Suspense>
+    </div>
   );
 }

@@ -4,6 +4,18 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 export default function DeviceClient() {
   const router = useRouter();
   const search = useSearchParams();
@@ -54,92 +66,99 @@ export default function DeviceClient() {
 
   if (done) {
     return (
-      <>
-        <h1 className="mb-4 text-2xl font-semibold">CLI authorized</h1>
-        <p className="text-zinc-600 dark:text-zinc-400">
-          You can close this tab and return to the terminal.
-        </p>
-        <p className="mt-6 text-sm">
-          <Link href="/" className="text-zinc-500 underline">
+      <Card className="w-full max-w-md border-0 shadow-lg ring-1 ring-border/80">
+        <CardHeader>
+          <CardTitle className="font-heading text-xl">CLI authorized</CardTitle>
+          <CardDescription>You can close this tab and return to the terminal.</CardDescription>
+        </CardHeader>
+        <CardFooter>
+          <Button variant="link" className="px-0" render={<Link href="/" />}>
             ← Home
-          </Link>
-        </p>
-      </>
+          </Button>
+        </CardFooter>
+      </Card>
     );
   }
 
   if (me === undefined) {
-    return <p className="text-zinc-500">Checking session…</p>;
+    return (
+      <p className="text-center text-sm text-muted-foreground" aria-live="polite">
+        Checking session…
+      </p>
+    );
   }
 
   if (me === null) {
     return (
-      <>
-        <h1 className="mb-4 text-2xl font-semibold">Authorize CLI</h1>
-        <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
-          Log in to approve access for your OpenClaw Soul CLI.
-        </p>
-        <Link
-          href={`/login?next=${encodeURIComponent(loginNext)}`}
-          className="inline-block rounded bg-zinc-900 px-4 py-2 text-white dark:bg-zinc-100 dark:text-zinc-900"
-        >
-          Log in
-        </Link>
-        <p className="mt-4 text-sm text-zinc-500">
-          No account?{" "}
-          <Link
-            href={`/register?next=${encodeURIComponent(loginNext)}`}
-            className="underline"
-          >
-            Register
-          </Link>
-        </p>
-      </>
+      <Card className="w-full max-w-md border-0 shadow-lg ring-1 ring-border/80">
+        <CardHeader>
+          <CardTitle className="font-heading text-xl">Authorize CLI</CardTitle>
+          <CardDescription>Log in to approve access for your OpenClaw Soul CLI.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button className="w-full" render={<Link href={`/login?next=${encodeURIComponent(loginNext)}`} />}>
+            Log in
+          </Button>
+          <p className="text-center text-sm text-muted-foreground">
+            No account?{" "}
+            <Link
+              href={`/register?next=${encodeURIComponent(loginNext)}`}
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Register
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <>
-      <h1 className="mb-4 text-2xl font-semibold">Authorize CLI</h1>
-      <p className="mb-2 text-sm text-zinc-600 dark:text-zinc-400">
-        Signed in as <span className="font-medium text-zinc-800 dark:text-zinc-200">{me.email}</span>
-      </p>
-      <label className="mb-4 flex flex-col gap-1 text-sm">
-        User code
-        <input
-          value={userCode}
-          onChange={(e) => setUserCode(e.target.value.toUpperCase())}
-          placeholder="XXXX-XXXX"
-          className="rounded border border-zinc-300 px-3 py-2 font-mono dark:border-zinc-700 dark:bg-zinc-900"
-        />
-      </label>
-      {error ? <p className="mb-4 text-sm text-red-600">{error}</p> : null}
-      <button
-        type="button"
-        disabled={busy || !userCode.trim()}
-        onClick={() => approve()}
-        className="rounded bg-zinc-900 px-4 py-2 text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
-      >
-        {busy ? "…" : "Approve CLI access"}
-      </button>
-      <p className="mt-6 text-sm">
-        <button
+    <Card className="w-full max-w-md border-0 shadow-lg ring-1 ring-border/80">
+      <CardHeader>
+        <CardTitle className="font-heading text-xl">Authorize CLI</CardTitle>
+        <CardDescription>
+          Signed in as <span className="font-medium text-foreground">{me.email}</span>
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="device-user-code">User code</Label>
+          <Input
+            id="device-user-code"
+            value={userCode}
+            onChange={(e) => setUserCode(e.target.value.toUpperCase())}
+            placeholder="XXXX-XXXX"
+            className="h-10 font-mono uppercase"
+          />
+        </div>
+        {error ? (
+          <p className="text-sm font-medium text-destructive" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <Button type="button" className="w-full" disabled={busy || !userCode.trim()} onClick={() => approve()}>
+          {busy ? "…" : "Approve CLI access"}
+        </Button>
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
+          className="w-full text-muted-foreground"
           onClick={async () => {
             await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
             setMe(null);
             router.refresh();
           }}
-          className="text-zinc-500 underline"
         >
           Use a different account
-        </button>
-      </p>
-      <p className="mt-4 text-sm">
-        <Link href="/" className="text-zinc-500 underline">
+        </Button>
+      </CardContent>
+      <CardFooter>
+        <Button variant="link" className="px-0" render={<Link href="/" />}>
           ← Home
-        </Link>
-      </p>
-    </>
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }

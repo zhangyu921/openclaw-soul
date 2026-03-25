@@ -4,6 +4,10 @@ import { compressAvatarForUpload } from "@/lib/compress-avatar-client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 export default function AvatarUpload({
   handle,
   slug,
@@ -50,18 +54,25 @@ export default function AvatarUpload({
   }
 
   return (
-    <div className="mt-4 rounded-lg border border-dashed border-zinc-300 p-4 dark:border-zinc-600">
-      <p className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-        Upload / replace avatar (author only)
-      </p>
-      <input
-        type="file"
-        accept="image/png,image/jpeg,image/gif,image/webp"
-        disabled={loading}
-        onChange={onChange}
-        className="text-sm"
-      />
-      {status ? <p className="mt-2 text-sm text-zinc-500">{status}</p> : null}
-    </div>
+    <Card className="mt-6 border-dashed border-border/80 bg-muted/10">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">Avatar</CardTitle>
+        <CardDescription>作者可上传或替换头像（浏览器会先压缩再上传）</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <Label htmlFor="pack-avatar" className="sr-only">
+          Choose image
+        </Label>
+        <Input
+          id="pack-avatar"
+          type="file"
+          accept="image/png,image/jpeg,image/gif,image/webp"
+          disabled={loading}
+          onChange={onChange}
+          className="h-auto cursor-pointer py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground"
+        />
+        {status ? <p className="text-sm text-muted-foreground">{status}</p> : null}
+      </CardContent>
+    </Card>
   );
 }

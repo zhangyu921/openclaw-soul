@@ -4,6 +4,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+
 type Row = { id: string; label: string | null; createdAt: string };
 
 export default function TokenPanel({
@@ -86,115 +98,116 @@ export default function TokenPanel({
   }
 
   return (
-    <div className="mx-auto max-w-lg px-6 py-12">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">API tokens</h1>
-        <button
-          type="button"
-          onClick={() => logout()}
-          className="text-sm text-zinc-500 underline"
-        >
+    <div className="mx-auto max-w-lg px-4 py-10 sm:px-6">
+      <div className="mb-8 flex items-center justify-between gap-4">
+        <h1 className="font-heading text-2xl font-bold tracking-tight">API tokens</h1>
+        <Button type="button" variant="ghost" size="sm" onClick={() => logout()}>
           Log out
-        </button>
+        </Button>
       </div>
 
       {!handleDone ? (
-        <div className="mb-8 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-900 dark:bg-amber-950">
-          <p className="mb-2 font-medium text-amber-900 dark:text-amber-100">
-            Set your public handle (required for <code className="rounded px-1">ocs publish</code> and
-            pack URLs). Lowercase letters, digits, hyphens only. One-time.
-          </p>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-            <label className="flex flex-1 flex-col gap-1 text-amber-950 dark:text-amber-50">
-              Handle
-              <input
-                value={handleInput}
-                onChange={(e) => setHandleInput(e.target.value)}
-                className="rounded border border-amber-300 bg-white px-3 py-2 text-zinc-900 dark:border-amber-800 dark:bg-zinc-900 dark:text-zinc-100"
-                placeholder="your-handle"
-                autoComplete="off"
-              />
-            </label>
-            <button
-              type="button"
-              disabled={handleSaving || !handleInput.trim()}
-              onClick={() => saveHandle()}
-              className="rounded bg-amber-900 px-4 py-2 text-white disabled:opacity-50 dark:bg-amber-200 dark:text-amber-950"
-            >
-              {handleSaving ? "…" : "Save handle"}
-            </button>
-          </div>
-          {handleError ? <p className="mt-2 text-red-600 dark:text-red-400">{handleError}</p> : null}
-        </div>
+        <Card className="mb-8 border-primary/20 bg-primary/5 shadow-sm ring-1 ring-primary/15">
+          <CardHeader>
+            <CardTitle className="text-base">设置 public handle</CardTitle>
+            <CardDescription>
+              发布 pack 与 URL 需要唯一 handle；小写字母、数字、连字符，仅可设一次。
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+              <div className="min-w-0 flex-1 space-y-2">
+                <Label htmlFor="dash-handle">Handle</Label>
+                <Input
+                  id="dash-handle"
+                  value={handleInput}
+                  onChange={(e) => setHandleInput(e.target.value)}
+                  placeholder="your-handle"
+                  autoComplete="off"
+                  className="h-10 font-mono"
+                />
+              </div>
+              <Button
+                type="button"
+                disabled={handleSaving || !handleInput.trim()}
+                onClick={() => saveHandle()}
+                className="shrink-0"
+              >
+                {handleSaving ? "…" : "Save"}
+              </Button>
+            </div>
+            {handleError ? <p className="text-sm text-destructive">{handleError}</p> : null}
+          </CardContent>
+        </Card>
       ) : (
-        <p className="mb-6 text-sm text-zinc-500">
+        <p className="mb-6 text-sm text-muted-foreground">
           Public handle:{" "}
-          <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">{handleDone}</code> (used in
-          /packs/&lt;handle&gt;/&lt;slug&gt;)
+          <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-sm">{handleDone}</code>
         </p>
       )}
 
-      <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-        使用 <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">ocs publish</code>{" "}
-        即表示你同意{" "}
-        <Link href="/privacy" className="underline">
-          隐私与上传说明
-        </Link>
-        。
-      </p>
-      <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
-        Prefer browser login: run{" "}
-        <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">ocs login</code>{" "}
-        (or <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">npm run ocs -- login</code>{" "}
-        from the repo root) — token is saved to your user config{" "}
-        <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">env</code> file. Or paste a
-        token below for scripts / CI:{" "}
-        <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">
-          OPENCLAW_SOUL_TOKEN=... ocs publish ...
-        </code>
-      </p>
+      <Card className="mb-8 border-0 shadow-md ring-1 ring-border/80">
+        <CardHeader>
+          <CardTitle className="text-base">CLI 与条款</CardTitle>
+          <CardDescription>
+            使用 <code className="rounded bg-muted px-1 font-mono text-xs">ocs publish</code> 即表示你同意{" "}
+            <Link href="/privacy" className="font-medium text-primary underline-offset-4 hover:underline">
+              隐私与上传说明
+            </Link>
+            。
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm text-muted-foreground">
+          <p>
+            浏览器登录：运行{" "}
+            <code className="rounded bg-muted px-1 font-mono text-xs">ocs login</code>{" "}
+            （或仓库根目录{" "}
+            <code className="rounded bg-muted px-1 font-mono text-xs">npm run ocs -- login</code>
+            ），token 会写入用户配置。脚本/CI 可粘贴下方新建的 token，或设置{" "}
+            <code className="rounded bg-muted px-1 font-mono text-xs">OPENCLAW_SOUL_TOKEN</code>。
+          </p>
+        </CardContent>
+      </Card>
 
-      <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end">
-        <label className="flex flex-1 flex-col gap-1 text-sm">
-          Label (optional)
-          <input
+      <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="min-w-0 flex-1 space-y-2">
+          <Label htmlFor="token-label">Label (optional)</Label>
+          <Input
+            id="token-label"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
-            className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
             placeholder="laptop"
+            className="h-10"
           />
-        </label>
-        <button
-          type="button"
-          disabled={loading}
-          onClick={() => createToken()}
-          className="rounded bg-zinc-900 px-4 py-2 text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
-        >
-          {loading ? "…" : "New token"}
-        </button>
-      </div>
-      {error ? <p className="mb-4 text-sm text-red-600">{error}</p> : null}
-      {newToken ? (
-        <div className="mb-8 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-900 dark:bg-amber-950">
-          <p className="mb-2 font-medium text-amber-900 dark:text-amber-100">
-            Copy now — shown once:
-          </p>
-          <code className="block break-all text-amber-950 dark:text-amber-50">{newToken}</code>
         </div>
+        <Button type="button" disabled={loading} onClick={() => createToken()} className="shrink-0">
+          {loading ? "…" : "New token"}
+        </Button>
+      </div>
+      {error ? <p className="mb-4 text-sm text-destructive">{error}</p> : null}
+      {newToken ? (
+        <Card className="mb-8 border-amber-500/30 bg-amber-500/5 shadow-sm dark:border-amber-400/25 dark:bg-amber-400/10">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base text-amber-950 dark:text-amber-50">Copy now — shown once</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <code className="block break-all rounded-md bg-background/80 p-3 font-mono text-sm">{newToken}</code>
+          </CardContent>
+        </Card>
       ) : null}
 
-      <h2 className="mb-3 text-sm font-medium text-zinc-500">Existing tokens</h2>
+      <h2 className="mb-3 text-sm font-medium text-muted-foreground">Existing tokens</h2>
       {tokens.length === 0 ? (
-        <p className="text-sm text-zinc-500">None yet.</p>
+        <p className="text-sm text-muted-foreground">None yet.</p>
       ) : (
         <ul className="space-y-2 text-sm">
           {tokens.map((t) => (
             <li
               key={t.id}
-              className="flex justify-between rounded border border-zinc-200 px-3 py-2 dark:border-zinc-800"
+              className="flex justify-between gap-3 rounded-xl border border-border/80 bg-card px-4 py-3 shadow-sm"
             >
               <span>{t.label || "(no label)"}</span>
-              <span className="text-zinc-400">
+              <span className="shrink-0 text-muted-foreground">
                 {new Date(t.createdAt).toLocaleString()}
               </span>
             </li>
@@ -202,9 +215,10 @@ export default function TokenPanel({
         </ul>
       )}
 
-      <p className="mt-10 text-sm">
-        <Link href="/" className="text-zinc-500 underline">
-          ← Home
+      <Separator className="my-10" />
+      <p className="text-center text-sm text-muted-foreground">
+        <Link href="/" className="underline-offset-4 hover:underline">
+          ← Gallery
         </Link>
       </p>
     </div>

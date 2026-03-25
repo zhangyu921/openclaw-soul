@@ -1,9 +1,20 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { siteOriginFromNextHeaders } from "@/lib/device-auth";
 import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
+
 import AvatarUpload from "./avatar-upload";
 import PackRevokeButton from "./pack-revoke";
 
@@ -38,95 +49,95 @@ export default async function PackDetailPage({ params }: Props) {
   const downloadUrl = `/api/packs/${encH}/${encS}/download`;
 
   return (
-    <div className="min-h-full bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
-      <header className="border-b border-zinc-200 bg-white px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mx-auto flex max-w-2xl items-center justify-between">
-          <Link href="/" className="text-sm text-zinc-500 underline">
-            ← Gallery
-          </Link>
-        </div>
-      </header>
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <div className="flex gap-6">
-          <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
+    <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
+      <Button variant="ghost" size="sm" className="mb-6 gap-1 text-muted-foreground" render={<Link href="/" />}>
+        <ArrowLeft className="size-4" aria-hidden />
+        Back to gallery
+      </Button>
+
+      <Card className="overflow-hidden border-0 shadow-lg ring-1 ring-border/80">
+        <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-start">
+          <div className="mx-auto size-28 shrink-0 overflow-hidden rounded-2xl bg-muted shadow-inner ring-1 ring-border/60 sm:mx-0 sm:size-32">
             {pack.avatarRelPath ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={`/api/packs/${encH}/${encS}/avatar`}
                 alt=""
-                className="h-full w-full object-cover"
+                className="size-full object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs text-zinc-400">
-                no avatar
+              <div className="flex size-full items-center justify-center bg-gradient-to-br from-accent/50 to-secondary text-xs text-muted-foreground">
+                No avatar
               </div>
             )}
           </div>
-          <div>
-            <h1 className="text-2xl font-semibold">{pack.title}</h1>
-            <p className="mt-1 font-mono text-sm text-zinc-500">
+          <div className="min-w-0 flex-1 text-center sm:text-left">
+            <h1 className="font-heading text-balance text-2xl font-bold tracking-tight sm:text-3xl">
+              {pack.title}
+            </h1>
+            <p className="mt-1 font-mono text-sm text-muted-foreground">
               {pack.author.handle}/{pack.slug}
             </p>
             {pack.summary ? (
-              <p className="mt-4 text-zinc-600 dark:text-zinc-400">{pack.summary}</p>
+              <p className="mt-4 text-pretty text-muted-foreground">{pack.summary}</p>
             ) : null}
           </div>
         </div>
+      </Card>
 
-        {isRevoked ? (
-          <p className="mt-6 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300">
+      {isRevoked ? (
+        <Card className="mt-6 border-dashed bg-muted/30">
+          <CardContent className="pt-6 text-sm text-muted-foreground">
             此 pack 已从画廊下架，访客无法打开。重新公开：{" "}
-            <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">ocs publish --replace</code>
+            <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-xs">ocs publish --replace</code>
             。说明见{" "}
-            <Link href="/privacy#revoke" className="underline">
+            <Link href="/privacy#revoke" className="font-medium text-primary underline-offset-4 hover:underline">
               隐私说明
             </Link>
             。
-          </p>
-        ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
-        {isAuthor ? <AvatarUpload handle={pack.author.handle} slug={pack.slug} /> : null}
+      {isAuthor ? <AvatarUpload handle={pack.author.handle} slug={pack.slug} /> : null}
 
-        {isAuthor && !isRevoked ? (
-          <PackRevokeButton handle={pack.author.handle} slug={pack.slug} />
-        ) : null}
+      {isAuthor && !isRevoked ? (
+        <PackRevokeButton handle={pack.author.handle} slug={pack.slug} />
+      ) : null}
 
-        <section className="mt-10 space-y-4 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-          <h2 className="text-sm font-medium text-zinc-500">CLI</h2>
+      <Card className="mt-8 border-0 shadow-md ring-1 ring-border/80">
+        <CardHeader>
+          <CardTitle className="text-base">CLI</CardTitle>
+          <CardDescription>
+            Apply 会更新 <code className="font-mono text-xs">openclaw.json</code> 并解压到{" "}
+            <code className="font-mono text-xs">~/.openclaw/workspace-{pack.slug}</code>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
           {!isRevoked ? (
             <>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Apply (updates{" "}
-                <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">openclaw.json</code> and
-                extracts to{" "}
-                <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">
-                  ~/.openclaw/workspace-{pack.slug}
-                </code>
-                ):
-              </p>
-              <pre className="overflow-x-auto rounded-lg bg-zinc-100 p-4 text-sm dark:bg-zinc-950">
+              <pre className="overflow-x-auto rounded-xl bg-muted p-4 font-mono text-sm leading-relaxed">
                 {`export OPENCLAW_SOUL_API=${siteOrigin}
 ocs apply ${pack.author.handle}/${pack.slug}`}
               </pre>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">Raw zip:</p>
-              <a
-                href={downloadUrl}
-                className="inline-block text-sm font-medium text-zinc-900 underline dark:text-zinc-100"
-              >
-                Download {pack.slug}.zip
-              </a>
+              <div>
+                <p className="mb-2 text-sm font-medium text-muted-foreground">Raw zip</p>
+                <Button variant="outline" size="sm" render={<a href={downloadUrl} />}>
+                  Download {pack.slug}.zip
+                </Button>
+              </div>
             </>
           ) : (
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-muted-foreground">
               已下架：下载与 apply 已关闭。说明见{" "}
-              <Link href="/privacy#revoke" className="underline">
+              <Link href="/privacy#revoke" className="font-medium text-primary underline-offset-4 hover:underline">
                 隐私说明
               </Link>
               。
             </p>
           )}
-        </section>
-      </main>
-    </div>
+        </CardContent>
+      </Card>
+    </main>
   );
 }
