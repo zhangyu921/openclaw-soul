@@ -10,3 +10,6 @@ packages/cli/dist/
 web/.next/
 web/prisma/**/*.db
 web/prisma/**/*.db-journal
+
+# 防止在 web/ 下误建嵌套仓库（monorepo 只用根目录 .git）
+web/.git
