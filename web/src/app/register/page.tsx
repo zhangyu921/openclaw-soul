@@ -93,7 +93,7 @@ function RegisterForm() {
             <Link href="/privacy" className="underline" target="_blank" rel="noreferrer">
               隐私与上传说明
             </Link>
-            （含全量 workspace 上传风险、无自动脱敏、撤销不删库等）。
+            。
           </span>
         </label>
         {error ? <p className="text-sm text-red-600">{error}</p> : null}

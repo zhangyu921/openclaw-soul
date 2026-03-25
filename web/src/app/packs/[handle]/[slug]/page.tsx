@@ -74,13 +74,14 @@ export default async function PackDetailPage({ params }: Props) {
         </div>
 
         {isRevoked ? (
-          <p className="mt-6 rounded-lg border border-zinc-300 bg-zinc-100 px-4 py-3 text-sm text-zinc-800 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200">
-            此 pack 已从公开画廊撤销；他人无法访问本页或下载。上传条款见{" "}
-            <Link href="/privacy" className="underline">
-              /privacy
+          <p className="mt-6 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300">
+            此 pack 已从画廊下架，访客无法打开。重新公开：{" "}
+            <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">ocs publish --replace</code>
+            。说明见{" "}
+            <Link href="/privacy#revoke" className="underline">
+              隐私说明
             </Link>
-            。重新公开请使用 CLI{" "}
-            <code className="rounded bg-white px-1 dark:bg-zinc-800">ocs publish --replace</code>。
+            。
           </p>
         ) : null}
 
@@ -117,9 +118,9 @@ ocs apply ${pack.author.handle}/${pack.slug}`}
             </>
           ) : (
             <p className="text-sm text-zinc-500">
-              已撤销：公开下载与 apply 链接已关闭。详见{" "}
-              <Link href="/privacy" className="underline">
-                Privacy
+              已下架：下载与 apply 已关闭。说明见{" "}
+              <Link href="/privacy#revoke" className="underline">
+                隐私说明
               </Link>
               。
             </p>

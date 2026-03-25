@@ -42,15 +42,19 @@ export default async function Home() {
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-6 py-10">
-        <p className="mb-8 text-zinc-600 dark:text-zinc-400">
-          Browse OpenClaw workspace packs. Upload terms:{" "}
-          <Link href="/privacy" className="underline">
-            Privacy
-          </Link>
-          . Apply with CLI:{" "}
-          <code className="rounded bg-zinc-200 px-1.5 py-0.5 text-sm dark:bg-zinc-800">
+        <p className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
+          分享与发现 OpenClaw 人设与工作区（workspace）pack。
+        </p>
+        <p className="mt-2 mb-8 text-sm text-zinc-600 dark:text-zinc-400">
+          浏览下方画廊；用 CLI 应用他人 pack：{" "}
+          <code className="rounded bg-zinc-200 px-1.5 py-0.5 dark:bg-zinc-800">
             ocs apply &lt;handle&gt;/&lt;slug&gt;
           </code>
+          。上传与条款见{" "}
+          <Link href="/privacy" className="underline">
+            隐私与上传说明
+          </Link>
+          。
         </p>
         {packs.length === 0 ? (
           <p className="text-zinc-500">No packs yet. Publish one with the CLI.</p>

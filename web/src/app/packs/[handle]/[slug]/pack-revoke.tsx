@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -17,7 +18,7 @@ export default function PackRevokeButton({
   async function revoke() {
     if (
       !window.confirm(
-        "确定撤销公开展示？画廊与他人下载将不可用；数据仍保留在服务端（不删库、不删文件）。之后可用 CLI 对同一 slug 执行带 --replace 的 publish 重新公开。"
+        "确定从画廊下架此 pack？他人将无法浏览或下载。之后可用 CLI（同 slug、加 --replace）再次公开。"
       )
     ) {
       return;
@@ -42,20 +43,27 @@ export default function PackRevokeButton({
   }
 
   return (
-    <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-900 dark:bg-amber-950">
-      <p className="mb-3 text-amber-950 dark:text-amber-50">
-        撤销后他人无法从本站下载或浏览此 pack；数据库记录与 zip 仍保留。重新公开：CLI{" "}
-        <code className="rounded bg-amber-100 px-1 dark:bg-amber-900">ocs publish --replace</code>{" "}
-        同 slug。
+    <div className="mt-6 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm dark:border-zinc-700 dark:bg-zinc-900/50">
+      <p className="mb-3 text-zinc-700 dark:text-zinc-300">
+        下架后访客无法查看或下载。若要再次公开，请运行{" "}
+        <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">ocs publish --replace</code>
+        （同 slug）。
+      </p>
+      <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-500">
+        服务端如何处理数据见{" "}
+        <Link href="/privacy#revoke" className="underline">
+          隐私说明 · 撤销展示
+        </Link>
+        。
       </p>
       {error ? <p className="mb-2 text-red-600 dark:text-red-400">{error}</p> : null}
       <button
         type="button"
         disabled={loading}
         onClick={() => revoke()}
-        className="rounded border border-amber-800 bg-white px-3 py-1.5 text-amber-950 disabled:opacity-50 dark:border-amber-600 dark:bg-amber-900 dark:text-amber-50"
+        className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-zinc-900 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
       >
-        {loading ? "…" : "撤销公开展示"}
+        {loading ? "…" : "从画廊下架"}
       </button>
     </div>
   );

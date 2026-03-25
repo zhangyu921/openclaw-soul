@@ -34,8 +34,8 @@ export default function PrivacyPage() {
           <p>
             <strong>存储与展示。</strong> 我们会将 zip 与可选头像保存在服务端（默认本地目录或你配置的对象存储），并在画廊中公开展示元数据（标题、摘要、handle/slug）及下载链接。请勿上传你无权分享或违法的内容。
           </p>
-          <p>
-            <strong>撤销展示。</strong> 你可以在 pack 详情页使用「撤销公开展示」：记录与文件仍保留在数据库与磁盘中（便于审计与后续功能），但画廊、公开页与下载将对他人不可用。你仍可通过 CLI 使用{" "}
+          <p id="revoke">
+            <strong>撤销展示。</strong> 你可以在 pack 详情页使用「从画廊下架」：记录与文件仍保留在数据库与磁盘中（便于审计与后续功能），但画廊、公开页与下载将对他人不可用。你仍可通过 CLI 使用{" "}
             <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">--replace</code>{" "}
             再次上传同一 slug 以重新公开（会清除撤销状态）。
           </p>

@@ -139,6 +139,6 @@ Global CLI：`cd packages/cli && pnpm link --global`，或发布后使用 `npx`�
 - 注册须勾选同意；`ocs publish` 在 TTY 下会提示（同意后写入 `~/.config/openclaw-soul/privacy-ack`，不必每次确认）；**非 TTY / CI** 须加 **`--accept-privacy`** 或环境变量 **`OPENCLAW_SOUL_ACCEPT_PRIVACY=1`**。
 - **体积**：pack **zip ≤ 2 MiB**；头像服务端上限 **≤ 512 KiB**，**网页与 `ocs publish` 会在上传前自动压缩**（不占服务器算力），极难仍超限时再换图。
 - **频率**：同一账号约 **每自然小时 20 次**成功发布（新建或覆盖）；超限返回 **429**。
-- 作者可在 pack 详情页 **撤销公开展示**（不删数据库与文件；`ocs publish --replace` 同 slug 可再次公开）。
+- 作者可在 pack 详情页 **从画廊下架**（访客不可见；`ocs publish --replace` 同 slug 可再次公开；服务端数据说明见站内隐私页）。
 
 Publishing still sends the **entire** workspace as zip unless you exclude files locally; you are responsible for what you upload.
