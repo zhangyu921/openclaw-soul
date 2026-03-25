@@ -76,7 +76,7 @@ pnpm run ocs -- import ./example-pack --target ~/.openclaw/workspace
 # 加 --dry-run 只看将要复制的路径
 ```
 
-Apply 已发布的 pack（`ref` = 作者的 **handle** + **pack slug**，若已有 `~/.openclaw/workspace-<slug>` 会先改名备份，并更新 `openclaw.json`；**读**仍用 JSON5。**写**：若文件为合法 **JSONC**（标准 JSON + `//` / `/* */` 注释、尾随逗号等），CLI 用 `jsonc-parser` 只改 `agent.workspace` 与 `agents.defaults.workspace`，**尽量保留注释与排版**；若解析失败（例如含 JSON5 专有条目如无引号键），则回退为整文件 **JSON.stringify**（注释会丢失）：
+Apply 已发布的 pack（`ref` = 作者的 **handle** + **pack slug**，若已有 `~/.openclaw/workspace-<slug>` 会先改名备份，并更新 `openclaw.json`；**读**仍用 JSON5。**写**：只设置 **`agents.defaults.workspace`**（与 [OpenClaw Agent Workspace](https://docs.openclaw.ai/concepts/agent-workspace) 中推荐路径一致；**不再**写入旧版 `agent.workspace`，以免触发新版校验里的 legacy 键告警）。若文件为合法 **JSONC**（标准 JSON + `//` / `/* */` 注释、尾随逗号等），CLI 用 `jsonc-parser` **只改该字段**，尽量保留注释与排版；若解析失败（例如含 JSON5 专有条目如无引号键），则回退为整文件 **JSON.stringify**（注释会丢失）：
 
 ```bash
 pnpm run ocs -- apply alice/my-pack

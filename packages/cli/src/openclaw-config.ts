@@ -22,17 +22,14 @@ export function readWorkspaceFromConfig(configPath: string): string | null {
   const agent = data.agent as Record<string, unknown> | undefined;
   const agents = data.agents as { defaults?: { workspace?: string } } | undefined;
   const w =
-    (typeof agent?.workspace === "string" && agent.workspace) ||
     (typeof agents?.defaults?.workspace === "string" && agents.defaults.workspace) ||
+    (typeof agent?.workspace === "string" && agent.workspace) ||
     null;
   if (!w) return null;
   return path.resolve(expandHome(w));
 }
 
-const WORKSPACE_JSON_PATHS: readonly jsonc.JSONPath[] = [
-  ["agent", "workspace"],
-  ["agents", "defaults", "workspace"],
-];
+const WORKSPACE_JSON_PATH: jsonc.JSONPath = ["agents", "defaults", "workspace"];
 
 /**
  * If `raw` is valid JSONC (JSON with line/block comments, trailing commas), patch only
@@ -61,27 +58,21 @@ function tryWriteWorkspacePreservingComments(
   };
 
   let text = raw;
-  for (const jsonPath of WORKSPACE_JSON_PATHS) {
-    const edits = jsonc.modify(
-      text,
-      jsonPath,
-      workspaceAbsPath,
-      modificationOptions
-    );
-    if (edits.length > 0) {
-      text = jsonc.applyEdits(text, edits);
-    }
+  const edits = jsonc.modify(
+    text,
+    WORKSPACE_JSON_PATH,
+    workspaceAbsPath,
+    modificationOptions
+  );
+  if (edits.length > 0) {
+    text = jsonc.applyEdits(text, edits);
   }
 
   try {
     const data = JSON5.parse(text) as Record<string, unknown>;
-    const agent = data.agent as Record<string, unknown> | undefined;
     const defs = (data.agents as { defaults?: { workspace?: string } } | undefined)
       ?.defaults;
-    if (
-      agent?.workspace !== workspaceAbsPath ||
-      defs?.workspace !== workspaceAbsPath
-    ) {
+    if (defs?.workspace !== workspaceAbsPath) {
       return null;
     }
   } catch {
@@ -96,9 +87,6 @@ function writeWorkspaceLossy(
   workspaceAbsPath: string
 ): string {
   const data = JSON5.parse(raw || "{}") as Record<string, unknown>;
-  if (!data.agent || typeof data.agent !== "object") data.agent = {};
-  const agent = data.agent as Record<string, unknown>;
-  agent.workspace = workspaceAbsPath;
   if (!data.agents || typeof data.agents !== "object") data.agents = {};
   const agents = data.agents as Record<string, unknown>;
   if (!agents.defaults || typeof agents.defaults !== "object") agents.defaults = {};
@@ -138,7 +126,7 @@ export function backupAndWriteWorkspace(
 
   fs.writeFileSync(configPath, out, "utf8");
   dbg(
-    `Updated ${configPath} → agent.workspace & agents.defaults.workspace = ${workspaceAbsPath}`
+    `Updated ${configPath} → agents.defaults.workspace = ${workspaceAbsPath}`
   );
   if (preserved) {
     dbg(

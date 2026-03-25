@@ -172,7 +172,7 @@ program
           console.error(`  若配置文件已存在，将先备份为：${configBackupPlanned}`);
         }
         console.error(
-          `  随后写入 agent.workspace 与 agents.defaults.workspace → ${dest}`
+          `  随后写入 agents.defaults.workspace → ${dest}`
         );
         const ok = await confirm({ message: "是否继续？", default: true });
         if (!ok) {
@@ -211,7 +211,7 @@ program
         }
         console.error(`openclaw.json 已更新：${configAbs}`);
         console.error(
-          `已指向工作区：${dest}（agent.workspace / agents.defaults.workspace）`
+          `已指向工作区：${dest}（agents.defaults.workspace）`
         );
         console.error("stdout 仅输出工作区绝对路径一行，供脚本使用。");
       } else {

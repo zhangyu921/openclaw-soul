@@ -25,13 +25,13 @@
 
 1. 从 registry **下载** zip。
 2. 解压到 **`~/.openclaw/workspace-<slug>`**（如 `workspace-asuka`）。
-3. **读取并写回 `~/.openclaw/openclaw.json`**，将 workspace 指向上一步目录（注意 JSON5）。
+3. **读取并写回 `~/.openclaw/openclaw.json`**，将 **`agents.defaults.workspace`** 指向上一步目录（OpenClaw 已将原 `agent.*` 迁到 `agents.defaults` / `tools.*`；`apply` **只写** `agents.defaults.workspace`，不碰 legacy `agent.*`）。读配置仍可用 JSON5；写回可能整文件 stringify 时注释会丢。
 4. 覆盖或切换前：**rename** 旧目录/旧配置到备份名，**不 `rm -rf`**。
 
 ### `publish`（分享）
 
 - 用户**选择打包源**：
-  - **当前默认目录**：读取 `openclaw.json` 里正在使用的 workspace 路径，整目录打 zip；或
+  - **当前默认目录**：读取 `openclaw.json` 里正在使用的 workspace 路径（优先 **`agents.defaults.workspace`**，兼容旧版 `agent.workspace`），整目录打 zip；或
   - **显式路径**：用户指定目录。
 - **MVP：全量上传**，目录里有什么就打什么进 zip，**不做脱敏、不过滤文件**。
 - **Registry**：用户注册填 **public handle**；pack 的 **slug** 在作者内唯一；画廊与 API 路径为 `/packs/<handle>/<slug>`；CLI `apply <handle>/<slug>`。可选从 `IDENTITY.md` 的 **Name** 推导默认 slug / title。
@@ -47,7 +47,7 @@
 
 - **Node.js 20+**、**TypeScript**、**commander**。
 - Zip：**archiver** / **yauzl** 或 **extract-zip**（择一组合）。
-- **`openclaw.json`**：**json5**（写回时注明可能丢失注释）。
+- **`openclaw.json`**：**json5**；workspace 以 **`agents.defaults.workspace`** 为准（与官方文档一致）；写回时注明可能丢失注释。
 - 分发：**npm** + `bin`，支持 `npx …`。
 
 ## Web / API（MVP）

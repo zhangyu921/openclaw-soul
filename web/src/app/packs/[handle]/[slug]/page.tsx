@@ -109,8 +109,20 @@ export default async function PackDetailPage({ params }: Props) {
         <CardHeader>
           <CardTitle className="text-base">CLI</CardTitle>
           <CardDescription>
-            Apply 会更新 <code className="font-mono text-xs">openclaw.json</code> 并解压到{" "}
+            Apply 会写入{" "}
+            <code className="font-mono text-xs">openclaw.json</code> 中的{" "}
+            <code className="font-mono text-xs">agents.defaults.workspace</code>，并解压到{" "}
             <code className="font-mono text-xs">~/.openclaw/workspace-{pack.slug}</code>
+            （与{" "}
+            <a
+              className="font-medium text-primary underline-offset-4 hover:underline"
+              href="https://docs.openclaw.ai/concepts/agent-workspace"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              OpenClaw 文档
+            </a>
+            一致）
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
