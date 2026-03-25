@@ -22,6 +22,7 @@ import {
   recordPublishSuccess,
 } from "@/lib/publish-rate-limit";
 import { requestOrigin } from "@/lib/device-auth";
+import { extractPackPreviewFromZip } from "@/lib/zip-pack-preview";
 
 export async function GET() {
   const packs = await prisma.pack.findMany({
@@ -144,12 +145,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "failed to store zip" }, { status: 500 });
     }
 
+    const preview = await extractPackPreviewFromZip(zipBuf);
+
     const updateData: {
       title: string;
       summary: string | null;
       zipRelPath: string;
+      soulPreviewMd: string | null;
+      soulPreviewTruncated: boolean;
+      packFilePaths: string[];
       avatarRelPath?: string | null;
-    } = { title, summary, zipRelPath };
+    } = {
+      title,
+      summary,
+      zipRelPath,
+      soulPreviewMd: preview.soulPreviewMd,
+      soulPreviewTruncated: preview.soulPreviewTruncated,
+      packFilePaths: preview.packFilePaths,
+    };
 
     if (avatar instanceof File && avatar.size > 0) {
       if (dup.avatarRelPath && !isRemoteStored(dup.avatarRelPath)) {
@@ -204,6 +217,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "failed to store zip" }, { status: 500 });
   }
 
+  const preview = await extractPackPreviewFromZip(zipBuf);
+
   let avatarRelPath: string | null = null;
   if (avatar instanceof File && avatar.size > 0) {
     const ext = path.extname(avatar.name) || ".bin";
@@ -229,6 +244,9 @@ export async function POST(req: Request) {
         summary,
         zipRelPath,
         avatarRelPath,
+        soulPreviewMd: preview.soulPreviewMd,
+        soulPreviewTruncated: preview.soulPreviewTruncated,
+        packFilePaths: preview.packFilePaths,
         authorId,
       },
     });

@@ -14,6 +14,7 @@ import {
 import { siteOriginFromNextHeaders } from "@/lib/device-auth";
 import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
+import { parsePackFilePaths } from "@/lib/zip-pack-preview";
 
 import AvatarUpload from "./avatar-upload";
 import PackRevokeButton from "./pack-revoke";
@@ -36,6 +37,9 @@ export default async function PackDetailPage({ params }: Props) {
       createdAt: true,
       authorId: true,
       revokedAt: true,
+      soulPreviewMd: true,
+      soulPreviewTruncated: true,
+      packFilePaths: true,
       author: { select: { handle: true } },
     },
   });
@@ -47,6 +51,9 @@ export default async function PackDetailPage({ params }: Props) {
   const encH = encodeURIComponent(pack.author.handle);
   const encS = encodeURIComponent(pack.slug);
   const downloadUrl = `/api/packs/${encH}/${encS}/download`;
+  const filePaths = parsePackFilePaths(pack.packFilePaths);
+  const showPreview =
+    (Boolean(pack.soulPreviewMd) || filePaths.length > 0) && (isAuthor || !isRevoked);
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
@@ -84,6 +91,52 @@ export default async function PackDetailPage({ params }: Props) {
           </div>
         </div>
       </Card>
+
+      {showPreview ? (
+        <div className="mt-8 space-y-6">
+          {pack.soulPreviewMd ? (
+            <Card className="border-0 shadow-md ring-1 ring-border/80">
+              <CardHeader>
+                <CardTitle className="text-base">SOUL.md</CardTitle>
+                <CardDescription>
+                  发布时从 zip 内提取；完整内容以打包文件为准。
+                  {pack.soulPreviewTruncated ? " 以下正文已按长度截断。" : null}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <pre className="max-h-[min(70vh,32rem)] overflow-auto whitespace-pre-wrap break-words rounded-xl bg-muted p-4 font-mono text-sm leading-relaxed">
+                  {pack.soulPreviewMd}
+                </pre>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {filePaths.length > 0 ? (
+            <Card className="border-0 shadow-md ring-1 ring-border/80">
+              <CardHeader>
+                <CardTitle className="text-base">包内文件</CardTitle>
+                <CardDescription>
+                  共 {filePaths.length} 条路径
+                  {filePaths.length >= 300 ? "（已达单包展示上限 300，更多请下载 zip）" : ""}。
+                  其他文件的完整内容请使用下方 Download zip。
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="max-h-64 overflow-y-auto rounded-xl border border-border/80 bg-muted/40 px-3 py-2 font-mono text-xs leading-relaxed text-muted-foreground">
+                  {filePaths.map((p) => (
+                    <li key={p} className="break-all py-0.5">
+                      {p}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  仅作目录展示；在线通览更多文件的能力可在后续版本加入。
+                </p>
+              </CardContent>
+            </Card>
+          ) : null}
+        </div>
+      ) : null}
 
       {isRevoked ? (
         <Card className="mt-6 border-dashed bg-muted/30">
