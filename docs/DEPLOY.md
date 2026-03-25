@@ -9,7 +9,9 @@
 
 ## 2. 构建前迁移
 
-CI 或 Vercel **Build command** 里在 `web` 下执行迁移（生成 client 已由 `pnpm run build` 内 `prisma generate` 覆盖）：
+**Vercel（Root Directory = `web`）**：[`web/vercel.json`](web/vercel.json) 的 `buildCommand` 已是 `npx prisma migrate deploy && pnpm run build`，**每次自动构建都会先跑迁移**，不必在面板里再配一条或 SSH 手动执行；只要环境里已有 **`DATABASE_URL`** 即可。
+
+其他 CI 或本地预检，在 `web` 下执行（生成 client 已由 `pnpm run build` 内 `prisma generate` 覆盖）：
 
 ```bash
 cd web && pnpm exec prisma migrate deploy
