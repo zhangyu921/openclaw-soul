@@ -31,9 +31,11 @@ async function registryFetch(url: string, init?: RequestInit): Promise<Response>
       } catch {
         /* keep */
       }
-      throw new Error(
-        `无法连接 registry（${origin}，连接被拒绝）。请先在仓库根目录启动站点：pnpm run dev；若端口不是 3000，请在用户配置 env、仓库 .env.cli 或环境中设置 OPENCLAW_SOUL_API。`
-      );
+      const devHint =
+        origin.includes("localhost") || origin.includes("127.0.0.1")
+          ? "请先在仓库根目录启动站点：pnpm run dev；若端口不是 3000，请设置 OPENCLAW_SOUL_API。"
+          : "请检查网络/代理，或确认 OPENCLAW_SOUL_API 指向正确的线上 registry。";
+      throw new Error(`无法连接 registry（${origin}，连接被拒绝）。${devHint}`);
     }
     if (isConnectTimeoutError(e)) {
       let origin = url;

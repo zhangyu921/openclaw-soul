@@ -104,7 +104,7 @@ pnpm run ocs -- apply alice/my-pack
 
 环境变量（推荐 `export` 或写入用户 `env`；在 monorepo 内也可用 `.env.cli` 覆盖开发值）：
 
-- `OPENCLAW_SOUL_API` — registry base URL（默认 `http://localhost:3000`）
+- `OPENCLAW_SOUL_API` — registry base URL。未设置时：**从 npm 安装的 CLI**（如 `npx`）默认 **`https://openclaw-soul.basilfield.com`**；在**本 monorepo 内**运行默认 **`http://localhost:3000`**（见 `packages/cli/src/constants.ts` / `apiBase()`）。
 - `OPENCLAW_SOUL_SITE_URL` — 可选；生产建议设为对外主域（`https://…`，无尾 `/`）。用于浏览器里 device 授权链接、**`publish` 成功时打印的 pack 页 `viewUrl`**（避免一直显示 `*.vercel.app`），以及站内依赖 canonical origin 的片段；详见 [`docs/DEPLOY.md`](docs/DEPLOY.md)。
 - `OPENCLAW_SOUL_TOKEN` — `publish` 用 API token
 - `OPENCLAW_SOUL_CONFIG_DIR` — 自定义 CLI 配置目录（其下文件名为 `env`）
