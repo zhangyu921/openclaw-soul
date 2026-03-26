@@ -37,7 +37,7 @@ import { dbg, setCliDebug } from "./cli-debug.js";
 loadCliEnv();
 
 function apiBase(): string {
-  return resolveDefaultApiBase(import.meta.url);
+  return resolveDefaultApiBase();
 }
 
 function openclawConfigPath(): string {
@@ -301,7 +301,7 @@ program
         }
         const proceed = await confirm({
           message:
-            "未检测到 API token（尚未登录 registry）。是否在浏览器中登录并授权 CLI？（需本机已启动站点，例如仓库根目录 npm run dev）",
+            "未检测到 API token（尚未登录 registry）。是否在浏览器中登录并授权 CLI？（若 OPENCLAW_SOUL_API 指向本地，请先启动 web 并在仓库根配置 `.env.cli`）",
           default: true,
         });
         if (!proceed) {

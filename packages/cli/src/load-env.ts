@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { config as loadDotenv } from "dotenv";
 import { DEFAULT_OPENCLAW_SOUL_API } from "./constants.js";
 import { getUserEnvFilePath } from "./user-config-path.js";
@@ -27,84 +26,12 @@ export function findMonorepoRoot(start: string = process.cwd()): string | null {
 }
 
 /**
- * True when `importMetaUrl` points at the `@openclaw-soul/cli` install under
- * `monorepoRoot/node_modules/@openclaw-soul/cli` (after realpath). Used for tests and
- * `isWorkspaceInstalledCli`.
- */
-export function isWorkspaceCliForRoot(
-  monorepoRoot: string,
-  importMetaUrl: string
-): boolean {
-  const entryFile = fileURLToPath(importMetaUrl);
-  const cliPkgRoot = path.resolve(path.dirname(entryFile), "..");
-  let cliReal: string;
-  try {
-    cliReal = fs.realpathSync(cliPkgRoot);
-  } catch {
-    return false;
-  }
-  const nmCli = path.join(monorepoRoot, "node_modules", "@openclaw-soul", "cli");
-  let nmReal: string;
-  try {
-    nmReal = fs.realpathSync(nmCli);
-  } catch {
-    return false;
-  }
-  return cliReal === nmReal;
-}
-
-/**
- * True when this process is running the `@openclaw-soul/cli` package that the current cwd's
- * monorepo installs at `node_modules/@openclaw-soul/cli` (pnpm/npm workspace / local link).
- * False when running a copy from npx cache or another install — even if cwd is inside the repo.
- */
-export function isWorkspaceInstalledCli(importMetaUrl: string): boolean {
-  const root = findMonorepoRoot();
-  if (!root) return false;
-  return isWorkspaceCliForRoot(root, importMetaUrl);
-}
-
-/** True for `http://localhost:3000` / `http://127.0.0.1:3000` (local dev registry default). */
-export function isCanonicalLocalDevRegistryUrl(url: string): boolean {
-  try {
-    const u = new URL(url);
-    if (u.protocol !== "http:") return false;
-    const host = u.hostname;
-    if (host !== "localhost" && host !== "127.0.0.1") return false;
-    return u.port === "3000";
-  } catch {
-    return false;
-  }
-}
-
-function allowLocalhostApiFromEnv(): boolean {
-  const v = process.env.OPENCLAW_SOUL_ALLOW_LOCALHOST?.trim().toLowerCase();
-  return v === "1" || v === "true" || v === "yes";
-}
-
-/**
  * Registry base URL for CLI defaults when the user did not pass `--api` and has no
  * `OPENCLAW_SOUL_API` in the environment (after `loadCliEnv()`).
- *
- * If `~/.config/openclaw-soul/env` still has `OPENCLAW_SOUL_API=http://localhost:3000` from an
- * older CLI bug, we ignore it for **published** installs so `npx` hits the public registry.
- * Set `OPENCLAW_SOUL_ALLOW_LOCALHOST=1` or pass `--api http://localhost:3000` to force local.
  */
-export function resolveDefaultApiBase(importMetaUrl: string): string {
-  const fromEnv = process.env.OPENCLAW_SOUL_API?.replace(/\/$/, "");
-  if (fromEnv) {
-    if (
-      !allowLocalhostApiFromEnv() &&
-      isCanonicalLocalDevRegistryUrl(fromEnv) &&
-      !isWorkspaceInstalledCli(importMetaUrl)
-    ) {
-      return DEFAULT_OPENCLAW_SOUL_API;
-    }
-    return fromEnv;
-  }
-  if (isWorkspaceInstalledCli(importMetaUrl)) {
-    return "http://localhost:3000";
-  }
+export function resolveDefaultApiBase(): string {
+  const fromEnv = process.env.OPENCLAW_SOUL_API?.trim().replace(/\/$/, "");
+  if (fromEnv) return fromEnv;
   return DEFAULT_OPENCLAW_SOUL_API;
 }
 
