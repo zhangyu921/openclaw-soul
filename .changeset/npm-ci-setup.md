@@ -2,4 +2,7 @@
 "@openclaw-soul/cli": patch
 ---
 
-Add npm package metadata, Changesets, and GitHub Actions workflow to publish `@openclaw-soul/cli` and tag `cli-v*`.
+- **发布与 CI**：`@openclaw-soul/cli` 具备 npm 元数据（`files`、`engines`、`publishConfig` 等）；根目录接入 Changesets；GitHub Actions 在合并 Version PR 后执行 `pnpm run release`（build + `changeset publish`）并推送 `cli-v{semver}` 标签；仓库需配置 Secret **`NPM_TOKEN`**。
+- **依赖**：用 **`yazl`** 替代 **`archiver`** 生成 zip，去掉传递依赖里的旧版 **`glob`**，消除安装时的弃用警告。
+- **CLI 体验**：无子命令时仅在 **stdout** 打印帮助并以退出码 **0** 结束，避免终端将帮助当成 stderr 红色错误。
+- **文档**：根目录 README 与 `packages/cli/README.md` 补充 npm / npx 用法及维护者发版步骤。
