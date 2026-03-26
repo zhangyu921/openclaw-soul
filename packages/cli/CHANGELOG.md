@@ -1,5 +1,11 @@
 # @openclaw-soul/cli
 
+## 0.0.4
+
+### Patch Changes
+
+- 0652667: Fix default API base when using `npx` from inside the repo: use production registry unless the running CLI is the workspace `node_modules/@openclaw-soul/cli` install (not the npx cache copy).
+
 ## 0.0.3
 
 ### Patch Changes
