@@ -1,5 +1,11 @@
 # @openclaw-soul/cli
 
+## 0.0.5
+
+### Patch Changes
+
+- 51a4b63: When `OPENCLAW_SOUL_API` is unset after `loadCliEnv()`, the CLI always uses `DEFAULT_OPENCLAW_SOUL_API` (production). Local monorepo dev: set `OPENCLAW_SOUL_API` in root `.env.cli` (see `.env.cli.example`) or the shell. Removed implicit localhost defaults and related heuristics.
+
 ## 0.0.4
 
 ### Patch Changes
