@@ -1,6 +1,6 @@
 {
   "name": "@openclaw-soul/cli",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "CLI for OpenClaw Soul — share and apply OpenClaw workspace packs (ocs)",
   "type": "module",
   "bin": {

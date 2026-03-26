@@ -1,5 +1,12 @@
 # @openclaw-soul/cli
 
+## 0.0.6
+
+### Patch Changes
+
+- 2467ee2: - device-login: clearer localhost vs user `env` path; on connection failures (refused / timeout / transient) suggest updating CLI (`@latest`).
+  - docs: roadmap merged into `docs/ROADMAP.md` (showcase + CLI/registry follow-ups).
+
 ## 0.0.5
 
 ### Patch Changes
