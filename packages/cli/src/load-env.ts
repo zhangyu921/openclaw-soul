@@ -64,13 +64,44 @@ export function isWorkspaceInstalledCli(importMetaUrl: string): boolean {
   return isWorkspaceCliForRoot(root, importMetaUrl);
 }
 
+/** True for `http://localhost:3000` / `http://127.0.0.1:3000` (local dev registry default). */
+export function isCanonicalLocalDevRegistryUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== "http:") return false;
+    const host = u.hostname;
+    if (host !== "localhost" && host !== "127.0.0.1") return false;
+    return u.port === "3000";
+  } catch {
+    return false;
+  }
+}
+
+function allowLocalhostApiFromEnv(): boolean {
+  const v = process.env.OPENCLAW_SOUL_ALLOW_LOCALHOST?.trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes";
+}
+
 /**
  * Registry base URL for CLI defaults when the user did not pass `--api` and has no
  * `OPENCLAW_SOUL_API` in the environment (after `loadCliEnv()`).
+ *
+ * If `~/.config/openclaw-soul/env` still has `OPENCLAW_SOUL_API=http://localhost:3000` from an
+ * older CLI bug, we ignore it for **published** installs so `npx` hits the public registry.
+ * Set `OPENCLAW_SOUL_ALLOW_LOCALHOST=1` or pass `--api http://localhost:3000` to force local.
  */
 export function resolveDefaultApiBase(importMetaUrl: string): string {
   const fromEnv = process.env.OPENCLAW_SOUL_API?.replace(/\/$/, "");
-  if (fromEnv) return fromEnv;
+  if (fromEnv) {
+    if (
+      !allowLocalhostApiFromEnv() &&
+      isCanonicalLocalDevRegistryUrl(fromEnv) &&
+      !isWorkspaceInstalledCli(importMetaUrl)
+    ) {
+      return DEFAULT_OPENCLAW_SOUL_API;
+    }
+    return fromEnv;
+  }
   if (isWorkspaceInstalledCli(importMetaUrl)) {
     return "http://localhost:3000";
   }
