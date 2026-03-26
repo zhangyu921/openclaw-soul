@@ -7,6 +7,18 @@ Registry + CLI for sharing and applying **OpenClaw workspace** packs (full zip, 
 
 Docs: [OpenClaw Agent Workspace](https://docs.openclaw.ai/concepts/agent-workspace).
 
+## Install CLI from npm
+
+Published package: **`@openclaw-soul/cli`**（全局命令 **`ocs`**）。
+
+```bash
+npm install -g @openclaw-soul/cli
+# 或
+pnpm add -g @openclaw-soul/cli
+```
+
+不全局安装时可用 **`npx @openclaw-soul/cli --help`**。本仓库内开发仍推荐根目录 **`pnpm run ocs -- …`**（见下文），无需先单独 build CLI。
+
 ## Quick start (local)
 
 Monorepo 使用 **pnpm**（见根目录 `packageManager` 与 `pnpm-workspace.yaml`；可选先执行 `corepack enable`）。在仓库根目录：
@@ -128,6 +140,13 @@ pnpm install         # workspace（lockfile: pnpm-lock.yaml）
 pnpm run build       # CLI + web
 pnpm run dev         # web dev server
 ```
+
+### Releasing `@openclaw-soul/cli`（维护者）
+
+1. 在本分支写好改动后执行 **`pnpm changeset`**，为 `@openclaw-soul/cli` 写一条 changeset，提交并合并到 **`main`**。
+2. GitHub Actions（[`release.yml`](.github/workflows/release.yml)）会开 **Version Packages** PR；合并后再次推到 `main` 时会 **`pnpm run release`**（build CLI + `changeset publish`）发布到 npm。
+3. 发布成功后同一 workflow 会打 git 标签 **`cli-v{semver}`**（与 npm 上 CLI 版本一致，便于与仓库内其它产物区分）。
+4. 在 GitHub 仓库 **Settings → Secrets and variables → Actions** 配置 **`NPM_TOKEN`**（npm 上创建 **Automation** 或 **Granular Access Token**，具备向 `@openclaw-soul` scope **publish** 的权限）。无此 secret 时无法发布到 npm。
 
 选用 **pnpm** 的原因之一：在 CI / Vercel（Linux）上 **Tailwind v4 的 `@tailwindcss/oxide` / `lightningcss` 等平台可选原生依赖** 用 npm workspaces 时容易装不齐（[npm#4828](https://github.com/npm/cli/issues/4828)），pnpm 更稳，因而不必在 `package.json` 里手写 `*-linux-x64-gnu` 的 pin。
 

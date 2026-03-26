@@ -584,4 +584,11 @@ program
     console.log(bak);
   });
 
+// No subcommand: show help on stdout (not stderr), exit 0 — avoids red "error" styling in terminals.
+const argv = process.argv.slice(2).filter((a) => a !== "-h" && a !== "--help");
+if (argv.length === 0) {
+  program.outputHelp({ error: false });
+  process.exit(0);
+}
+
 program.parse();

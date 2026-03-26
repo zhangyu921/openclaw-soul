@@ -8,9 +8,14 @@
     "db:migrate": "pnpm --filter @openclaw-soul/web db:migrate",
     "db:deploy": "pnpm --filter @openclaw-soul/web db:deploy",
     "db:studio": "pnpm --filter @openclaw-soul/web db:studio",
-    "ocs": "node scripts/run-ocs.mjs"
+    "ocs": "node scripts/run-ocs.mjs",
+    "changeset": "changeset",
+    "release": "pnpm --filter @openclaw-soul/cli build && changeset publish"
   },
   "bin": {
     "ocs": "./packages/cli/dist/index.js"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.30.0"
   }
 }

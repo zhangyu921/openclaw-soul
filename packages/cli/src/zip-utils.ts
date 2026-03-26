@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createWriteStream } from "node:fs";
-import archiver from "archiver";
+import yazl from "yazl";
 import extract from "extract-zip";
 import { fetchRegistry, isConnectTimeoutError } from "./fetch-registry.js";
 
@@ -27,6 +27,39 @@ export function assertSafeRootRelativeFile(
     throw new Error(`Path escapes workspace root: ${name}`);
   }
   return trimmed;
+}
+
+async function walkFilesRecursive(absDir: string): Promise<string[]> {
+  const results: string[] = [];
+  const entries = await fs.promises.readdir(absDir, { withFileTypes: true });
+  for (const e of entries) {
+    const abs = path.join(absDir, e.name);
+    if (e.isDirectory()) {
+      results.push(...(await walkFilesRecursive(abs)));
+    } else if (e.isFile()) {
+      results.push(abs);
+    }
+  }
+  return results;
+}
+
+function zipEntryPathForZip(rootResolved: string, absFile: string): string {
+  let meta = path.relative(rootResolved, absFile);
+  if (meta.startsWith("..")) {
+    throw new Error(`Path escapes zip root: ${absFile}`);
+  }
+  return meta.split(path.sep).join("/");
+}
+
+function finalizeZipToPath(zipfile: yazl.ZipFile, outZipPath: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const output = createWriteStream(outZipPath);
+    output.on("close", () => resolve());
+    output.on("error", reject);
+    zipfile.outputStream.on("error", reject);
+    zipfile.outputStream.pipe(output);
+    zipfile.end();
+  });
 }
 
 export async function zipSelectedFiles(
@@ -55,35 +88,36 @@ export async function zipSelectedFiles(
   }
 
   await fs.promises.mkdir(path.dirname(outZipPath), { recursive: true });
-  const output = createWriteStream(outZipPath);
-  const archive = archiver("zip", { zlib: { level: 9 } });
-  const done = new Promise<void>((resolve, reject) => {
-    output.on("close", () => resolve());
-    archive.on("error", reject);
-  });
-  archive.pipe(output);
+  const zipfile = new yazl.ZipFile();
   for (const n of unique) {
-    archive.file(path.join(sourceDir, n), { name: n });
+    zipfile.addFile(path.join(sourceDir, n), n.split(path.sep).join("/"), {
+      compress: true,
+      compressionLevel: 9,
+    });
   }
-  await archive.finalize();
-  await done;
+  await finalizeZipToPath(zipfile, outZipPath);
 }
 
 export async function zipDirectory(
   sourceDir: string,
   outZipPath: string
 ): Promise<void> {
+  const root = path.resolve(sourceDir);
+  const files = await walkFilesRecursive(root);
+  if (files.length === 0) {
+    throw new Error("No files to zip under directory");
+  }
+
   await fs.promises.mkdir(path.dirname(outZipPath), { recursive: true });
-  const output = createWriteStream(outZipPath);
-  const archive = archiver("zip", { zlib: { level: 9 } });
-  const done = new Promise<void>((resolve, reject) => {
-    output.on("close", () => resolve());
-    archive.on("error", reject);
-  });
-  archive.pipe(output);
-  archive.directory(sourceDir, false);
-  await archive.finalize();
-  await done;
+  const zipfile = new yazl.ZipFile();
+  for (const abs of files) {
+    const meta = zipEntryPathForZip(root, abs);
+    zipfile.addFile(abs, meta, {
+      compress: true,
+      compressionLevel: 9,
+    });
+  }
+  await finalizeZipToPath(zipfile, outZipPath);
 }
 
 export async function extractZip(zipPath: string, destDir: string): Promise<void> {

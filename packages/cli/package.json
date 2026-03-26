@@ -1,19 +1,38 @@
 {
   "name": "@openclaw-soul/cli",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.0.1",
+  "description": "CLI for OpenClaw Soul — share and apply OpenClaw workspace packs (ocs)",
   "type": "module",
   "bin": {
-    "ocs": "./dist/index.js"
+    "ocs": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhangyu921/openclaw-soul.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/zhangyu921/openclaw-soul#readme",
+  "bugs": {
+    "url": "https://github.com/zhangyu921/openclaw-soul/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "pnpm run build",
     "dev": "tsx src/index.ts",
     "ocs": "tsx src/index.ts"
   },
   "dependencies": {
     "@inquirer/prompts": "^8.1.0",
-    "archiver": "^7.0.1",
     "commander": "^14.0.2",
     "dotenv": "^16.4.7",
     "extract-zip": "^2.0.1",
@@ -21,11 +40,13 @@
     "json5": "^2.2.3",
     "jsonc-parser": "^3.3.1",
     "sharp": "^0.34.1",
-    "undici": "^7.24.5"
+    "undici": "^7.24.5",
+    "yazl": "^3.3.1"
   },
   "devDependencies": {
     "@types/archiver": "^7.0.0",
     "@types/node": "^20",
+    "@types/yazl": "^3.3.0",
     "tsx": "^4.21.0",
     "typescript": "^5"
   }
