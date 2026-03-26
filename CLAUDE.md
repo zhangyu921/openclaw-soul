@@ -58,7 +58,7 @@
 
 ## 展示与上线（当前优先级）
 
-以 **先上线、再秀 Soul 妙用、让人想拥有** 为主轴；可执行 checklist 见 [`docs/SHOWCASE-PLAN.md`](docs/SHOWCASE-PLAN.md)。
+以 **先上线、再秀 Soul 妙用、让人想拥有** 为主轴；可执行 checklist 见 [`docs/ROADMAP.md`](docs/ROADMAP.md)。
 
 ## 沟通偏好
 

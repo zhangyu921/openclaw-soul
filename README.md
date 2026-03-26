@@ -35,7 +35,7 @@ pnpm run dev
 
 Web 使用 **Prisma ORM 7** + **PostgreSQL**（`docker-compose.yml` 将容器 `5432` 映射到本机 **`55432`**，避免与本机已有 Postgres 冲突；可在 compose 里改端口）。`prisma.config.ts` 提供默认 `DATABASE_URL`；运行时用 `@prisma/adapter-pg` + `pg` Pool。构建会执行 `prisma generate`，客户端在 `web/src/generated/prisma`（已 `.gitignore`）。
 
-生产部署步骤见 [`docs/DEPLOY.md`](docs/DEPLOY.md)。
+生产部署步骤见 [`docs/DEPLOY.md`](docs/DEPLOY.md)。产品与 CLI 路线图见 [`docs/ROADMAP.md`](docs/ROADMAP.md)。
 
 Open http://localhost:3000 — **注册时需填写 public handle**（全站唯一，用于 `/packs/<handle>/<slug>` 与 CLI `apply`）。**在 monorepo 根目录**（无需先 `cd packages/cli`、也无需先 build CLI）：
 

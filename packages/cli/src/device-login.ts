@@ -4,6 +4,11 @@ import {
   isConnectTimeoutError,
   isTransientNetworkError,
 } from "./fetch-registry.js";
+import { getUserEnvFilePath } from "./user-config-path.js";
+
+/** Appended when registry connection fails; old CLI / env mismatches are common. */
+const UPDATE_CLI_HINT =
+  "若问题持续，请更新 CLI：`npm i -g @openclaw-soul/cli@latest`，或使用 `npx @openclaw-soul/cli@latest login`。";
 
 function isConnectionRefused(e: unknown): boolean {
   if (!e || typeof e !== "object") return false;
@@ -31,11 +36,14 @@ async function registryFetch(url: string, init?: RequestInit): Promise<Response>
       } catch {
         /* keep */
       }
+      const userEnvFile = getUserEnvFilePath();
       const devHint =
         origin.includes("localhost") || origin.includes("127.0.0.1")
-          ? "请先在仓库根目录启动站点：pnpm run dev；若端口不是 3000，请设置 OPENCLAW_SOUL_API。"
+          ? `若本意连本机 registry：先在仓库根启动站点（如 pnpm run dev），必要时设置 OPENCLAW_SOUL_API。若本意连线上：请检查 shell 里的 OPENCLAW_SOUL_API，或编辑/删除用户配置里的误留项（常见为旧版写入的 localhost）：${userEnvFile}`
           : "请检查网络/代理，或确认 OPENCLAW_SOUL_API 指向正确的线上 registry。";
-      throw new Error(`无法连接 registry（${origin}，连接被拒绝）。${devHint}`);
+      throw new Error(
+        `无法连接 registry（${origin}，连接被拒绝）。${devHint} ${UPDATE_CLI_HINT}`
+      );
     }
     if (isConnectTimeoutError(e)) {
       let origin = url;
@@ -45,7 +53,7 @@ async function registryFetch(url: string, init?: RequestInit): Promise<Response>
         /* keep */
       }
       throw new Error(
-        `无法及时连上 registry（${origin}，连接超时）。可调大 OPENCLAW_SOUL_CONNECT_TIMEOUT_MS（默认 60000）；若浏览器能开站点但 CLI 不行，可设 HTTPS_PROXY 与浏览器一致。`
+        `无法及时连上 registry（${origin}，连接超时）。可调大 OPENCLAW_SOUL_CONNECT_TIMEOUT_MS（默认 60000）；若浏览器能开站点但 CLI 不行，可设 HTTPS_PROXY 与浏览器一致。${UPDATE_CLI_HINT}`
       );
     }
     if (isTransientNetworkError(e)) {
@@ -56,7 +64,7 @@ async function registryFetch(url: string, init?: RequestInit): Promise<Response>
         /* keep */
       }
       throw new Error(
-        `与 registry 通信中断（${origin}）。已内置重试仍失败时请检查网络，或设置 HTTPS_PROXY；可调大 OPENCLAW_SOUL_FETCH_MAX_RETRIES。`
+        `与 registry 通信中断（${origin}）。已内置重试仍失败时请检查网络，或设置 HTTPS_PROXY；可调大 OPENCLAW_SOUL_FETCH_MAX_RETRIES。${UPDATE_CLI_HINT}`
       );
     }
     throw e;
