@@ -4,8 +4,11 @@ import fs from "node:fs";
 import os from "node:os";
 import { Command } from "commander";
 import { confirm } from "@inquirer/prompts";
-import { loadCliEnv, resolveWorkspacePath, findMonorepoRoot } from "./load-env.js";
-import { DEFAULT_OPENCLAW_SOUL_API } from "./constants.js";
+import {
+  loadCliEnv,
+  resolveWorkspacePath,
+  resolveDefaultApiBase,
+} from "./load-env.js";
 import {
   backupAndWriteWorkspace,
   defaultOpenclawConfigPath,
@@ -34,13 +37,7 @@ import { dbg, setCliDebug } from "./cli-debug.js";
 loadCliEnv();
 
 function apiBase(): string {
-  const fromEnv = process.env.OPENCLAW_SOUL_API?.replace(/\/$/, "");
-  if (fromEnv) return fromEnv;
-  // Inside this monorepo: default local dev server. Else (e.g. npx from npm): public registry.
-  if (findMonorepoRoot()) {
-    return "http://localhost:3000";
-  }
-  return DEFAULT_OPENCLAW_SOUL_API;
+  return resolveDefaultApiBase(import.meta.url);
 }
 
 function openclawConfigPath(): string {

@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { config as loadDotenv } from "dotenv";
+import { DEFAULT_OPENCLAW_SOUL_API } from "./constants.js";
 import { getUserEnvFilePath } from "./user-config-path.js";
 
 /** Walk up from `start` to find the `openclaw-soul` monorepo root (for `.env.cli` and path resolution). */
@@ -22,6 +24,57 @@ export function findMonorepoRoot(start: string = process.cwd()): string | null {
     dir = parent;
   }
   return null;
+}
+
+/**
+ * True when `importMetaUrl` points at the `@openclaw-soul/cli` install under
+ * `monorepoRoot/node_modules/@openclaw-soul/cli` (after realpath). Used for tests and
+ * `isWorkspaceInstalledCli`.
+ */
+export function isWorkspaceCliForRoot(
+  monorepoRoot: string,
+  importMetaUrl: string
+): boolean {
+  const entryFile = fileURLToPath(importMetaUrl);
+  const cliPkgRoot = path.resolve(path.dirname(entryFile), "..");
+  let cliReal: string;
+  try {
+    cliReal = fs.realpathSync(cliPkgRoot);
+  } catch {
+    return false;
+  }
+  const nmCli = path.join(monorepoRoot, "node_modules", "@openclaw-soul", "cli");
+  let nmReal: string;
+  try {
+    nmReal = fs.realpathSync(nmCli);
+  } catch {
+    return false;
+  }
+  return cliReal === nmReal;
+}
+
+/**
+ * True when this process is running the `@openclaw-soul/cli` package that the current cwd's
+ * monorepo installs at `node_modules/@openclaw-soul/cli` (pnpm/npm workspace / local link).
+ * False when running a copy from npx cache or another install — even if cwd is inside the repo.
+ */
+export function isWorkspaceInstalledCli(importMetaUrl: string): boolean {
+  const root = findMonorepoRoot();
+  if (!root) return false;
+  return isWorkspaceCliForRoot(root, importMetaUrl);
+}
+
+/**
+ * Registry base URL for CLI defaults when the user did not pass `--api` and has no
+ * `OPENCLAW_SOUL_API` in the environment (after `loadCliEnv()`).
+ */
+export function resolveDefaultApiBase(importMetaUrl: string): string {
+  const fromEnv = process.env.OPENCLAW_SOUL_API?.replace(/\/$/, "");
+  if (fromEnv) return fromEnv;
+  if (isWorkspaceInstalledCli(importMetaUrl)) {
+    return "http://localhost:3000";
+  }
+  return DEFAULT_OPENCLAW_SOUL_API;
 }
 
 /**
