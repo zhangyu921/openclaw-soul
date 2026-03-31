@@ -84,15 +84,15 @@ export default async function PackDetailPage({ params }: Props) {
             <h1 className="font-heading text-balance text-2xl font-bold tracking-tight sm:text-3xl">
               {pack.title}
             </h1>
-            <p className="mt-1 font-mono text-sm text-muted-foreground">
-              {pack.author.handle}/{pack.slug}
-            </p>
             <PackSummaryEdit
               handle={pack.author.handle}
               slug={pack.slug}
               initialSummary={pack.summary}
               isAuthor={isAuthor}
             />
+            <p className="mt-3 font-mono text-sm text-muted-foreground">
+              {pack.author.handle}/{pack.slug}
+            </p>
           </div>
         </div>
       </Card>
@@ -167,20 +167,20 @@ export default async function PackDetailPage({ params }: Props) {
         <CardHeader>
           <CardTitle className="text-base">CLI</CardTitle>
           <CardDescription>
-            Apply 会写入{" "}
+            逛到对味的 pack 后，一条命令装进本机 OpenClaw：会写入{" "}
             <code className="font-mono text-xs">openclaw.json</code> 中的{" "}
             <code className="font-mono text-xs">agents.defaults.workspace</code>，并解压到{" "}
             <code className="font-mono text-xs">~/.openclaw/workspace-{pack.slug}</code>
-            （与{" "}
+            。路径与含义见{" "}
             <a
               className="font-medium text-primary underline-offset-4 hover:underline"
               href="https://docs.openclaw.ai/concepts/agent-workspace"
               rel="noopener noreferrer"
               target="_blank"
             >
-              OpenClaw 文档
+              OpenClaw 文档（agent workspace）
             </a>
-            一致）
+            。
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
