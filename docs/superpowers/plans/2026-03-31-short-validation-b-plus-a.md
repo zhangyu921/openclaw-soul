@@ -10,6 +10,8 @@
 
 **Related spec:** `docs/superpowers/specs/2026-03-31-openclaw-soul-direction-design.md` (§5–§8).
 
+**Execution status (2026-03-31):** Subagent-driven path — **Tasks 1–4** done (`b743aa3` … `a735449`). **Tasks 5–6**（外联、复盘）由维护者执行。
+
 ---
 
 ## File map (before tasks)
@@ -19,7 +21,7 @@
 | `web/src/app/page.tsx` | Home / gallery hero, pack grid, empty state — **B** |
 | `web/src/app/packs/[handle]/[slug]/page.tsx` | Pack title, summary, preview, CLI apply block — **B** |
 | `README.md` (repo root) | First-run visitor path; may add one line pointing to site + spec thesis — **B** (optional) |
-| `docs/superpowers/experiment-log.md` (create) | **A**: dated evidence line + method (or keep private; if private, note in plan that gate is satisfied offline) |
+| `docs/superpowers/experiment-log.example.md` + 本地 `experiment-log.md`（gitignored） | **A**：模板与取证记录 |
 
 ---
 
@@ -28,13 +30,13 @@
 **Files:**
 - Create: `docs/superpowers/experiment-log.md` (optional; can be gitignored local copy — if so, document in Task 1 Step 3)
 
-- [ ] **Step 1:** Write one paragraph: what counts as 「愿意继续」 (e.g. DM screenshot with consent, public reply, or scheduled follow-up call). Include **how** you will collect it without ambiguity.
+- [x] **Step 1:** Write one paragraph: what counts as 「愿意继续」 (e.g. DM screenshot with consent, public reply, or scheduled follow-up call). Include **how** you will collect it without ambiguity.
 
-- [ ] **Step 2:** Name one **可见入口** you will use (e.g. tweet, friend DM, Discord) so 「从可见入口进入」 is not retrofitted.
+- [x] **Step 2:** Name one **可见入口** you will use (e.g. tweet, friend DM, Discord) so 「从可见入口进入」 is not retrofitted.
 
-- [ ] **Step 3:** Save to `docs/superpowers/experiment-log.md` **or** `docs/superpowers/experiment-log.example.md` in repo with placeholders, and keep real PII out of git if needed.
+- [x] **Step 3:** Save to `docs/superpowers/experiment-log.md` **or** `docs/superpowers/experiment-log.example.md` in repo with placeholders, and keep real PII out of git if needed.
 
-- [ ] **Step 4:** Commit if the file is safe to version (e.g. template only).
+- [x] **Step 4:** Commit if the file is safe to version (e.g. template only).
 
 ```bash
 git add docs/superpowers/experiment-log.md
@@ -48,13 +50,13 @@ git commit -m "docs: add experiment log template for A evidence"
 **Files:**
 - Modify: `web/src/app/page.tsx`
 
-- [ ] **Step 1:** Read current hero (Badge, `h1`, subtitle, `apply` one-liner). Against spec §5.2: does a **stranger** understand **这是什么、为谁、如何得到同款** in &lt; 60s? List gaps in a bullet list (comment in PR or issue).
+- [x] **Step 1:** Read current hero (Badge, `h1`, subtitle, `apply` one-liner). Against spec §5.2: does a **stranger** understand **这是什么、为谁、如何得到同款** in &lt; 60s? List gaps in a bullet list (comment in PR or issue).
 
-- [ ] **Step 2:** Edit copy only (no new routes): align **情感向 / 人设** thesis if desired — still accurate for functional packs. Keep `npx @openclaw-soul/cli apply` visible.
+- [x] **Step 2:** Edit copy only (no new routes): align **情感向 / 人设** thesis if desired — still accurate for functional packs. Keep `npx @openclaw-soul/cli apply` visible.
 
-- [ ] **Step 3:** Empty state (`packs.length === 0`): ensure CTA still points to `publish` and matches voice.
+- [x] **Step 3:** Empty state (`packs.length === 0`): ensure CTA still points to `publish` and matches voice.
 
-- [ ] **Step 4:** Run lint and build for `web`:
+- [x] **Step 4:** Run lint and build for `web`:
 
 ```bash
 cd web && pnpm exec eslint . && pnpm run build
@@ -62,7 +64,7 @@ cd web && pnpm exec eslint . && pnpm run build
 
 Expected: ESLint clean; Next.js build succeeds.
 
-- [ ] **Step 5:** Commit:
+- [x] **Step 5:** Commit:
 
 ```bash
 git add web/src/app/page.tsx
@@ -76,13 +78,13 @@ git commit -m "fix(web): tighten gallery copy for B narrative"
 **Files:**
 - Modify: `web/src/app/packs/[handle]/[slug]/page.tsx`
 
-- [ ] **Step 1:** Above the fold: ensure **title + summary** (author-editable via existing UI) are the primary 「这人设干嘛的」 surface. If summary is often empty, add **one line** of neutral helper in UI for authors only (reuse existing edit components) — only if product decision says so; otherwise skip code and rely on showcase pack content.
+- [x] **Step 1:** Above the fold: ensure **title + summary** (author-editable via existing UI) are the primary 「这人设干嘛的」 surface. If summary is often empty, add **one line** of neutral helper in UI for authors only (reuse existing edit components) — only if product decision says so; otherwise skip code and rely on showcase pack content.
 
-- [ ] **Step 2:** CLI card: confirm `apply` command + OpenClaw workspace doc link already satisfy 「如何得到同款」; adjust `CardDescription` wording if needed for emotional-framing consistency.
+- [x] **Step 2:** CLI card: confirm `apply` command + OpenClaw workspace doc link already satisfy 「如何得到同款」; adjust `CardDescription` wording if needed for emotional-framing consistency.
 
-- [ ] **Step 3:** `pnpm run build` in `web/` as in Task 2.
+- [x] **Step 3:** `pnpm run build` in `web/` as in Task 2.
 
-- [ ] **Step 4:** Commit if any change.
+- [x] **Step 4:** Commit if any change.
 
 ---
 
@@ -91,9 +93,9 @@ git commit -m "fix(web): tighten gallery copy for B narrative"
 **Files:**
 - Modify: `README.md`
 
-- [ ] **Step 1:** Add a short subsection or sentence: **why** this exists (persona packs / workspace apply) and link to the spec or site — only if not redundant with existing README.
+- [x] **Step 1:** Add a short subsection or sentence: **why** this exists (persona packs / workspace apply) and link to the spec or site — only if not redundant with existing README.
 
-- [ ] **Step 2:** Commit.
+- [x] **Step 2:** Commit.
 
 ---
 
@@ -134,8 +136,8 @@ git commit -m "fix(web): tighten gallery copy for B narrative"
 
 Plan complete and saved to `docs/superpowers/plans/2026-03-31-short-validation-b-plus-a.md`. Two execution options:
 
-**1. Subagent-Driven (recommended)** — Dispatch a fresh subagent per task, review between tasks.
+**1. Subagent-Driven (recommended)** — Dispatch a fresh subagent per task, review between tasks. **（已选并完成 Task 1–4。）**
 
 **2. Inline execution** — Run tasks in one session with checkpoints after Task 2 and Task 3.
 
-Which approach do you want?
+Next: **Task 5–6**（维护者：外联、帮人 apply、本地 `experiment-log.md`、时间盒内复盘）。
