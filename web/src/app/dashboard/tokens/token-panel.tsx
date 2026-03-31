@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LocalDateTime } from "@/components/local-date-time";
 import { Separator } from "@/components/ui/separator";
 import { privacyLinkClassName } from "@/lib/utils";
 
@@ -208,9 +209,7 @@ export default function TokenPanel({
               className="flex justify-between gap-3 rounded-xl border border-border/80 bg-card px-4 py-3 shadow-sm"
             >
               <span>{t.label || "(no label)"}</span>
-              <span className="shrink-0 text-muted-foreground">
-                {new Date(t.createdAt).toLocaleString()}
-              </span>
+              <LocalDateTime iso={t.createdAt} className="shrink-0 text-muted-foreground" />
             </li>
           ))}
         </ul>

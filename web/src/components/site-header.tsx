@@ -10,7 +10,15 @@ const navClass = cn(
   "text-muted-foreground hover:bg-muted hover:text-foreground"
 );
 
-export function SiteHeader() {
+export type HeaderUser = { email: string; handle: string | null };
+
+function displayName(u: HeaderUser): string {
+  if (u.handle?.trim()) return `@${u.handle}`;
+  const at = u.email.indexOf("@");
+  return at > 0 ? u.email.slice(0, at) : u.email;
+}
+
+export function SiteHeader({ initialUser }: { initialUser: HeaderUser | null }) {
   return (
     <header
       className="sticky top-0 z-[var(--z-sticky)] border-b border-border/60 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/70"
@@ -23,16 +31,28 @@ export function SiteHeader() {
         >
           OpenClaw Soul
         </Link>
-        <nav className="flex flex-wrap items-center justify-end gap-0.5 sm:gap-1">
-          <Link href="/login" className={navClass}>
-            Login
-          </Link>
-          <Link href="/register" className={navClass}>
-            Register
-          </Link>
-          <Link href="/dashboard/tokens" className={navClass}>
-            API tokens
-          </Link>
+        <nav className="flex min-w-0 flex-wrap items-center justify-end gap-0.5 sm:gap-1">
+          {initialUser ? (
+            <Link
+              href="/dashboard/tokens"
+              className={cn(
+                navClass,
+                "max-w-[min(12rem,40vw)] truncate font-medium text-foreground hover:text-foreground"
+              )}
+              title={initialUser.email}
+            >
+              {displayName(initialUser)}
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className={navClass}>
+                Login
+              </Link>
+              <Link href="/register" className={navClass}>
+                Register
+              </Link>
+            </>
+          )}
           <ModeToggle />
         </nav>
       </div>

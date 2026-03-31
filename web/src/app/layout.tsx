@@ -3,8 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 
 import { SiteHeader } from "@/components/site-header";
-import { privacyLinkClassName } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
+import { prisma } from "@/lib/prisma";
+import { readSessionUserId } from "@/lib/session";
+import { privacyLinkClassName } from "@/lib/utils";
 
 import "./globals.css";
 
@@ -23,11 +25,20 @@ export const metadata: Metadata = {
   description: "OpenClaw workspace pack registry",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const userId = await readSessionUserId();
+  const headerUser =
+    userId === null
+      ? null
+      : await prisma.user.findUnique({
+          where: { id: userId },
+          select: { email: true, handle: true },
+        });
+
   return (
     <html
       lang="en"
@@ -36,7 +47,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <SiteHeader />
+          <SiteHeader initialUser={headerUser} />
           <div className="flex-1">{children}</div>
           <footer className="border-t border-border/60 py-8 text-center text-sm text-muted-foreground">
             <p>
