@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { siteOriginFromNextHeaders } from "@/lib/device-auth";
 import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
 import { privacyLinkClassName } from "@/lib/utils";
@@ -27,7 +25,6 @@ type Props = { params: Promise<{ handle: string; slug: string }> };
 
 export default async function PackDetailPage({ params }: Props) {
   const { handle, slug } = await params;
-  const siteOrigin = siteOriginFromNextHeaders(await headers());
   const userId = await readSessionUserId();
   const pack = await prisma.pack.findFirst({
     where: { slug, author: { handle } },
@@ -190,8 +187,7 @@ export default async function PackDetailPage({ params }: Props) {
           {!isRevoked ? (
             <>
               <pre className="overflow-x-auto rounded-xl bg-muted p-4 font-mono text-sm leading-relaxed">
-                {`export OPENCLAW_SOUL_API=${siteOrigin}
-npx @openclaw-soul/cli apply ${pack.author.handle}/${pack.slug}`}
+                {`npx @openclaw-soul/cli apply ${pack.author.handle}/${pack.slug}`}
               </pre>
               <div>
                 <p className="mb-2 text-sm font-medium text-muted-foreground">Raw zip</p>
