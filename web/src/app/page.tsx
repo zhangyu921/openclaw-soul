@@ -26,13 +26,18 @@ export default async function Home() {
       <div className="mb-10 text-center sm:mb-12">
         <Badge variant="secondary" className="mb-4 gap-1 px-3 py-1 text-xs font-medium">
           <Sparkles className="size-3.5" aria-hidden />
-          OpenClaw personas &amp; workspaces
+          OpenClaw Soul · personas &amp; workspaces
         </Badge>
         <h1 className="font-heading text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-          发现有趣的人设与工作区 pack
+          画廊里逛 pack，一键装进你的 OpenClaw
         </h1>
         <p className="mx-auto mt-3 max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg">
-          像逛灵感板一样浏览社区分享；看中了就用 CLI 一键应用到本机 OpenClaw。
+          <strong className="font-medium text-foreground">这是什么：</strong>
+          社区发布的可安装 workspace pack（人设、提示与文件一起打包）。
+          <strong className="ms-1 font-medium text-foreground">为谁：</strong>
+          已经在用 OpenClaw、想换对话气质或复刻他人工作区的人——情感向人设与纯功能向 pack 都能上架。
+          <strong className="ms-1 font-medium text-foreground">同款怎么来：</strong>
+          下面一条命令 apply 到本机。
         </p>
         <p className="mt-4 text-sm text-muted-foreground">
           <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-xs">
@@ -44,14 +49,19 @@ export default async function Home() {
       {packs.length === 0 ? (
         <Card className="mx-auto max-w-md border-dashed text-center shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg">还没有 pack</CardTitle>
+            <CardTitle className="text-lg">画廊还是空的</CardTitle>
             <CardDescription>
-              用 CLI 发布第一个，这里就会像瀑布流一样铺满卡片。
+              你是作者的话：先 publish 第一个 pack，逛选与 apply 才有东西可看——人设向或工具向都行。
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="font-mono text-xs text-muted-foreground">
-              npx @openclaw-soul/cli publish
+            <p className="text-sm text-muted-foreground">
+              从本机 workspace 上架：
+            </p>
+            <p className="mt-2">
+              <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-xs">
+                npx @openclaw-soul/cli publish
+              </code>
             </p>
           </CardContent>
         </Card>
