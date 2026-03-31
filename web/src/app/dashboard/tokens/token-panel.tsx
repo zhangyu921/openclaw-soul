@@ -150,7 +150,9 @@ export default function TokenPanel({
         <CardHeader>
           <CardTitle className="text-base">CLI 与条款</CardTitle>
           <CardDescription>
-            使用 <code className="rounded bg-muted px-1 font-mono text-xs">ocs publish</code> 即表示你同意{" "}
+            使用{" "}
+            <code className="rounded bg-muted px-1 font-mono text-xs">npx @openclaw-soul/cli publish</code>{" "}
+            即表示你同意{" "}
             <Link href="/privacy" className="font-medium text-primary underline-offset-4 hover:underline">
               隐私与上传说明
             </Link>
@@ -160,10 +162,8 @@ export default function TokenPanel({
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <p>
             浏览器登录：运行{" "}
-            <code className="rounded bg-muted px-1 font-mono text-xs">ocs login</code>{" "}
-            （或仓库根目录{" "}
-            <code className="rounded bg-muted px-1 font-mono text-xs">npm run ocs -- login</code>
-            ），token 会写入用户配置。脚本/CI 可粘贴下方新建的 token，或设置{" "}
+            <code className="rounded bg-muted px-1 font-mono text-xs">npx @openclaw-soul/cli login</code>
+            ，token 会写入用户配置。脚本/CI 可粘贴下方新建的 token，或设置{" "}
             <code className="rounded bg-muted px-1 font-mono text-xs">OPENCLAW_SOUL_TOKEN</code>。
           </p>
         </CardContent>

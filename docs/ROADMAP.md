@@ -19,7 +19,7 @@
 | 2 | 生产文件存储 | zip/头像不落容器盘；Vercel Blob / R2 / S3 等任一可跑通 |
 | 3 | 部署 Web | 稳定域名或 Vercel 默认域；`DATABASE_URL` / `STORAGE` / `AUTH_SECRET` 配齐 |
 | 4 | 环境文档 | [`docs/DEPLOY.md`](DEPLOY.md)：一条「从零到线上」命令级步骤 |
-| 5 | 自己的 pack 上去 | 用生产 `OPENCLAW_SOUL_API` 成功 `publish`，画廊可见、可点进详情 |
+| 5 | 自己的 pack 上去 | ✅ 用生产 `OPENCLAW_SOUL_API` 成功 `publish`，画廊可见、可点进详情 |
 
 **上线即胜利**：先做到表 1–5，再考虑别的。（多数项已在 2026-03 前后闭环，见下方复盘。）
 
@@ -31,9 +31,9 @@
 |---|------|----------------|
 | A | 画廊「门面」 | 首页能一眼看出：这是 **OpenClaw 人设 / workspace** 分享站，不是你的私人笔记站 |
 | B | 你的 showcase pack | 至少 1 个 pack：标题/摘要/头像 **为展示而写**（不必完美，但要诱人点进去） |
-| C | 点进去能懂 | pack 详情页：一句 **这人设干嘛的** + `ocs apply handle/slug` 可复制（已指向生产 API 说明） |
+| C | 点进去能懂 | pack 详情页：一句 **这人设干嘛的** + `npx @openclaw-soul/cli apply handle/slug` 可复制（已指向生产 API 说明） |
 | D | 妙用证据（你自选形态） | 聊天记录截图打码、或 SOUL/IDENTITY 里金句摘录、或 30s 录屏——**固定放在一处**：详情扩展区 / 外链 Notion / 推文，并在页面上给 **单一入口链接** |
-| E | 「想拥有」路径 | 新访客 3 步内看到：**注册 / token / `ocs login` + `publish` 或 `apply`**（README + 站内短链即可） |
+| E | 「想拥有」路径 | 新访客 3 步内看到：**注册 / token / `npx @openclaw-soul/cli login` · `publish` · `apply`**（README + 站内短链即可） |
 
 **种草不靠功能堆**：表 A–E 本质是 **叙事 + 一条清晰路径**，功能可以仍很 MVP。
 
@@ -74,4 +74,5 @@
 |------|------|
 | 2026-03-24 | P0 闭环：Postgres + Vercel Blob、自定义域与 `OPENCLAW_SOUL_SITE_URL`；CLI 弱网/代理/重试与 publish multipart（undici）；上架成功提示 `viewUrl` 对齐主域；Blob 上传 `addRandomSuffix` 保留历史对象；头像在浏览器与 CLI（sharp）本机压缩至 512 KiB 内。 |
 | 2026-03-26 | CLI：默认 `OPENCLAW_SOUL_API` 简化为「未设置则用 `constants` 线上地址」；本地开发依赖根目录 `.env.cli`；`device-login` 连接失败时提示更新 CLI；路线图合并为本文。 |
+| 2026-03-27 | P0 全部完成：首个 showcase pack 发布上线（Asuka 人设）；下一步进入 P1 展示优化。 |
 | （填） | （填） |

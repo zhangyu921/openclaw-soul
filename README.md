@@ -3,7 +3,7 @@
 Registry + CLI for sharing and applying **OpenClaw workspace** packs (full zip, including `MEMORY.md` if present).
 
 - **Web** (`web/`): Next.js gallery, register/login, API tokens, upload/download packs.
-- **CLI** (`packages/cli`, root `pnpm run ocs -- …` / `bin`): `ocs` — `login`, `apply`, `publish`, `download`, `import`, `archive-directory`, `restore-openclaw-config`, `backup-openclaw-config`.
+- **CLI** (`packages/cli`)：终端用户用 **`npx @openclaw-soul/cli`**（或全局安装后的 `ocs`）；本仓库内开发用根目录 **`pnpm run ocs -- …`**。子命令包括 `login`、`apply`、`publish`、`download`、`import`、`archive-directory`、`restore-openclaw-config`、`backup-openclaw-config`。
 
 Docs: [OpenClaw Agent Workspace](https://docs.openclaw.ai/concepts/agent-workspace).
 
@@ -18,6 +18,14 @@ pnpm add -g @openclaw-soul/cli
 ```
 
 不全局安装时可用 **`npx @openclaw-soul/cli --help`**。本仓库内开发仍推荐根目录 **`pnpm run ocs -- …`**（见下文），无需先单独 build CLI。
+
+**终端用户常用（与下方仓库内命令等价，无需克隆本仓库）：**
+
+```bash
+npx @openclaw-soul/cli login
+npx @openclaw-soul/cli publish
+npx @openclaw-soul/cli apply <handle>/<slug>
+```
 
 ## Quick start (local)
 
@@ -45,20 +53,20 @@ Open http://localhost:3000 — **注册时需填写 public handle**（全站唯�
 pnpm run ocs -- login
 ```
 
-会打开浏览器，在站点上登录并确认后，CLI 轮询拿到 token，并写入**用户级**配置文件（见下）；`ocs login` 若已存在 `OPENCLAW_SOUL_TOKEN` 需加 `--force` 覆盖。交互式 `publish` 里若触发浏览器登录，成功后同样写入该文件，之后再次 `publish` 会直接使用该 token。
+会打开浏览器，在站点上登录并确认后，CLI 轮询拿到 token，并写入**用户级**配置文件（见下）；`pnpm run ocs -- login` 若已存在 `OPENCLAW_SOUL_TOKEN` 需加 `--force` 覆盖（终端用户：`npx @openclaw-soul/cli login --force`）。交互式 `publish` 里若触发浏览器登录，成功后同样写入该文件，之后再次 `publish` 会直接使用该 token。
 
 **或** 在 `/dashboard/tokens` 手动创建 token，粘贴进用户配置 `env` 文件中的 `OPENCLAW_SOUL_TOKEN=`（见 `.env.cli.example` 说明）。若账号尚无 handle（旧数据），需在同一页**一次性设置 public handle** 后才能 `publish`。
 
 **CLI 凭证加载顺序（production 优先）**
 
 1. Shell / CI 已设置的**环境变量**（不被文件覆盖）。
-2. **用户配置** `env`（`ocs login` / `publish` 登录后写入）：
+2. **用户配置** `env`（`npx @openclaw-soul/cli login` 或 `publish` 时浏览器登录后写入）：
    - macOS / Linux：`~/.config/openclaw-soul/env`（若设置 `XDG_CONFIG_HOME` 则为 `$XDG_CONFIG_HOME/openclaw-soul/env`）
    - Windows：`%APPDATA%\openclaw-soul\env`
    - 可选：设置 `OPENCLAW_SOUL_CONFIG_DIR` 指向目录时，使用该目录下的 `env`。
 3. 若当前目录在 **本 monorepo** 内且存在根目录 **`.env.cli`**：后加载并**覆盖**上述同名变量（仅本地开发指向 `localhost` 等）。见 `.env.cli.example`。
 
-从旧版升级、此前只在仓库用过 `.env.cli`：可把其中内容合并进 `~/.config/openclaw-soul/env`，或再执行一次 `ocs login`。
+从旧版升级、此前只在仓库用过 `.env.cli`：可把其中内容合并进 `~/.config/openclaw-soul/env`，或再执行一次 `npx @openclaw-soul/cli login`（本仓库开发可用 `pnpm run ocs -- login`）。
 
 **数据库**：表结构变更请用 `cd web && pnpm exec prisma migrate dev`（开发）或 `pnpm exec prisma migrate deploy`（CI/生产）。勿在生产对已有数据随意 `db push`。
 
@@ -154,14 +162,14 @@ Global CLI：`cd packages/cli && pnpm link --global`，或发布后使用 `npx`�
 
 ## Troubleshooting
 
-- **`device/start failed (500)`**（`ocs login` / 交互 `publish`）：多为数据库未迁移。确保 `docker compose up -d` 且 `DATABASE_URL` 正确，执行 `cd web && pnpm exec prisma migrate dev`（或生产 `migrate deploy`），重启 `pnpm run dev` 再试。
+- **`device/start failed (500)`**（`npx @openclaw-soul/cli login` / 交互 `publish`）：多为数据库未迁移。确保 `docker compose up -d` 且 `DATABASE_URL` 正确，执行 `cd web && pnpm exec prisma migrate dev`（或生产 `migrate deploy`），重启 `pnpm run dev` 再试。
 
 ## Privacy
 
 - 完整说明与同意条款：站点路径 **`/privacy`**（本地即 `http://localhost:3000/privacy`）。
-- 注册须勾选同意；`ocs publish` 在 TTY 下会提示（同意后写入 `~/.config/openclaw-soul/privacy-ack`，不必每次确认）；**非 TTY / CI** 须加 **`--accept-privacy`** 或环境变量 **`OPENCLAW_SOUL_ACCEPT_PRIVACY=1`**。
-- **体积**：pack **zip ≤ 2 MiB**；头像服务端上限 **≤ 512 KiB**，**网页与 `ocs publish` 会在上传前自动压缩**（不占服务器算力），极难仍超限时再换图。
+- 注册须勾选同意；`npx @openclaw-soul/cli publish` 在 TTY 下会提示（同意后写入 `~/.config/openclaw-soul/privacy-ack`，不必每次确认）；**非 TTY / CI** 须加 **`--accept-privacy`** 或环境变量 **`OPENCLAW_SOUL_ACCEPT_PRIVACY=1`**。
+- **体积**：pack **zip ≤ 2 MiB**；头像服务端上限 **≤ 512 KiB**，**网页与 CLI `publish` 会在上传前自动压缩**（不占服务器算力），极难仍超限时再换图。
 - **频率**：同一账号约 **每自然小时 20 次**成功发布（新建或覆盖）；超限返回 **429**。
-- 作者可在 pack 详情页 **从画廊下架**（访客不可见；`ocs publish --replace` 同 slug 可再次公开；服务端数据说明见站内隐私页）。
+- 作者可在 pack 详情页 **从画廊下架**（访客不可见；`npx @openclaw-soul/cli publish --replace` 同 slug 可再次公开；服务端数据说明见站内隐私页）。
 
 Publishing still sends the **entire** workspace as zip unless you exclude files locally; you are responsible for what you upload.

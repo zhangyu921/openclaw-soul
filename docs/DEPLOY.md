@@ -37,11 +37,11 @@ cd .. && pnpm run dev
 | `BLOB_ACCESS` | 可选；Blob 控制台为 **私有** 时设为 `private`（与默认 `public` 冲突会 500）；与 `web/.env.example` 一致 |
 | `STORAGE_DRIVER` | 可选；设为 `vercel-blob` 与设 token 等价，显式启用 Blob |
 | `STORAGE_PATH` | 可选；仅 **未** 用 Blob 时，本地/容器盘上的存储根目录（默认 `web/storage`） |
-| `OPENCLAW_SOUL_SITE_URL` | 可选；`https://主域`（无末尾 `/`）。**固定对外主域**：`ocs login` 里打开的 device 链接、以及依赖 `requestOrigin` 的 JSON 里的 URL 都会用这个；多域名指向同一部署、或以后要换主域时，建议始终设成「用户应记住的那一个」。 |
+| `OPENCLAW_SOUL_SITE_URL` | 可选；`https://主域`（无末尾 `/`）。**固定对外主域**：`npx @openclaw-soul/cli login` 里打开的 device 链接、以及依赖 `requestOrigin` 的 JSON 里的 URL 都会用这个；多域名指向同一部署、或以后要换主域时，建议始终设成「用户应记住的那一个」。 |
 
 生产若不用 Blob，须保证运行环境有**持久可写盘**（多数 Serverless 无持久盘，请用 Blob / S3 等）。
 
-**上传体积**：pack zip 上限 **2 MiB**、头像 **512 KiB** 由 API 最终校验；头像在**用户浏览器**与 **`ocs publish` 本机**会先压缩再上传，部署侧**不必**装 `sharp` 等图像库。
+**上传体积**：pack zip 上限 **2 MiB**、头像 **512 KiB** 由 API 最终校验；头像在**用户浏览器**与 **CLI `npx @openclaw-soul/cli publish` 本机**会先压缩再上传，部署侧**不必**装 `sharp` 等图像库。
 
 ## 更换域名（二级域 → 主域等）
 
@@ -49,7 +49,7 @@ cd .. && pnpm run dev
 
 1. **Vercel**：Project → Domains 添加新域名，DNS 按提示配好；需要的话把旧域名设为 redirect 到新域名（避免书签、文档里的旧链接失效）。
 2. **环境变量**：把 **`OPENCLAW_SOUL_SITE_URL`** 改成新主域（`https://新域`），与 **Vercel Primary Domain** 心智一致；重部署。
-3. **所有 CLI 用户**（含你自己）：在 `~/.config/openclaw-soul/env`（或 `OPENCLAW_SOUL_CONFIG_DIR`）里把 **`OPENCLAW_SOUL_API`** 改成新域名的根 URL；一般 **不必** 换 token。若曾混用两个域、两套库，再各自 `ocs login` 一次最干净。
+3. **所有 CLI 用户**（含你自己）：在 `~/.config/openclaw-soul/env`（或 `OPENCLAW_SOUL_CONFIG_DIR`）里把 **`OPENCLAW_SOUL_API`** 改成新域名的根 URL；一般 **不必** 换 token。若曾混用两个域、两套库，再各自 `npx @openclaw-soul/cli login` 一次最干净。
 4. **站内链接**：画廊与 pack 路径是相对站点的（`/packs/...`），换域后页面照常；**别人保存的完整旧 URL** 要靠你在 Vercel 上保留旧域并重定向到新域来续命。
 5. **Blob**：若已用 Vercel Blob，zip/头像 URL 在 Blob 域名上，**不**随你自定义域变化；无需为换域迁文件。每次上传使用带随机后缀的对象键，**覆盖同一 slug 时旧 zip/头像对象仍留在 Blob**（仅 DB 指向新 URL）；需控成本可在控制台或后续脚本做生命周期清理。
 
@@ -68,8 +68,8 @@ cd .. && pnpm run dev
 ## 5. 部署后自检
 
 - 打开站点 `/` 与 `/privacy`。
-- 注册 → Dashboard 设 handle → 创建 token → `ocs publish` 指向生产 `OPENCLAW_SOUL_API`。
-- 画廊可见 pack，`apply` 可下载 zip。
+- 注册 → Dashboard 设 handle → 创建 token → `npx @openclaw-soul/cli publish` 指向生产 `OPENCLAW_SOUL_API`。
+- 画廊可见 pack，`npx @openclaw-soul/cli apply <handle>/<slug>` 可下载 zip。
 
 ## 从旧版 SQLite 迁移
 

@@ -5,7 +5,7 @@
 为 **OpenClaw** 提供 **人设 / workspace 的社区分享与一键切换**：
 
 1. **Registry + Web（MVP）** — 用户注册登录、画廊展示（可简陋）、为 CLI 签发 **API Token**；存储完整 workspace **zip** 与**头像**（头像可先传后在页面上再配置）。
-2. **CLI**（`ocs`；npm：`@openclaw-soul/cli` / 根目录 `pnpm run ocs -- …`）— `apply`、`publish`（`--source current` 或目录路径）、`download`、`import`（`manifest.json` + 白名单 → `--target`）、`archive-directory`、`restore-openclaw-config`、`backup-openclaw-config`；`apply` 与写配置前 **rename / copy 备份**，**不用 `rm`**。
+2. **CLI** — npm 包 **`@openclaw-soul/cli`**：终端用户 **`npx @openclaw-soul/cli`**；本仓库开发 **`pnpm run ocs -- …`**。子命令：`apply`、`publish`（`--source current` 或目录路径）、`download`、`import`（`manifest.json` + 白名单 → `--target`）、`archive-directory`、`restore-openclaw-config`、`backup-openclaw-config`；`apply` 与写配置前 **rename / copy 备份**，**不用 `rm`**。
 
 官方 workspace 说明：<https://docs.openclaw.ai/concepts/agent-workspace#default-location>（默认 `~/.openclaw/workspace`，实际路径以本机 `~/.openclaw/openclaw.json` 为准。）
 
@@ -35,7 +35,7 @@
   - **显式路径**：用户指定目录。
 - **默认 zip 范围**：仅 workspace **根**下 `SOUL.md` + `MEMORY.md`（缺一则报错）；**`--full`** 整目录（旧行为）；**`--include`** 重复指定额外根文件（防路径穿越）。交互向导多选：`SOUL.md` 必选，其余可选或选整目录。
 - **MVP**：**不做脱敏、不过滤**；默认子集仍可能含 `MEMORY.md`，全量模式与旧版一致。
-- **Registry**：用户注册填 **public handle**；pack 的 **slug** 在作者内唯一；画廊与 API 路径为 `/packs/<handle>/<slug>`；CLI `apply <handle>/<slug>`。可选从 `IDENTITY.md` 的 **Name** 推导默认 slug / title。
+- **Registry**：用户注册填 **public handle**；pack 的 **slug** 在作者内唯一；画廊与 API 路径为 `/packs/<handle>/<slug>`；用户侧命令形如 **`npx @openclaw-soul/cli apply <handle>/<slug>`**。可选从 `IDENTITY.md` 的 **Name** 推导默认 slug / title。
 - **上架成功链接**：`POST /api/packs` 返回 **`viewUrl`**（`requestOrigin` / **`OPENCLAW_SOUL_SITE_URL`**），CLI 打印时优先用它，避免 `OPENCLAW_SOUL_API` 指向 `*.vercel.app` 时提示错域。
 - **头像**：网页用 Canvas 在浏览器压缩；CLI 用 **`sharp`** 本机压缩；服务端仍校验 ≤512 KiB。
 - **Vercel Blob**：`put` 使用 **`addRandomSuffix`**，同 slug 覆盖时旧 blob 不删（历史对象仍占存储）；私有库需 **`BLOB_ACCESS=private`**。

@@ -149,7 +149,9 @@ export default async function PackDetailPage({ params }: Props) {
         <Card className="mt-6 border-dashed bg-muted/30">
           <CardContent className="pt-6 text-sm text-muted-foreground">
             此 pack 已从画廊下架，访客无法打开。重新公开：{" "}
-            <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-xs">ocs publish --replace</code>
+            <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-xs">
+              npx @openclaw-soul/cli publish --replace
+            </code>
             。说明见{" "}
             <Link href="/privacy#revoke" className="font-medium text-primary underline-offset-4 hover:underline">
               隐私说明
@@ -188,7 +190,7 @@ export default async function PackDetailPage({ params }: Props) {
             <>
               <pre className="overflow-x-auto rounded-xl bg-muted p-4 font-mono text-sm leading-relaxed">
                 {`export OPENCLAW_SOUL_API=${siteOrigin}
-ocs apply ${pack.author.handle}/${pack.slug}`}
+npx @openclaw-soul/cli apply ${pack.author.handle}/${pack.slug}`}
               </pre>
               <div>
                 <p className="mb-2 text-sm font-medium text-muted-foreground">Raw zip</p>

@@ -10,7 +10,7 @@ npm install -g @openclaw-soul/cli
 pnpm add -g @openclaw-soul/cli
 ```
 
-Run `ocs --help`. Typical commands: `ocs login`, `ocs publish`, `ocs apply <handle>/<slug>`.
+Run `npx @openclaw-soul/cli --help`（全局安装后也可用 `ocs --help`）。常用：`npx @openclaw-soul/cli login`、`npx @openclaw-soul/cli publish`、`npx @openclaw-soul/cli apply <handle>/<slug>`（全局安装时等价于 `ocs login` 等）。
 
 **Registry URL**：在 `loadCliEnv()` 之后若仍无 `OPENCLAW_SOUL_API`，默认连线上 **`https://openclaw-soul.basilfield.com`**（[`constants.ts`](https://github.com/zhangyu921/openclaw-soul/blob/main/packages/cli/src/constants.ts)）。自建 registry 请设环境变量或 `--api`。
 

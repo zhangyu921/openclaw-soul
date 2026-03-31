@@ -36,7 +36,7 @@ export default async function Home() {
         </p>
         <p className="mt-4 text-sm text-muted-foreground">
           <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-xs">
-            ocs apply &lt;handle&gt;/&lt;slug&gt;
+            npx @openclaw-soul/cli apply &lt;handle&gt;/&lt;slug&gt;
           </code>
           {" · "}
           <Link href="/privacy" className="font-medium text-primary underline-offset-4 hover:underline">
@@ -54,7 +54,9 @@ export default async function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="font-mono text-xs text-muted-foreground">pnpm run ocs -- publish</p>
+            <p className="font-mono text-xs text-muted-foreground">
+              npx @openclaw-soul/cli publish
+            </p>
           </CardContent>
         </Card>
       ) : (
