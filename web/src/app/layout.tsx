@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 
 import { SiteHeader } from "@/components/site-header";
+import { privacyLinkClassName } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 
 import "./globals.css";
@@ -37,7 +39,16 @@ export default function RootLayout({
           <SiteHeader />
           <div className="flex-1">{children}</div>
           <footer className="border-t border-border/60 py-8 text-center text-sm text-muted-foreground">
-            <p>OpenClaw Soul — share and discover workspace packs</p>
+            <p>
+              OpenClaw Soul — share and discover workspace packs
+              <span className="text-muted-foreground/40" aria-hidden>
+                {" "}
+                ·{" "}
+              </span>
+              <Link href="/privacy" className={privacyLinkClassName}>
+                Privacy &amp; uploads
+              </Link>
+            </p>
           </footer>
         </ThemeProvider>
       </body>

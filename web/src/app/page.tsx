@@ -38,10 +38,6 @@ export default async function Home() {
           <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-xs">
             npx @openclaw-soul/cli apply &lt;handle&gt;/&lt;slug&gt;
           </code>
-          {" · "}
-          <Link href="/privacy" className="font-medium text-primary underline-offset-4 hover:underline">
-            上传与隐私说明
-          </Link>
         </p>
       </div>
 

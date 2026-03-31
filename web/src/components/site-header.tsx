@@ -33,9 +33,6 @@ export function SiteHeader() {
           <Link href="/dashboard/tokens" className={navClass}>
             API tokens
           </Link>
-          <Link href="/privacy" className={navClass}>
-            Privacy
-          </Link>
           <ModeToggle />
         </nav>
       </div>

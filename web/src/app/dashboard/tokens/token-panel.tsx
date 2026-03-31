@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { privacyLinkClassName } from "@/lib/utils";
 
 type Row = { id: string; label: string | null; createdAt: string };
 
@@ -153,7 +154,7 @@ export default function TokenPanel({
             使用{" "}
             <code className="rounded bg-muted px-1 font-mono text-xs">npx @openclaw-soul/cli publish</code>{" "}
             即表示你同意{" "}
-            <Link href="/privacy" className="font-medium text-primary underline-offset-4 hover:underline">
+            <Link href="/privacy" className={privacyLinkClassName}>
               隐私与上传说明
             </Link>
             。

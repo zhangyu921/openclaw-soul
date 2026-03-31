@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { privacyLinkClassName } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function PackRevokeButton({
@@ -57,7 +58,7 @@ export default function PackRevokeButton({
         </p>
         <p className="text-xs text-muted-foreground">
           服务端如何处理数据见{" "}
-          <Link href="/privacy#revoke" className="font-medium text-primary underline-offset-4 hover:underline">
+          <Link href="/privacy#revoke" className={privacyLinkClassName}>
             隐私说明 · 撤销展示
           </Link>
           。

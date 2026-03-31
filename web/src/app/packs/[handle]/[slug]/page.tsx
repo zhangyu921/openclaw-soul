@@ -14,6 +14,7 @@ import {
 import { siteOriginFromNextHeaders } from "@/lib/device-auth";
 import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
+import { privacyLinkClassName } from "@/lib/utils";
 import { parsePackFilePaths } from "@/lib/zip-pack-preview";
 
 import AvatarUpload from "./avatar-upload";
@@ -153,7 +154,7 @@ export default async function PackDetailPage({ params }: Props) {
               npx @openclaw-soul/cli publish --replace
             </code>
             。说明见{" "}
-            <Link href="/privacy#revoke" className="font-medium text-primary underline-offset-4 hover:underline">
+            <Link href="/privacy#revoke" className={privacyLinkClassName}>
               隐私说明
             </Link>
             。
@@ -202,7 +203,7 @@ npx @openclaw-soul/cli apply ${pack.author.handle}/${pack.slug}`}
           ) : (
             <p className="text-sm text-muted-foreground">
               已下架：下载与 apply 已关闭。说明见{" "}
-              <Link href="/privacy#revoke" className="font-medium text-primary underline-offset-4 hover:underline">
+              <Link href="/privacy#revoke" className={privacyLinkClassName}>
                 隐私说明
               </Link>
               。

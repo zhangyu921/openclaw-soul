@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { privacyLinkClassName } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -100,11 +101,14 @@ export default function LoginForm() {
           </Link>
         </p>
         <p>
-          <Link href="/privacy" className="underline-offset-4 hover:underline">
+          <Link href="/privacy" className={privacyLinkClassName}>
             Privacy &amp; uploads
           </Link>
-          {" · "}
-          <Link href="/" className="underline-offset-4 hover:underline">
+          <span className="text-muted-foreground/40" aria-hidden>
+            {" "}
+            ·{" "}
+          </span>
+          <Link href="/" className={privacyLinkClassName}>
             Home
           </Link>
         </p>
