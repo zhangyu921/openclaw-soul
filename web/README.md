@@ -10,7 +10,7 @@ pnpm dev
 
 （本 monorepo 在仓库根目录用 `pnpm install`；也可在根目录执行 `pnpm run dev` 启动 web。）
 
-OpenClaw Soul 的 **Postgres / Blob / 环境变量 / 部署** 以仓库根目录 [`README.md`](../README.md) 与 [`docs/DEPLOY.md`](../docs/DEPLOY.md) 为准。
+OpenClaw Soul 的 **本地开发 / Postgres / Blob / 环境变量** 见 [`docs/DEVELOPMENT.md`](../docs/DEVELOPMENT.md)；**部署**见 [`docs/DEPLOY.md`](../docs/DEPLOY.md)。用户向说明见根目录 [`README.md`](../README.md)。
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 

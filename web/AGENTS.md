@@ -1,3 +1,5 @@
+Monorepo 级说明见 [`docs/DEVELOPMENT.md`](../docs/DEVELOPMENT.md)；根目录 **[`AGENTS.md`](../AGENTS.md)** 为全仓协作与领域约束入口。
+
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
 
