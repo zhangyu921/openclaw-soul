@@ -69,7 +69,7 @@ pnpm run ocs -- publish
 
 # 自动化 / CI：必须提供 --slug；--title 可省略（会用 IDENTITY Name 或回退为 slug）；token 用环境变量或 --token
 pnpm run ocs -- publish --slug my-pack --source current
-# pnpm run ocs -- publish --slug my-pack --title "My pack" --source ./example-pack
+# pnpm run ocs -- publish --slug my-pack --title "My pack" --source ./path/to/workspace
 # 整目录 zip：pnpm run ocs -- publish --slug my-pack --source current --full
 # 附加根文件：pnpm run ocs -- publish --slug my-pack --source current --include AGENTS.md --include TOOLS.md
 ```
@@ -84,16 +84,9 @@ pnpm run ocs -- publish --slug my-pack --source current
 
 ---
 
-## `import` / `apply`
+## `apply`
 
-**Manifest-only install**（白名单文件拷入已有 workspace，不下载 zip）：
-
-```bash
-pnpm run ocs -- import ./example-pack --target ~/.openclaw/workspace
-# 加 --dry-run 只看将要复制的路径
-```
-
-Apply 已发布的 pack（`ref` = 作者的 **handle** + **pack slug**，若已有 `~/.openclaw/workspace-<slug>` 会先改名备份，并更新 `openclaw.json`；**读**仍用 JSON5。**写**：只设置 **`agents.defaults.workspace`**（与 [OpenClaw Agent Workspace](https://docs.openclaw.ai/concepts/agent-workspace) 中推荐路径一致；**不再**写入旧版 `agent.workspace`，以免触发新版校验里的 legacy 键告警）。若文件为合法 **JSONC**（标准 JSON + `//` / `/* */` 注释、尾随逗号等），CLI 用 `jsonc-parser` **只改该字段**，尽量保留注释与排版；若解析失败（例如含 JSON5 专有条目如无引号键），则回退为整文件 **JSON.stringify**（注释会丢失）：
+从 registry 安装已发布的 pack（`ref` = 作者的 **handle** + **pack slug**）。若已有 `~/.openclaw/workspace-<slug>` 会先改名备份，并更新 `openclaw.json`；**读**仍用 JSON5。**写**：只设置 **`agents.defaults.workspace`**（与 [OpenClaw Agent Workspace](https://docs.openclaw.ai/concepts/agent-workspace) 中推荐路径一致；**不再**写入旧版 `agent.workspace`，以免触发新版校验里的 legacy 键告警）。若文件为合法 **JSONC**（标准 JSON + `//` / `/* */` 注释、尾随逗号等），CLI 用 `jsonc-parser` **只改该字段**，尽量保留注释与排版；若解析失败（例如含 JSON5 专有条目如无引号键），则回退为整文件 **JSON.stringify**（注释会丢失）：
 
 ```bash
 pnpm run ocs -- apply alice/my-pack
@@ -157,6 +150,8 @@ Global CLI：`cd packages/cli && pnpm link --global`，或发布后使用 `npx`�
 ---
 
 ## 发布 `@openclaw-soul/cli`（维护者）
+
+**勿手改** `packages/cli/package.json` 里的 **version** 或 **`CHANGELOG.md` 里的版本小节**：只通过 **`pnpm changeset`**（或手写提交 `.changeset/*.md`）写变更说明；合并 **Version Packages** PR 时由 **Changesets** 自动 bump 版本并更新 changelog。
 
 1. 在本分支写好改动后执行 **`pnpm changeset`**，为 `@openclaw-soul/cli` 写一条 changeset，提交并合并到 **`main`**。
 2. GitHub Actions（[`release.yml`](../.github/workflows/release.yml)）会开 **Version Packages** PR；合并后再次推到 `main` 时会 **`pnpm run release`**（build CLI + `changeset publish`）发布到 npm。

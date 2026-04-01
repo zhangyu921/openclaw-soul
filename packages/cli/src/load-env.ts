@@ -36,8 +36,8 @@ export function resolveDefaultApiBase(): string {
 }
 
 /**
- * Resolve a user-supplied path: try cwd first, then monorepo root (so `npm run ocs` from root
- * with `-w` still finds `./example-pack`).
+ * Resolve a user-supplied path: try cwd first, then monorepo root (so `pnpm run ocs` from repo root
+ * with `-w` still finds a relative path like `./my-workspace`).
  */
 export function resolveWorkspacePath(userPath: string): string {
   const normalized = userPath.trim();

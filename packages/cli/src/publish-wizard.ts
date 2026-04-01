@@ -4,7 +4,7 @@ import { resolveWorkspacePath } from "./load-env.js";
 import { readWorkspaceFromConfig } from "./openclaw-config.js";
 import { readIdentityDefaults } from "./read-identity.js";
 import { validateSlug } from "./slug.js";
-import { WORKSPACE_ROOT_FILE_ALLOWLIST } from "./import-pack.js";
+import { WORKSPACE_ROOT_FILE_ALLOWLIST } from "./workspace-root-files.js";
 
 const PACK_FULL_SENTINEL = "__FULL_WORKSPACE__";
 

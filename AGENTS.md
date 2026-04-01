@@ -40,7 +40,6 @@ Monorepo（`web/` Next.js registry + `packages/cli`）让用户把 OpenClaw **wo
 ## CLI 行为锚点（易忘点）
 
 - **`publish`**：默认打包范围、`--full` / `--include`、上架成功用 API 返回的 **`viewUrl`**（对齐 `OPENCLAW_SOUL_SITE_URL` / 主域，避免只配了 `*.vercel.app` 时链错）——细则见 [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md)。
-- **`import`**：`manifest.json` + **dest 白名单**，防路径穿越。
 - **存储**：若涉及 Vercel Blob，同 slug 覆盖可能留下历史对象（如 `addRandomSuffix`）；与成本/私有库相关的约定见实现与 [`docs/DEPLOY.md`](docs/DEPLOY.md)。
 
 ---
@@ -48,4 +47,5 @@ Monorepo（`web/` Next.js registry + `packages/cli`）让用户把 OpenClaw **wo
 ## 仓库习惯
 
 - **包管理**：pnpm workspace；开发 CLI 用根目录 **`pnpm run ocs -- …`**（见根 `package.json` `ocs` 脚本）。
+- **CLI 发版**：不要手改 `packages/cli` 的 `package.json` version 与 `CHANGELOG.md`，只用 **Changesets**（`pnpm changeset` / `.changeset/*.md`），流程见 [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) 里的「发布 `@openclaw-soul/cli`」一节。
 - **Git**：一个功能点做完、准备开新功能前，可提醒是否先 **`git commit`**，避免混进无关改动。

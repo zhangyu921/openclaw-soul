@@ -33,6 +33,8 @@ npx @openclaw-soul/cli publish
 npx @openclaw-soul/cli apply <handle>/<slug>
 ```
 
+完整子命令与备份/恢复工具见 npm 包说明：**[`packages/cli/README.md`](packages/cli/README.md)**。
+
 `publish` 默认只打包 workspace **根目录**的 `SOUL.md` 与 `MEMORY.md`（缺一则报错）。需要整目录时加 **`--full`**；需要额外根文件时重复 **`--include <file>`**。交互式向导里可选子集或整目录。
 
 `login` 使用浏览器授权（device flow），token 写入本机配置（见下）。
@@ -47,10 +49,9 @@ npx @openclaw-soul/cli apply <handle>/<slug>
 
 常用变量：`OPENCLAW_SOUL_API`（registry 地址）、`OPENCLAW_SOUL_TOKEN`、`OPENCLAW_SOUL_SITE_URL`（主站 URL，影响授权链接与 `publish` 成功提示的链接）、`OPENCLAW_CONFIG`（`openclaw.json` 路径）。完整列表与代理、超时等见 **[`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md#环境变量cli)**。
 
-## import / apply
+## apply
 
 ```bash
-npx @openclaw-soul/cli import ./path/to-pack --target ~/.openclaw/workspace
 npx @openclaw-soul/cli apply alice/my-pack
 ```
 

@@ -19,7 +19,6 @@ import {
   downloadToFile,
   extractZip,
 } from "./zip-utils.js";
-import { importFromManifest } from "./import-pack.js";
 import {
   publishPack,
   PublishAuthError,
@@ -87,12 +86,19 @@ async function renameBackupDir(
 }
 
 const program = new Command();
-program.name("ocs").description("OpenClaw Soul — workspace pack CLI");
+program
+  .name("ocs")
+  .description(
+    "OpenClaw Soul — workspace pack CLI\n\n" +
+      "主流程：login（registry 登录）→ publish（打包上传）→ apply（从 registry 安装到本机）。\n" +
+      "工具：archive-directory / backup-openclaw-config / restore-openclaw-config（备份与恢复，不删文件）。"
+  )
+  .configureHelp({ sortSubcommands: true });
 
 program
   .command("login")
   .description(
-    "Sign in via browser (device flow); saves OPENCLAW_SOUL_TOKEN to user config env file (~/.config/openclaw-soul/env or %APPDATA%\\openclaw-soul\\env)"
+    "浏览器 device flow 登录；将 OPENCLAW_SOUL_TOKEN 写入用户 env 文件（见 README Credentials）"
   )
   .option("--api <url>", "registry base URL", apiBase())
   .option(
@@ -108,19 +114,9 @@ program
   });
 
 program
-  .command("download")
-  .description("Download a zip URL to a file")
-  .argument("<url>", "https URL")
-  .requiredOption("-o, --output <file>", "output path")
-  .action(async (url: string, opts: { output: string }) => {
-    await downloadToFile(url, opts.output);
-    console.log(opts.output);
-  });
-
-program
   .command("apply")
   .description(
-    "Download pack from registry (ref = authorHandle/packSlug), extract to ~/.openclaw/workspace-<slug>, update openclaw.json"
+    "从 registry 下载 zip 并解压到 ~/.openclaw/workspace-<slug>，写入 agents.defaults.workspace（已有目录/配置会先备份为 .bak.*）"
   )
   .argument("<ref>", "handle/slug (e.g. alice/my-persona)")
   .option("--api <url>", "registry base URL", apiBase())
@@ -234,7 +230,7 @@ program
 program
   .command("publish")
   .description(
-    "Zip a workspace and upload (needs token or run ocs login). Default zip: SOUL.md + MEMORY.md at workspace root only; use --full for the whole tree or --include for extra root files. TTY: privacy consent once (cached in user config). Non-TTY: use --accept-privacy or OPENCLAW_SOUL_ACCEPT_PRIVACY=1. Without --slug, runs an interactive wizard; title defaults from IDENTITY.md Name or slug."
+    "将 workspace 打成 zip 并上传（需 token 或先 login）。默认只含根目录 SOUL.md+MEMORY.md；--full 整目录；--include 追加根文件。无 --slug 时走交互向导"
   )
   .option("--api <url>", "registry base URL", apiBase())
   .option("--token <token>", "API token (or OPENCLAW_SOUL_TOKEN)")
@@ -476,26 +472,9 @@ program
   );
 
 program
-  .command("import")
-  .description(
-    "Copy files from a local pack directory (manifest.json + listed files) into a target workspace"
-  )
-  .argument("<packDir>", "directory containing manifest.json")
-  .requiredOption("--target <dir>", "OpenClaw workspace directory to write into")
-  .option("--dry-run", "print planned copies only", false)
-  .action(
-    (packDir: string, opts: { target: string; dryRun: boolean }) => {
-      const absPack = resolveWorkspacePath(packDir);
-      const absTarget = path.resolve(opts.target);
-      importFromManifest(absPack, absTarget, opts.dryRun);
-      if (!opts.dryRun) console.log(absTarget);
-    }
-  );
-
-program
   .command("archive-directory")
   .description(
-    "Rename a directory to <dir>.bak.<timestamp> (no rm). Use before manual merges."
+    "将目录改名为 <dir>.bak.<时间戳>（仅 rename，不删除），便于手动整理或合并前留档"
   )
   .argument("<dir>", "directory to archive")
   .action(async (dir: string) => {
@@ -513,7 +492,7 @@ program
 program
   .command("restore-openclaw-config")
   .description(
-    "Restore openclaw.json from a .bak.* copy (backs up current first). Use --list or --latest or --from"
+    "从 openclaw.json.bak.* 恢复配置（恢复前会先备份当前文件）。--list / --latest / --from"
   )
   .option(
     "--config <path>",
@@ -570,7 +549,7 @@ program
 
 program
   .command("backup-openclaw-config")
-  .description("Copy openclaw.json to openclaw.json.bak.<timestamp> (no rm)")
+  .description("将 openclaw.json 复制为同目录 .bak.<时间戳>（仅复制，不删除）")
   .option(
     "--config <path>",
     "path to openclaw.json",
