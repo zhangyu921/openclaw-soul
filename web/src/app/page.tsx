@@ -77,7 +77,7 @@ export default async function Home() {
                 href={`/packs/${h}/${p.slug}`}
                 className="block break-inside-avoid"
               >
-                <Card className="card-pinterest gap-0 overflow-hidden border-0 p-0 ring-1 ring-border/80 hover:ring-primary/25">
+                <Card className="card-pinterest gap-0 overflow-hidden border-0 pt-0 ring-1 ring-border/80 hover:ring-primary/25">
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                     {p.avatarRelPath ? (
                       // eslint-disable-next-line @next/next/no-img-element
