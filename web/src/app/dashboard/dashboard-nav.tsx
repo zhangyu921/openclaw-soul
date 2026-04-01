@@ -15,7 +15,7 @@ export function DashboardNav() {
 
   return (
     <nav className="mb-8 border-b border-border/60" aria-label="Dashboard">
-      <div className="mx-auto flex w-full max-w-3xl flex-wrap gap-1">
+      <div className="mx-auto flex w-full max-w-lg flex-wrap gap-1">
         {items.map(({ href, label }) => {
           const active = pathname === href;
           return (
