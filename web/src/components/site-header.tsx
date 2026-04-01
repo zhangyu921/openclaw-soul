@@ -34,7 +34,7 @@ export function SiteHeader({ initialUser }: { initialUser: HeaderUser | null }) 
         <nav className="flex min-w-0 flex-wrap items-center justify-end gap-0.5 sm:gap-1">
           {initialUser ? (
             <Link
-              href="/dashboard/tokens"
+              href="/dashboard"
               className={cn(
                 navClass,
                 "max-w-[min(12rem,40vw)] truncate font-medium text-foreground hover:text-foreground"
