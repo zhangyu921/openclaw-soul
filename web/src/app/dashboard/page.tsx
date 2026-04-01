@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { CopyPublishCommand } from "@/app/dashboard/copy-publish-command";
 import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
 
@@ -48,7 +49,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-lg pb-10">
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-12 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="font-heading text-2xl font-bold tracking-tight">我的 pack</h1>
       </div>
 
@@ -68,7 +69,7 @@ export default async function DashboardPage() {
         </Card>
       ) : null}
 
-      <ul className="space-y-2">
+      <ul className="space-y-5">
         {packs.length === 0 ? (
           <li>
             <div className={rowMuted}>
@@ -120,7 +121,7 @@ export default async function DashboardPage() {
                       {revoked ? "已下架" : "公开中"}
                     </Badge>
                   </div>
-                  <p className="mt-0.5 font-mono text-xs text-muted-foreground">
+                  <p className="mt-2 font-mono text-xs text-muted-foreground">
                     {handle ? `${handle}/${p.slug}` : p.slug}
                   </p>
                 </div>
@@ -144,29 +145,24 @@ export default async function DashboardPage() {
             );
           })
         )}
-      </ul>
 
-      <div className="mt-16 sm:mt-20">
-        <div className={rowStatic}>
-          <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-            <Terminal className="size-6" aria-hidden />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="line-clamp-1 font-medium text-foreground">在本机 workspace 发布</span>
-              <Badge variant="outline" className="shrink-0 text-xs">
-                待提交
-              </Badge>
+        <li>
+          <div className={rowStatic}>
+            <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+              <Terminal className="size-6" aria-hidden />
             </div>
-            <p className="mt-0.5 font-mono text-xs text-muted-foreground">
-              <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-[0.7rem] sm:text-xs">
-                npx @openclaw-soul/cli publish
-              </code>
-              <span className="ms-1.5">上传或更新 pack</span>
-            </p>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="line-clamp-1 font-medium text-foreground">在本机 workspace 发布</span>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                <CopyPublishCommand />
+                <span className="ms-1.5 align-middle">上传或更新 pack</span>
+              </p>
+            </div>
           </div>
-        </div>
-      </div>
+        </li>
+      </ul>
     </div>
   );
 }
