@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { href: "/dashboard", label: "总览" },
+  { href: "/dashboard", label: "我的 pack" },
   { href: "/dashboard/tokens", label: "API tokens" },
 ] as const;
 

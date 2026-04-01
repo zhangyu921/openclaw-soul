@@ -41,7 +41,7 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto max-w-lg pb-10">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="font-heading text-2xl font-bold tracking-tight">我的 Pack</h1>
+        <h1 className="font-heading text-2xl font-bold tracking-tight">我的 pack</h1>
       </div>
 
       {!handle ? (
@@ -60,21 +60,20 @@ export default async function DashboardPage() {
         </Card>
       ) : null}
 
-      {packs.length === 0 ? (
-        <Card className="border-dashed text-center shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg">还没有 Pack</CardTitle>
-            <CardDescription>在本机 workspace 目录运行 publish 即可上架。</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <code className="rounded-md bg-muted px-2 py-1 font-mono text-xs">
-              npx @openclaw-soul/cli publish
-            </code>
-          </CardContent>
-        </Card>
-      ) : (
-        <ul className="space-y-2">
-          {packs.map((p) => {
+      <div className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          在本机 workspace 目录运行{" "}
+          <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-xs">
+            npx @openclaw-soul/cli publish
+          </code>{" "}
+          上传或更新 pack。
+        </p>
+
+        {packs.length === 0 ? (
+          <p className="text-sm text-muted-foreground">暂无已上架条目。</p>
+        ) : (
+          <ul className="space-y-2">
+            {packs.map((p) => {
             const revoked = Boolean(p.revokedAt);
             const canLink = Boolean(handle);
             const encH = handle ? encodeURIComponent(handle) : "";
@@ -130,8 +129,9 @@ export default async function DashboardPage() {
               </li>
             );
           })}
-        </ul>
-      )}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
