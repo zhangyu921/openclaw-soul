@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Package, Terminal } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,13 @@ import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
+const rowInteractive =
+  "flex gap-4 rounded-xl border border-border/80 bg-card p-3 shadow-sm ring-1 ring-border/40 transition-colors hover:bg-muted/30 hover:ring-primary/20";
+const rowStatic =
+  "flex gap-4 rounded-xl border border-border/80 bg-card p-3 shadow-sm ring-1 ring-border/40";
+const rowMuted =
+  "flex gap-4 rounded-xl border border-dashed border-border/60 bg-muted/15 p-3";
 
 export default async function DashboardPage() {
   const userId = await readSessionUserId();
@@ -60,29 +68,57 @@ export default async function DashboardPage() {
         </Card>
       ) : null}
 
-      <div className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          在本机 workspace 目录运行{" "}
-          <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-xs">
-            npx @openclaw-soul/cli publish
-          </code>{" "}
-          上传或更新 pack。
-        </p>
+      <ul className="space-y-2">
+        <li>
+          <div className={rowStatic}>
+            <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+              <Terminal className="size-6" aria-hidden />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="line-clamp-1 font-medium text-foreground">在本机 workspace 发布</span>
+                <Badge variant="outline" className="shrink-0 text-xs">
+                  待提交
+                </Badge>
+              </div>
+              <p className="mt-0.5 font-mono text-xs text-muted-foreground">
+                <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-[0.7rem] sm:text-xs">
+                  npx @openclaw-soul/cli publish
+                </code>
+                <span className="ms-1.5">上传或更新 pack</span>
+              </p>
+            </div>
+          </div>
+        </li>
 
         {packs.length === 0 ? (
-          <p className="text-sm text-muted-foreground">暂无已上架条目。</p>
+          <li>
+            <div className={rowMuted}>
+              <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground">
+                <Package className="size-6" aria-hidden />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="line-clamp-1 font-medium text-muted-foreground">暂无已上架 pack</span>
+                  <Badge variant="secondary" className="shrink-0 text-xs">
+                    空
+                  </Badge>
+                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  使用上方命令发布后，条目会出现在这里。
+                </p>
+              </div>
+            </div>
+          </li>
         ) : (
-          <ul className="space-y-2">
-            {packs.map((p) => {
+          packs.map((p) => {
             const revoked = Boolean(p.revokedAt);
             const canLink = Boolean(handle);
             const encH = handle ? encodeURIComponent(handle) : "";
             const encS = encodeURIComponent(p.slug);
             const detailHref =
               handle !== null && handle !== "" ? `/packs/${handle}/${p.slug}` : null;
-            const rowClass = canLink
-              ? "flex gap-4 rounded-xl border border-border/80 bg-card p-3 shadow-sm ring-1 ring-border/40 transition-colors hover:bg-muted/30 hover:ring-primary/20"
-              : "flex gap-4 rounded-xl border border-dashed border-border/60 bg-muted/15 p-3";
+            const rowClass = canLink ? rowInteractive : rowMuted;
             const inner = (
               <>
                 <div className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -128,10 +164,9 @@ export default async function DashboardPage() {
                 )}
               </li>
             );
-          })}
-          </ul>
+          })
         )}
-      </div>
+      </ul>
     </div>
   );
 }
