@@ -7,10 +7,8 @@ export default function DashboardLayout({
 }>) {
   return (
     <div className="mx-auto w-full max-w-[var(--container-max)] px-4 py-6 sm:px-6">
-      <div className="mx-auto w-full max-w-3xl">
-        <DashboardNav />
-        {children}
-      </div>
+      <DashboardNav />
+      {children}
     </div>
   );
 }

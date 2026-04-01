@@ -39,7 +39,7 @@ export default async function DashboardPage() {
   const handle = user?.handle?.trim() ?? null;
 
   return (
-    <div className="pb-10">
+    <div className="mx-auto max-w-3xl pb-10">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="font-heading text-2xl font-bold tracking-tight">我的 Pack</h1>
       </div>
