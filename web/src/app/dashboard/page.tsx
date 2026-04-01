@@ -69,28 +69,6 @@ export default async function DashboardPage() {
       ) : null}
 
       <ul className="space-y-2">
-        <li>
-          <div className={rowStatic}>
-            <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-              <Terminal className="size-6" aria-hidden />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="line-clamp-1 font-medium text-foreground">在本机 workspace 发布</span>
-                <Badge variant="outline" className="shrink-0 text-xs">
-                  待提交
-                </Badge>
-              </div>
-              <p className="mt-0.5 font-mono text-xs text-muted-foreground">
-                <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-[0.7rem] sm:text-xs">
-                  npx @openclaw-soul/cli publish
-                </code>
-                <span className="ms-1.5">上传或更新 pack</span>
-              </p>
-            </div>
-          </div>
-        </li>
-
         {packs.length === 0 ? (
           <li>
             <div className={rowMuted}>
@@ -105,7 +83,7 @@ export default async function DashboardPage() {
                   </Badge>
                 </div>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  使用上方命令发布后，条目会出现在这里。
+                  使用下方命令发布后，条目会出现在上方。
                 </p>
               </div>
             </div>
@@ -167,6 +145,28 @@ export default async function DashboardPage() {
           })
         )}
       </ul>
+
+      <div className="mt-16 sm:mt-20">
+        <div className={rowStatic}>
+          <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+            <Terminal className="size-6" aria-hidden />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="line-clamp-1 font-medium text-foreground">在本机 workspace 发布</span>
+              <Badge variant="outline" className="shrink-0 text-xs">
+                待提交
+              </Badge>
+            </div>
+            <p className="mt-0.5 font-mono text-xs text-muted-foreground">
+              <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-[0.7rem] sm:text-xs">
+                npx @openclaw-soul/cli publish
+              </code>
+              <span className="ms-1.5">上传或更新 pack</span>
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
