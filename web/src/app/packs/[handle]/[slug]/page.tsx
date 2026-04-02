@@ -10,12 +10,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PackVisibility } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
 import { privacyLinkClassName } from "@/lib/utils";
 import { parsePackFilePaths } from "@/lib/zip-pack-preview";
 
 import AvatarUpload from "./avatar-upload";
+import PackPublishButton from "./pack-publish";
 import PackRevokeButton from "./pack-revoke";
 import PackSummaryEdit from "./pack-summary-edit";
 
@@ -35,7 +37,7 @@ export default async function PackDetailPage({ params }: Props) {
       avatarRelPath: true,
       createdAt: true,
       authorId: true,
-      revokedAt: true,
+      visibility: true,
       soulPreviewMd: true,
       soulPreviewTruncated: true,
       packFilePaths: true,
@@ -44,15 +46,15 @@ export default async function PackDetailPage({ params }: Props) {
   });
   if (!pack || !pack.author.handle) notFound();
   const isAuthor = Boolean(userId && pack.authorId === userId);
-  if (pack.revokedAt && !isAuthor) notFound();
-  const isRevoked = Boolean(pack.revokedAt);
+  if (pack.visibility === PackVisibility.UNLISTED && !isAuthor) notFound();
+  const isListed = pack.visibility === PackVisibility.LISTED;
 
   const encH = encodeURIComponent(pack.author.handle);
   const encS = encodeURIComponent(pack.slug);
   const downloadUrl = `/api/packs/${encH}/${encS}/download`;
   const filePaths = parsePackFilePaths(pack.packFilePaths);
   const showPreview =
-    (Boolean(pack.soulPreviewMd) || filePaths.length > 0) && (isAuthor || !isRevoked);
+    (Boolean(pack.soulPreviewMd) || filePaths.length > 0) && (isAuthor || isListed);
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
@@ -143,23 +145,26 @@ export default async function PackDetailPage({ params }: Props) {
         </div>
       ) : null}
 
-      {isRevoked ? (
+      {isAuthor && !isListed ? (
         <Card className="mt-6 border-dashed bg-muted/30">
-          <CardContent className="pt-6 text-sm text-muted-foreground">
-            此 pack 已从画廊下架，访客无法打开。重新公开：{" "}
-            <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-xs">
-              npx @openclaw-soul/cli publish --replace
-            </code>
-            。说明见{" "}
-            <Link href="/privacy#revoke" className={privacyLinkClassName}>
-              隐私说明
-            </Link>
-            。
+          <CardContent className="space-y-3 pt-6 text-sm text-muted-foreground">
+            <p>
+              当前 pack <strong className="text-foreground">未在画廊公开</strong>
+              ，访客无法打开此链接。上架到画廊后可被浏览与 apply。
+            </p>
+            <PackPublishButton handle={pack.author.handle} slug={pack.slug} />
+            <p className="text-xs">
+              说明见{" "}
+              <Link href="/privacy#revoke" className={privacyLinkClassName}>
+                隐私说明
+              </Link>
+              。
+            </p>
           </CardContent>
         </Card>
       ) : null}
 
-      {isAuthor && !isRevoked ? (
+      {isAuthor && isListed ? (
         <PackRevokeButton handle={pack.author.handle} slug={pack.slug} />
       ) : null}
 
@@ -184,27 +189,15 @@ export default async function PackDetailPage({ params }: Props) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!isRevoked ? (
-            <>
-              <pre className="overflow-x-auto rounded-xl bg-muted p-4 font-mono text-sm leading-relaxed">
-                {`npx @openclaw-soul/cli apply ${pack.author.handle}/${pack.slug}`}
-              </pre>
-              <div>
-                <p className="mb-2 text-sm font-medium text-muted-foreground">Raw zip</p>
-                <Button variant="outline" size="sm" render={<a href={downloadUrl} />}>
-                  Download {pack.slug}.zip
-                </Button>
-              </div>
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              已下架：下载与 apply 已关闭。说明见{" "}
-              <Link href="/privacy#revoke" className={privacyLinkClassName}>
-                隐私说明
-              </Link>
-              。
-            </p>
-          )}
+          <pre className="overflow-x-auto rounded-xl bg-muted p-4 font-mono text-sm leading-relaxed">
+            {`npx @openclaw-soul/cli apply ${pack.author.handle}/${pack.slug}`}
+          </pre>
+          <div>
+            <p className="mb-2 text-sm font-medium text-muted-foreground">Raw zip</p>
+            <Button variant="outline" size="sm" render={<a href={downloadUrl} />}>
+              Download {pack.slug}.zip
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </main>

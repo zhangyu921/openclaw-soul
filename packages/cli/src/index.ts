@@ -32,6 +32,7 @@ import { validateSlug } from "./slug.js";
 import { readIdentityDefaults } from "./read-identity.js";
 import { ensurePublishPrivacyConsent } from "./privacy-ack.js";
 import { dbg, setCliDebug } from "./cli-debug.js";
+import { fetchPackVisibility } from "./registry-pack-meta.js";
 
 loadCliEnv();
 
@@ -127,10 +128,17 @@ program
   )
   .option("--debug", "print full URLs, backup paths, and openclaw.json notes", false)
   .option("-y, --yes", "skip confirmation prompt (TTY only)", false)
+  .option("--token <token>", "API token for unlisted packs (or OPENCLAW_SOUL_TOKEN)")
   .action(
     async (
       ref: string,
-      opts: { api: string; config: string; debug: boolean; yes: boolean }
+      opts: {
+        api: string;
+        config: string;
+        debug: boolean;
+        yes: boolean;
+        token?: string;
+      }
     ) => {
     const debug = Boolean(opts.debug);
     setCliDebug(debug);
@@ -148,6 +156,13 @@ program
       const encH = encodeURIComponent(handle);
       const encS = encodeURIComponent(slug);
       const zipUrl = `${base}/api/packs/${encH}/${encS}/download`;
+      const token = opts.token?.trim() || process.env.OPENCLAW_SOUL_TOKEN?.trim();
+      const meta = await fetchPackVisibility(base, handle, slug, token);
+      if (!meta) {
+        throw new Error(
+          `找不到 pack ${handle}/${slug}，或该 pack 未公开（需设置 OPENCLAW_SOUL_TOKEN / --token 作为作者）`
+        );
+      }
       const dest = path.join(os.homedir(), ".openclaw", `workspace-${slug}`);
       const configAbs = path.resolve(opts.config);
       const opStamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -158,6 +173,11 @@ program
         : null;
 
       if (process.stdin.isTTY && !opts.yes) {
+        if (meta.visibility === "UNLISTED") {
+          console.error(
+            "当前 pack 为草稿（未在画廊公开）；将使用你的 token 作为作者下载。"
+          );
+        }
         console.error("即将执行 apply，请确认：");
         console.error(`  Registry：${base}`);
         console.error(`  Pack：${handle}/${slug}`);
@@ -190,7 +210,18 @@ program
       } else {
         console.error(`正在下载并解压 ${handle}/${slug} …`);
       }
-      await downloadToFile(zipUrl, tmpZip);
+      if (meta.visibility === "UNLISTED") {
+        if (!token) {
+          throw new Error(
+            "未公开 pack 需要 OPENCLAW_SOUL_TOKEN 或 --token（作者）"
+          );
+        }
+        await downloadToFile(zipUrl, tmpZip, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        await downloadToFile(zipUrl, tmpZip);
+      }
       dbg(`Saved zip to ${tmpZip}`);
 
       const wsBackup = await renameBackupDir(dest, debug, opStamp);
@@ -249,6 +280,11 @@ program
     false
   )
   .option(
+    "--public",
+    "list pack on gallery immediately (default: unlisted draft)",
+    false
+  )
+  .option(
     "--accept-privacy",
     "acknowledge privacy & upload terms (required for non-TTY publish; see /privacy on the registry)",
     false
@@ -279,6 +315,7 @@ program
       source: string;
       avatar?: string;
       replace: boolean;
+      public: boolean;
       acceptPrivacy: boolean;
       config: string;
       full: boolean;
@@ -401,6 +438,15 @@ program
         }
       }
 
+      let packVisibility: "UNLISTED" | "LISTED" | undefined;
+      if (replace && !opts.public) {
+        packVisibility = undefined;
+      } else if (opts.public) {
+        packVisibility = "LISTED";
+      } else {
+        packVisibility = "UNLISTED";
+      }
+
       const maxReauthAttempts = 1;
       for (let authAttempt = 0; ; authAttempt++) {
         try {
@@ -415,9 +461,15 @@ program
             replace,
             fullZip: packFull,
             subsetFiles,
+            visibility: packVisibility,
           });
           const viewUrl = result.viewUrl ?? `${api}${result.viewPath}`;
           console.error(`上传成功。在浏览器中查看：${viewUrl}`);
+          if (result.visibility === "UNLISTED" && process.stdin.isTTY) {
+            console.error(
+              "提示：当前为草稿（未在画廊公开）。公开请使用 `--public` 或在网站「上架到画廊」。"
+            );
+          }
           break;
         } catch (e) {
           if (e instanceof PublishConflictError) {

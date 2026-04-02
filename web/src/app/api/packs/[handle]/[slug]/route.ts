@@ -1,36 +1,61 @@
 import { NextResponse } from "next/server";
+import { PackVisibility } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
+import { findUserIdByApiToken } from "@/lib/token-api";
 
 const MAX_SUMMARY_LENGTH = 2048;
 
 type Params = { params: Promise<{ handle: string; slug: string }> };
 
-export async function GET(_req: Request, { params }: Params) {
+export async function GET(req: Request, { params }: Params) {
   const { handle, slug } = await params;
   const pack = await prisma.pack.findFirst({
-    where: { slug, author: { handle }, revokedAt: null },
+    where: { slug, author: { handle } },
     select: {
       slug: true,
       title: true,
       summary: true,
       avatarRelPath: true,
       createdAt: true,
+      visibility: true,
+      authorId: true,
       author: { select: { email: true, handle: true } },
     },
   });
   if (!pack) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
-  return NextResponse.json({
-    pack: {
-      ...pack,
-      author: {
-        handle: pack.author.handle,
-        email: maskEmail(pack.author.email),
+
+  const packJson = () => {
+    const { authorId: _id, author, ...rest } = pack;
+    return {
+      pack: {
+        ...rest,
+        author: {
+          handle: author.handle,
+          email: maskEmail(author.email),
+        },
       },
-    },
-  });
+    };
+  };
+
+  if (pack.visibility === PackVisibility.LISTED) {
+    return NextResponse.json(packJson());
+  }
+
+  const auth = req.headers.get("authorization");
+  const m = auth?.match(/^Bearer\s+(.+)$/i);
+  const plain = m?.[1]?.trim();
+  if (!plain) {
+    return NextResponse.json({ error: "not found" }, { status: 404 });
+  }
+  const userId = await findUserIdByApiToken(plain);
+  if (!userId || userId !== pack.authorId) {
+    return NextResponse.json({ error: "not found" }, { status: 404 });
+  }
+
+  return NextResponse.json(packJson());
 }
 
 export async function PATCH(req: Request, { params }: Params) {

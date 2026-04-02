@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { PackVisibility } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { findUserIdByApiToken } from "@/lib/token-api";
 import {
@@ -24,9 +25,26 @@ import {
 import { requestOrigin } from "@/lib/device-auth";
 import { extractPackPreviewFromZip } from "@/lib/zip-pack-preview";
 
+function resolvePackVisibility(
+  form: FormData,
+  existing: { visibility: PackVisibility } | null
+): PackVisibility | { error: string } {
+  if (existing && !form.has("visibility")) {
+    return existing.visibility;
+  }
+  if (!existing && !form.has("visibility")) {
+    return PackVisibility.UNLISTED;
+  }
+  const raw = form.get("visibility");
+  const s = String(raw ?? "").trim().toUpperCase();
+  if (s === "" || s === "UNLISTED") return PackVisibility.UNLISTED;
+  if (s === "LISTED") return PackVisibility.LISTED;
+  return { error: "invalid visibility" };
+}
+
 export async function GET() {
   const packs = await prisma.pack.findMany({
-    where: { revokedAt: null, author: { handle: { not: null } } },
+    where: { visibility: PackVisibility.LISTED, author: { handle: { not: null } } },
     orderBy: { createdAt: "desc" },
     select: {
       slug: true,
@@ -135,7 +153,15 @@ export async function POST(req: Request) {
         { status: 409 }
       );
     }
+  }
 
+  const visRes = resolvePackVisibility(form, dup);
+  if (typeof visRes === "object" && "error" in visRes) {
+    return NextResponse.json({ error: visRes.error }, { status: 400 });
+  }
+  const targetVisibility = visRes;
+
+  if (dup) {
     await ensurePackDirs();
     let zipRelPath: string;
     try {
@@ -184,7 +210,7 @@ export async function POST(req: Request) {
     try {
       await prisma.pack.update({
         where: { id: dup.id },
-        data: { ...updateData, revokedAt: null },
+        data: { ...updateData, visibility: targetVisibility },
       });
     } catch (e) {
       console.error(e);
@@ -200,6 +226,7 @@ export async function POST(req: Request) {
       ok: true,
       handle,
       slug,
+      visibility: targetVisibility,
       downloadPath: `/api/packs/${encH}/${encS}/download`,
       viewPath,
       viewUrl: `${siteOrigin}${viewPath}`,
@@ -248,6 +275,7 @@ export async function POST(req: Request) {
         soulPreviewTruncated: preview.soulPreviewTruncated,
         packFilePaths: preview.packFilePaths,
         authorId,
+        visibility: targetVisibility,
       },
     });
   } catch (e) {
@@ -266,6 +294,7 @@ export async function POST(req: Request) {
     ok: true,
     handle,
     slug,
+    visibility: targetVisibility,
     downloadPath: `/api/packs/${encH}/${encS}/download`,
     viewPath,
     viewUrl: `${siteOrigin}${viewPath}`,

@@ -6,7 +6,7 @@ import { readSessionUserId } from "@/lib/session";
 
 type Params = { params: Promise<{ handle: string; slug: string }> };
 
-/** Unlist: set visibility to UNLISTED (same as “下架”). Idempotent. */
+/** List on gallery: set visibility to LISTED. Author-only. Idempotent. */
 export async function POST(_req: Request, { params }: Params) {
   const userId = await readSessionUserId();
   if (!userId) {
@@ -21,14 +21,14 @@ export async function POST(_req: Request, { params }: Params) {
   if (pack.authorId !== userId) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
-  if (pack.visibility === PackVisibility.UNLISTED) {
-    return NextResponse.json({ ok: true, visibility: PackVisibility.UNLISTED });
+  if (pack.visibility === PackVisibility.LISTED) {
+    return NextResponse.json({ ok: true, visibility: PackVisibility.LISTED });
   }
 
   await prisma.pack.update({
     where: { id: pack.id },
-    data: { visibility: PackVisibility.UNLISTED },
+    data: { visibility: PackVisibility.LISTED },
   });
 
-  return NextResponse.json({ ok: true, visibility: PackVisibility.UNLISTED });
+  return NextResponse.json({ ok: true, visibility: PackVisibility.LISTED });
 }

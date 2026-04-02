@@ -3,13 +3,14 @@ import { Sparkles } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PackVisibility } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const packs = await prisma.pack.findMany({
-    where: { revokedAt: null, author: { handle: { not: null } } },
+    where: { visibility: PackVisibility.LISTED, author: { handle: { not: null } } },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,

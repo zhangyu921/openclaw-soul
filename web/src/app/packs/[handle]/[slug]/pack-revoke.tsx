@@ -22,7 +22,7 @@ export default function PackRevokeButton({
   async function revoke() {
     if (
       !window.confirm(
-        "确定从画廊下架此 pack？他人将无法浏览或下载。之后可运行 npx @openclaw-soul/cli publish --replace（同 slug）再次公开。"
+        "确定从画廊下架此 pack？他人将无法浏览或下载。你仍可在本站重新上架，或使用 CLI 上传。"
       )
     ) {
       return;
@@ -50,11 +50,7 @@ export default function PackRevokeButton({
     <Card className="mt-6 border-border/80 bg-muted/20 shadow-sm">
       <CardContent className="space-y-3 pt-6">
         <p className="text-sm text-muted-foreground">
-          下架后访客无法查看或下载。若要再次公开，请运行{" "}
-          <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-xs">
-            npx @openclaw-soul/cli publish --replace
-          </code>
-          （同 slug）。
+          下架后访客无法查看或下载。若要再次公开，请使用本页「上架到画廊」或 CLI（同 slug 覆盖上传）。
         </p>
         <p className="text-xs text-muted-foreground">
           服务端如何处理数据见{" "}

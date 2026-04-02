@@ -35,6 +35,11 @@ export type PublishPackInput = {
   fullZip?: boolean;
   /** Workspace root file names only; required when `fullZip` is false. */
   subsetFiles?: string[];
+  /**
+   * Sent as multipart `visibility`. Omit when `replace` and preserving server state
+   * (caller passes `undefined`).
+   */
+  visibility?: "UNLISTED" | "LISTED";
 };
 
 /** Successful JSON body from POST /api/packs */
@@ -46,6 +51,7 @@ export type PublishPackResult = {
   viewPath: string;
   /** 服务端按 OPENCLAW_SOUL_SITE_URL / 请求头给出的对外完整链接 */
   viewUrl?: string;
+  visibility?: string;
 };
 
 /** Bearer rejected (expired, revoked, or DB reset). Caller may prompt re-login. */
@@ -125,6 +131,9 @@ export async function publishPack(
     }
     if (input.replace) {
       form.append("replace", "true");
+    }
+    if (input.visibility !== undefined) {
+      form.append("visibility", input.visibility);
     }
 
     const multipartBody = form.getBuffer();
@@ -208,6 +217,12 @@ export async function publishPack(
     if (
       parsed.viewUrl !== undefined &&
       typeof parsed.viewUrl !== "string"
+    ) {
+      throw new Error(`Publish: unexpected response: ${responseText}`);
+    }
+    if (
+      parsed.visibility !== undefined &&
+      typeof parsed.visibility !== "string"
     ) {
       throw new Error(`Publish: unexpected response: ${responseText}`);
     }

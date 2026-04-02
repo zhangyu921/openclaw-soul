@@ -125,10 +125,14 @@ export async function extractZip(zipPath: string, destDir: string): Promise<void
   await extract(zipPath, { dir: destDir });
 }
 
-export async function downloadToFile(url: string, filePath: string): Promise<void> {
+export async function downloadToFile(
+  url: string,
+  filePath: string,
+  init?: RequestInit
+): Promise<void> {
   let res: Response;
   try {
-    res = await fetchRegistry(url);
+    res = await fetchRegistry(url, init);
   } catch (e) {
     if (isConnectTimeoutError(e)) {
       throw new Error(

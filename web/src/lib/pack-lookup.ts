@@ -1,8 +1,12 @@
+import { PackVisibility } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export type FindPackOpts = {
-  /** If true, include soft-revoked packs (author-only flows). Default: public only. */
-  allowRevoked?: boolean;
+  /**
+   * If true, match pack even when `visibility` is UNLISTED (author-only flows).
+   * Default: public only (LISTED).
+   */
+  allowUnlisted?: boolean;
 };
 
 export async function findPackByHandleAndSlug(
@@ -14,7 +18,7 @@ export async function findPackByHandleAndSlug(
     where: {
       slug,
       author: { handle },
-      ...(opts?.allowRevoked ? {} : { revokedAt: null }),
+      ...(opts?.allowUnlisted ? {} : { visibility: PackVisibility.LISTED }),
     },
   });
 }

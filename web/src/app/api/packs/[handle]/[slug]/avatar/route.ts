@@ -54,7 +54,7 @@ export async function POST(req: Request, { params }: Params) {
 
   const { handle, slug } = await params;
   const pack = await findPackByHandleAndSlug(handle, slug, {
-    allowRevoked: true,
+    allowUnlisted: true,
   });
   if (!pack) {
     return NextResponse.json({ error: "not found" }, { status: 404 });

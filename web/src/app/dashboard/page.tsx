@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CopyPublishCommand } from "@/app/dashboard/copy-publish-command";
+import { PackVisibility } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
 
@@ -41,7 +42,7 @@ export default async function DashboardPage() {
       slug: true,
       title: true,
       avatarRelPath: true,
-      revokedAt: true,
+      visibility: true,
     },
   });
 
@@ -78,7 +79,7 @@ export default async function DashboardPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="line-clamp-1 font-medium text-muted-foreground">暂无已上架 pack</span>
+                  <span className="line-clamp-1 font-medium text-muted-foreground">暂无 pack</span>
                   <Badge variant="secondary" className="shrink-0 text-xs">
                     空
                   </Badge>
@@ -91,7 +92,7 @@ export default async function DashboardPage() {
           </li>
         ) : (
           packs.map((p) => {
-            const revoked = Boolean(p.revokedAt);
+            const listed = p.visibility === PackVisibility.LISTED;
             const canLink = Boolean(handle);
             const encH = handle ? encodeURIComponent(handle) : "";
             const encS = encodeURIComponent(p.slug);
@@ -117,8 +118,8 @@ export default async function DashboardPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="line-clamp-1 font-medium text-foreground">{p.title}</span>
-                    <Badge variant={revoked ? "secondary" : "outline"} className="shrink-0 text-xs">
-                      {revoked ? "已下架" : "公开中"}
+                    <Badge variant={listed ? "outline" : "secondary"} className="shrink-0 text-xs">
+                      {listed ? "公开中" : "未公开"}
                     </Badge>
                   </div>
                   <p className="mt-2 font-mono text-xs text-muted-foreground">
