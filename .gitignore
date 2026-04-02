@@ -17,3 +17,6 @@ web/.git
 
 # 本地笔记（若使用，勿提交 PII）
 docs/superpowers/experiment-log.md
+
+# Superpowers 插件本地会话 / brainstorm 产物
+.superpowers/
