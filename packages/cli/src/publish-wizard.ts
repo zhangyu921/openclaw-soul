@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { checkbox, confirm, input, select, Separator } from "@inquirer/prompts";
+import { checkbox, confirm, input, select } from "@inquirer/prompts";
 import { resolveWorkspacePath } from "./load-env.js";
 import { readWorkspaceFromConfig } from "./openclaw-config.js";
 import { readIdentityDefaults } from "./read-identity.js";
@@ -30,29 +30,53 @@ function resolveSourceDir(source: string, configPath: string): string {
   return abs;
 }
 
-async function promptPackRootFiles(sourceDir: string): Promise<{
-  fullZip: boolean;
-  selectedRootFiles?: string[];
-}> {
-  const entries = fs.readdirSync(sourceDir, { withFileTypes: true });
-  const fileNames = new Set(
-    entries.filter((e) => e.isFile()).map((e) => e.name)
-  );
+type CheckboxChoice = {
+  value: string;
+  name?: string;
+  checked?: boolean;
+  disabled?: boolean | string;
+};
 
+function collectRootFileNames(sourceDir: string): Set<string> {
+  const entries = fs.readdirSync(sourceDir, { withFileTypes: true });
+  return new Set(entries.filter((e) => e.isFile()).map((e) => e.name));
+}
+
+function listExtras(fileNames: Set<string>): string[] {
   const extras = [...WORKSPACE_ROOT_FILE_ALLOWLIST].filter(
-    (n) => n !== "SOUL.md" && n !== "MEMORY.md" && fileNames.has(n)
+    (n) =>
+      n !== "SOUL.md" &&
+      n !== "MEMORY.md" &&
+      n !== "IDENTITY.md" &&
+      fileNames.has(n)
   );
   extras.sort();
+  return extras;
+}
 
-  const choices: (
-    | Separator
-    | {
-        value: string;
-        name?: string;
-        checked?: boolean;
-        disabled?: boolean | string;
-      }
-  )[] = [
+/** Build subset-mode checkbox choices. `snapshot` = checked filenames (no sentinel), when restoring after leaving full mode. */
+function buildSubsetChoices(
+  fileNames: Set<string>,
+  extras: string[],
+  snapshot: string[] | undefined
+): CheckboxChoice[] {
+  const hasIdentity = fileNames.has("IDENTITY.md");
+  const hasMemory = fileNames.has("MEMORY.md");
+
+  const identityChecked = snapshot
+    ? snapshot.includes("IDENTITY.md")
+    : hasIdentity;
+
+  const memoryChecked = snapshot
+    ? snapshot.includes("MEMORY.md")
+    : false;
+
+  const choices: CheckboxChoice[] = [
+    {
+      name: "整个 workspace 目录（含子文件夹，等同 --full）",
+      value: PACK_FULL_SENTINEL,
+      checked: false,
+    },
     {
       name: "SOUL.md（必选）",
       value: "SOUL.md",
@@ -60,41 +84,132 @@ async function promptPackRootFiles(sourceDir: string): Promise<{
       disabled: true,
     },
     {
-      name: "MEMORY.md",
-      value: "MEMORY.md",
-      checked: fileNames.has("MEMORY.md"),
+      name: hasIdentity
+        ? "IDENTITY.md"
+        : "IDENTITY.md（根目录无此文件，不会打入 zip）",
+      value: "IDENTITY.md",
+      checked: hasIdentity ? identityChecked : false,
+      disabled: !hasIdentity,
     },
-    ...extras.map((n) => ({ name: n, value: n, checked: false })),
-    new Separator(),
+    {
+      name: hasMemory
+        ? "MEMORY.md"
+        : "MEMORY.md（根目录无此文件，不会打入 zip）",
+      value: "MEMORY.md",
+      checked: memoryChecked,
+      disabled: !hasMemory,
+    },
+    ...extras.map((n) => ({
+      name: n,
+      value: n,
+      checked: snapshot ? snapshot.includes(n) : false,
+    })),
+  ];
+
+  return choices;
+}
+
+function buildFullDisplayChoices(
+  fileNames: Set<string>,
+  extras: string[]
+): CheckboxChoice[] {
+  const hasIdentity = fileNames.has("IDENTITY.md");
+  const hasMemory = fileNames.has("MEMORY.md");
+
+  const choices: CheckboxChoice[] = [
     {
       name: "整个 workspace 目录（含子文件夹，等同 --full）",
       value: PACK_FULL_SENTINEL,
-      checked: false,
+      checked: true,
     },
+    {
+      name: "SOUL.md（必选）",
+      value: "SOUL.md",
+      checked: true,
+      disabled: true,
+    },
+    {
+      name: hasIdentity
+        ? "IDENTITY.md"
+        : "IDENTITY.md（根目录无此文件，不会打入 zip）",
+      value: "IDENTITY.md",
+      checked: hasIdentity,
+      disabled: true,
+    },
+    {
+      name: hasMemory
+        ? "MEMORY.md"
+        : "MEMORY.md（根目录无此文件，不会打入 zip）",
+      value: "MEMORY.md",
+      checked: hasMemory,
+      disabled: true,
+    },
+    ...extras.map((n) => ({
+      name: n,
+      value: n,
+      checked: true,
+      disabled: true,
+    })),
   ];
 
-  const picked = await checkbox({
-    message: "要打入 zip 的 workspace 根文件（可多选）：",
-    choices,
-    validate: (normalized) => {
-      const values = normalized.filter((c) => c.checked).map((c) => c.value);
-      if (values.includes(PACK_FULL_SENTINEL)) return true;
-      if (values.length === 0) {
-        return "请至少选择一项（SOUL.md 为必选）";
+  return choices;
+}
+
+function normalizeSubsetSelection(picked: string[]): string[] {
+  const without = picked.filter((v) => v !== PACK_FULL_SENTINEL);
+  return [...new Set([...without, "SOUL.md"])];
+}
+
+async function promptPackRootFiles(sourceDir: string): Promise<{
+  fullZip: boolean;
+  selectedRootFiles?: string[];
+}> {
+  const fileNames = collectRootFileNames(sourceDir);
+  const extras = listExtras(fileNames);
+
+  let subsetSnapshot: string[] | undefined;
+
+  for (;;) {
+    const choices = buildSubsetChoices(fileNames, extras, subsetSnapshot);
+
+    const picked = await checkbox({
+      message: "要打入 zip 的 workspace 根文件（可多选）：",
+      choices,
+      validate: (normalized) => {
+        const values = normalized.filter((c) => c.checked).map((c) => c.value);
+        if (values.includes(PACK_FULL_SENTINEL)) return true;
+        if (values.length === 0) {
+          return "请至少选择一项（SOUL.md 为必选）";
+        }
+        return true;
+      },
+    });
+
+    if (picked.includes(PACK_FULL_SENTINEL)) {
+      subsetSnapshot = picked.filter((v) => v !== PACK_FULL_SENTINEL);
+
+      for (;;) {
+        const fullChoices = buildFullDisplayChoices(fileNames, extras);
+        const fullPicked = await checkbox({
+          message:
+            "整目录打包：仅可取消下方「整个 workspace 目录」以返回根文件子集；确认请保持该项勾选并提交。",
+          choices: fullChoices,
+          validate: () => true,
+        });
+
+        if (fullPicked.includes(PACK_FULL_SENTINEL)) {
+          return { fullZip: true };
+        }
+        break;
       }
-      return true;
-    },
-  });
+      continue;
+    }
 
-  if (picked.includes(PACK_FULL_SENTINEL)) {
-    return { fullZip: true };
+    return {
+      fullZip: false,
+      selectedRootFiles: normalizeSubsetSelection(picked),
+    };
   }
-
-  const selected = [...new Set(picked.filter((v) => v !== PACK_FULL_SENTINEL))];
-  if (!selected.includes("SOUL.md")) {
-    selected.unshift("SOUL.md");
-  }
-  return { fullZip: false, selectedRootFiles: selected };
 }
 
 export async function runPublishWizard(params: {
