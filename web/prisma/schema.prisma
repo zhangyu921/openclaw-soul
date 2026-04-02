@@ -12,6 +12,12 @@ enum PackVisibility {
   LISTED
 }
 
+/// Where pack file bytes live: legacy Vercel Blob zip (`BLOB`) vs DB rows (`DB`).
+enum PackArtifactSource {
+  BLOB
+  DB
+}
+
 model User {
   id           String        @id @default(cuid())
   email        String        @unique
@@ -49,8 +55,36 @@ model Pack {
   author               User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt            DateTime       @default(now())
   visibility           PackVisibility @default(UNLISTED)
+  artifactSource       PackArtifactSource @default(BLOB)
+  markdownFiles        PackMarkdownFile[]
+  binaryFiles          PackBinaryFile[]
 
   @@unique([authorId, slug])
+}
+
+/// Markdown files stored in DB when `Pack.artifactSource` is `DB` (zip-relative `path`).
+model PackMarkdownFile {
+  id        String   @id @default(cuid())
+  packId    String
+  pack      Pack     @relation(fields: [packId], references: [id], onDelete: Cascade)
+  path      String
+  content   String   @db.Text
+  updatedAt DateTime @updatedAt
+
+  @@unique([packId, path])
+}
+
+/// Non-markdown blobs: `storageRef` is Blob URL or path consistent with `zipRelPath` style.
+model PackBinaryFile {
+  id          String  @id @default(cuid())
+  packId      String
+  pack        Pack    @relation(fields: [packId], references: [id], onDelete: Cascade)
+  path        String
+  storageRef  String
+  byteSize    Int?
+  sha256      String?
+
+  @@unique([packId, path])
 }
 
 /// OAuth-style device flow: CLI polls with device_code; user approves in browser with user_code.
