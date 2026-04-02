@@ -44,14 +44,15 @@
 
 ## 3. HTTP API 与 Web
 
-- **`POST /api/packs`（multipart）**：支持显式传入 `visibility`（或等价字段），**默认 `UNLISTED`**；可 **`LISTED`** 表示一次上传即公开。响应体带当前 `visibility`，供 CLI 展示。
-- **上架**：`UNLISTED` → `LISTED`（例如 `POST` 或 `PATCH` 专用路由，路径与现有 REST 风格对齐）。
-- **下架**：`LISTED` → `UNLISTED`（与 revoke 合并语义）。
+- **`POST /api/packs`（multipart）**：支持显式传入 `visibility`（或等价字段），**默认 `UNLISTED`**；可 **`LISTED`** 表示一次上传即公开。响应体带当前 `visibility`，供 CLI 展示。  
+  - **校验**：`visibility` 非法或无法解析 → **400** + 明确错误体；**省略**则默认 **`UNLISTED`**。
+- **上架**：`UNLISTED` → `LISTED`（例如 `POST` 或 `PATCH` 专用路由；**具体方法、路径、幂等与响应体**在实现计划中写死）。
+- **下架**：`LISTED` → `UNLISTED`（与 revoke 合并语义）。实现计划应约定：与现有 **`POST .../revoke`** 是 **替换为同一 handler** 还是 **短期并存为 alias**、何时从文档中移除旧路径。
 - **画廊 `GET`**：仅 `visibility === LISTED`（且作者 handle 等既有条件不变）。
 - **详情页**：`UNLISTED` 时仅 **会话用户为作者** 可渲染；否则 **404**。
-- **下载**：`UNLISTED` 时仅 **作者鉴权**（token / 会话）可下载；匿名拒绝（状态码在实现计划中统一为 401 或 404 之一）。
+- **下载**：`UNLISTED` 时仅 **作者鉴权**（token / 会话）可下载；匿名拒绝。站点内对 **匿名访问 UNLISTED** 的拒绝方式（404 vs 401）应在实现计划或站点约定中 **统一**，避免详情与下载分叉无文档。
 
-**Dashboard 衔接**：既有 [`2026-04-01-dashboard-overview-design.md`](./2026-04-01-dashboard-overview-design.md) 中「公开中 / 已下架」等表述在实现 P1-A 时应改为基于 **`visibility`**（或产品文案「公开中 / 未公开」），**不再**以 `revokedAt` 为展示真源。
+**Dashboard 衔接**：[`2026-04-01-dashboard-overview-design.md`](./2026-04-01-dashboard-overview-design.md) 中凡以 **`revokedAt` 为数据模型、查询字段、状态标签或唯一下架机制** 的条款，均由本 spec 的 **`visibility`** 与本节 HTTP 行为 **取代**；该稿的 **路由、壳、紧凑列表链到 `/packs/...`** 等结构仍适用。展示文案可改为「公开中 / 未公开」等，**展示真源** 为 **`visibility`**，不再依赖 `revokedAt`。实现阶段验收：原稿 §6 中「已下架 / revoked」式断言改为 **`visibility === UNLISTED`** 语义。
 
 ---
 
@@ -72,8 +73,9 @@
 ## 6. 边界与实现决策（需在实现计划中落地）
 
 - **`--replace` / 同 slug 更新**：新上传默认 **不改变** 已有 `LISTED`/`UNLISTED` 除非显式传参；避免误将已公开包打回未公开（除非提供专门开关）。
+- **上架 / 下架 API 幂等**：已是目标 `visibility` 时的 HTTP 状态码与响应体（是否仍返回当前 `visibility`）在实现计划中约定，避免客户端重复提交产生歧义。
 - **发布频率限制**：建议 **未公开上传仍计入** 成功发布次数（防滥用）；若产品改为未公开不计入，须在实现计划中单列并文档化。
-- **测试**：迁移；画廊过滤；匿名详情 404；作者详情与下载；CLI 与 `apply` 提示契约。
+- **测试**：迁移；画廊过滤；匿名详情 404；作者详情与下载；CLI 与 `apply` 提示契约；Dashboard 用例用词与 **`visibility`** 对齐（见 §3）。
 
 ---
 
