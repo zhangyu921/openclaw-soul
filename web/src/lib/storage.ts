@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -95,6 +96,49 @@ export async function readStoredFile(ref: string): Promise<Buffer> {
   return fs.readFile(abs);
 }
 
+/**
+ * 将 zip 内 entry 路径变为安全文件名：对整段路径做短哈希 + 净化 basename，避免 `..` 与 `/` 造成遍历或键冲突。
+ * 用于 `writeBinaryForPack` 的本地路径与 Blob 对象名。
+ */
+export function binaryStorageFileName(entryPath: string): string {
+  const posix = entryPath.replace(/\\/g, "/");
+  const hash = crypto
+    .createHash("sha256")
+    .update(posix, "utf8")
+    .digest("hex")
+    .slice(0, 16);
+  const base = path.posix.basename(posix) || "file";
+  const safeBase = base.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 120);
+  return `${hash}_${safeBase}`;
+}
+
+export function binaryRelPathForPack(packId: string, entryPath: string): string {
+  return `packs/${packId}/bin/${binaryStorageFileName(entryPath)}`;
+}
+
+/** 二进制附件：与 `writeZipForPack` 相同，返回本地为 storage 根下相对路径，Blob 为 https URL。 */
+export async function writeBinaryForPack(
+  packId: string,
+  entryPath: string,
+  buf: Buffer
+): Promise<string> {
+  const rel = binaryRelPathForPack(packId, entryPath);
+  if (isVercelBlobStorage()) {
+    const { put } = await import("@vercel/blob");
+    const { url } = await put(rel, buf, {
+      access: blobAccess(),
+      addRandomSuffix: true,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
+    return url;
+  }
+  await ensurePackDirs();
+  const abs = path.join(/* turbopackIgnore: true */ storageRoot(), rel);
+  await fs.mkdir(path.dirname(abs), { recursive: true });
+  await fs.writeFile(abs, buf);
+  return rel;
+}
+
 export async function writeZipForPack(
   packId: string,
   buf: Buffer
@@ -149,6 +193,17 @@ export async function removeStoredFile(ref: string | null): Promise<void> {
     ref
   );
   await fs.unlink(abs).catch(() => {});
+}
+
+/** 替换 storage 引用时删除旧对象：吞掉错误（含 Blob `del` 失败），与本地 `unlink` 行为一致。 */
+export async function removeStoredFileIfExists(
+  ref: string | null
+): Promise<void> {
+  try {
+    await removeStoredFile(ref);
+  } catch {
+    /* best-effort */
+  }
 }
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
