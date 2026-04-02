@@ -13,7 +13,7 @@ import {
 import { PackVisibility } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
-import { privacyLinkClassName } from "@/lib/utils";
+import { cn, privacyLinkClassName } from "@/lib/utils";
 import { parsePackFilePaths } from "@/lib/zip-pack-preview";
 
 import AvatarUpload from "./avatar-upload";
@@ -65,7 +65,7 @@ export default async function PackDetailPage({ params }: Props) {
 
       <Card className="overflow-hidden border-0 shadow-lg ring-1 ring-border/80">
         <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-start">
-          <div className="mx-auto flex shrink-0 items-start gap-2 sm:mx-0">
+          <div className="group relative mx-auto shrink-0 sm:mx-0">
             <div className="size-28 shrink-0 overflow-hidden rounded-2xl bg-muted shadow-inner ring-1 ring-border/60 sm:size-32">
               {pack.avatarRelPath ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -80,7 +80,18 @@ export default async function PackDetailPage({ params }: Props) {
                 </div>
               )}
             </div>
-            {isAuthor ? <AvatarUpload handle={pack.author.handle} slug={pack.slug} /> : null}
+            {isAuthor ? (
+              <div
+                className={cn(
+                  "absolute -right-2 -top-2 z-10 transition-opacity duration-200",
+                  pack.avatarRelPath
+                    ? "opacity-100 sm:opacity-0 sm:pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto sm:focus-within:opacity-100 sm:focus-within:pointer-events-auto"
+                    : "opacity-100"
+                )}
+              >
+                <AvatarUpload handle={pack.author.handle} slug={pack.slug} />
+              </div>
+            ) : null}
           </div>
           <div className="min-w-0 flex-1 text-center sm:text-left">
             <h1 className="font-heading text-balance text-2xl font-bold tracking-tight sm:text-3xl">
@@ -106,7 +117,7 @@ export default async function PackDetailPage({ params }: Props) {
               <CardHeader>
                 <CardTitle className="text-base">SOUL.md</CardTitle>
                 <CardDescription>
-                  发布时从 zip 内提取；完整内容以打包文件为准。
+                  完整内容以 SOUL.md 为准。
                   {pack.soulPreviewTruncated ? " 以下正文已按长度截断。" : null}
                 </CardDescription>
               </CardHeader>

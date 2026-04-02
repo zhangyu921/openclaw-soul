@@ -69,7 +69,7 @@ export default function AvatarUpload({
         type="button"
         variant="outline"
         size="icon-sm"
-        className="size-9 shrink-0 rounded-xl border-border/80 bg-background/80 shadow-sm backdrop-blur-sm"
+        className="size-8 shrink-0 rounded-full border-border/80 bg-background/95 shadow-md ring-2 ring-background backdrop-blur-sm"
         aria-label="更换头像"
         title="更换头像"
         onClick={() => {
@@ -102,7 +102,7 @@ export default function AvatarUpload({
               accept="image/png,image/jpeg,image/gif,image/webp"
               disabled={loading}
               onChange={onChange}
-              className="h-auto cursor-pointer py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground"
+              className="h-auto cursor-pointer py-2 text-sm file:inline-flex file:items-center file:cursor-pointer file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3  file:text-sm file:font-medium file:text-primary-foreground"
             />
             {status ? (
               <p
