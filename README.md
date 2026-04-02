@@ -4,7 +4,7 @@ Registry + CLI for sharing and applying **OpenClaw workspace** packs as zip uplo
 
 ### Why
 
-OpenClaw Soul 帮助人们在 OpenClaw 里**浏览并安装** persona / workspace pack，用可下载工作区快速开局；情绪向与功能向的 pack 都适用。动机与产品方向见 [方向与设计规格](docs/superpowers/specs/2026-03-31-openclaw-soul-direction-design.md)。
+OpenClaw Soul 帮助人们在 OpenClaw 里**浏览并安装** persona / workspace pack，用可下载工作区快速开局；情绪向与功能向的 pack 都适用。动机与路线图见 [`docs/ROADMAP.md`](docs/ROADMAP.md)。
 
 - **Web**：注册、画廊、API Token、pack 下载（本站部署实例由运营方提供）。
 - **CLI**：[`@openclaw-soul/cli`](https://www.npmjs.com/package/@openclaw-soul/cli)（全局命令 **`ocs`**）。

@@ -15,5 +15,5 @@ web/prisma/**/*.db-journal
 # 防止在 web/ 下误建嵌套仓库（monorepo 只用根目录 .git）
 web/.git
 
-# A 实验本地日志（可能含对话摘录/截图说明等）；模板见 docs/superpowers/experiment-log.example.md
+# 本地笔记（若使用，勿提交 PII）
 docs/superpowers/experiment-log.md
