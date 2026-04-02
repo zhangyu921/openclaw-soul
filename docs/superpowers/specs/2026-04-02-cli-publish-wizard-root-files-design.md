@@ -15,7 +15,7 @@
 - **整目录**选项排在**第一位**，**不默认勾选**（用户一眼可见，默认仍为「根文件子集」模式）。
 - **子集模式**下：`SOUL.md` **必选**（不可取消）；**`IDENTITY.md` 若存在则默认勾选**；**`MEMORY.md` 与其它可选根文件一律不默认勾选**（用户显式勾选才打入 zip）。
 - 用户勾选 **整目录** 后：**不再**用「提交时校验报错」表达互斥；改为 **整目录选中时，其余根文件选项变为不可选，且全部呈现为已勾选**（表示「整包纳入」；仅整目录一项可操作，用户可取消整目录回到子集模式）。
-- **非交互** `publish`（未走向导、且非 `--full`）：默认子集 **不再自动包含 `MEMORY.md`**；需要时由用户 **`--include MEMORY.md`**（及重复 `--include` 其它根文件）。与向导「不默认 MEM」一致。
+- **非交互** `publish`（未走向导、且非 `--full`）：默认子集为 **`SOUL.md` + `IDENTITY.md`（当根目录存在该文件时）** + **`--include` 展开列表**（去重）；**不**再自动包含 `MEMORY.md`。需要 `MEMORY.md` 时由 **`--include MEMORY.md`**。与向导「默认 SOUL +（存在的）IDENTITY、不默认 MEM」一致。
 - **任意**发布路径在已知 `sourceDir` 后：若 workspace **根目录不存在 `SOUL.md` 文件**，则 **打印明确错误信息并中止进程**（不进入 zip / 上传）。**`--full` 与向导整目录均不例外**。
 
 **非目标**
@@ -58,8 +58,9 @@
 ## 3. 非交互默认子集
 
 - 当 **`--full` 未开启**且 **未**由向导提供 `wizardRootFiles` 时，子集为：  
-  **`SOUL.md` + `--include` 展开列表**（去重），**不再**隐式加入 `MEMORY.md`。  
-- 需要 `MEMORY.md` 时：`--include MEMORY.md`。
+  **`SOUL.md`** + **若 workspace 根目录存在 `IDENTITY.md` 则包含之** + **`--include` 展开列表**（去重）。  
+- **不**隐式加入 `MEMORY.md`；需要时：`--include MEMORY.md`。  
+- 根目录**无** `IDENTITY.md` 时：子集不含该项（**不**因此报错；仅 `SOUL.md` 缺失按 §4 中止）。
 
 ---
 
@@ -73,7 +74,7 @@
 
 ## 5. 文档与对外说明
 
-- 更新 **`README.md` / `docs/DEVELOPMENT.md` / CLI `--help` 描述**：默认子集为 **`SOUL.md`**（及 `--include`），**不再**写「默认 SOUL+MEMORY」；说明 **`MEMORY` 需显式 `--include` 或向导勾选**。  
+- 更新 **`README.md` / `docs/DEVELOPMENT.md` / CLI `--help` 描述**：非交互默认子集为 **`SOUL.md` + 存在的 `IDENTITY.md`**（及 `--include`），**不再**写「默认 SOUL+MEMORY」；说明 **`MEMORY` 需显式 `--include` 或向导勾选**。  
 - **本节刻意不把 `MEMORY.md` 写成默认必含**（与用户要求「不包括 MEM」一致）。
 
 ---
@@ -82,7 +83,7 @@
 
 - 向导：整目录第一位；勾选整目录后其余项 disabled+checked；取消整目录后恢复默认。  
 - 向导：`MEMORY` 默认不勾选；`IDENTITY` 存在时默认勾选。  
-- 非交互：无 `--include` 时子集仅 `SOUL.md`（且 SOUL 存在）。  
+- 非交互：无 `--include` 时子集为 `SOUL.md` + 若存在则 `IDENTITY.md`（且 SOUL 存在）。  
 - `SOUL.md` 缺失：任意模式均在发布前失败退出。  
 - 非交互：`--include MEMORY.md` 仍可将 MEMORY 打入子集 zip。
 
@@ -90,4 +91,4 @@
 
 ## 7. 兼容性说明
 
-- **破坏性变更**：非交互默认子集从「SOUL + MEMORY」变为「仅 SOUL（+ include）」。**须在 Changeset / CHANGELOG 中明确**，并告知需 `MEMORY` 的用户加上 `--include MEMORY.md`。
+- **破坏性变更**：非交互默认子集从「SOUL + MEMORY」变为「**SOUL +（若存在）IDENTITY**（+ `--include`）」。**须在 Changeset / CHANGELOG 中明确**；依赖默认带上 `MEMORY` 的用户需改为 **`--include MEMORY.md`**。
