@@ -1,5 +1,5 @@
 ---
-"@openclaw-soul/cli": major
+"@openclaw-soul/cli": patch
 ---
 
 **Breaking:** Non-interactive `publish` default pack subset is now `SOUL.md` plus `IDENTITY.md` when present; `MEMORY.md` is no longer included by default—use `--include MEMORY.md` to opt in.
