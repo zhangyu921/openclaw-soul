@@ -31,6 +31,10 @@ import { getUserEnvFilePath } from "./user-config-path.js";
 import { validateSlug } from "./slug.js";
 import { readIdentityDefaults } from "./read-identity.js";
 import { ensurePublishPrivacyConsent } from "./privacy-ack.js";
+import {
+  assertWorkspaceRootSoulFileExists,
+  buildNonInteractiveSubsetFiles,
+} from "./workspace-publish-guards.js";
 import { dbg, setCliDebug } from "./cli-debug.js";
 import { fetchPackVisibility } from "./registry-pack-meta.js";
 
@@ -261,7 +265,7 @@ program
 program
   .command("publish")
   .description(
-    "将 workspace 打成 zip 并上传（需 token 或先 login）。默认只含根目录 SOUL.md+MEMORY.md；--full 整目录；--include 追加根文件。无 --slug 时走交互向导"
+    "将 workspace 打成 zip 并上传（需 token 或先 login）。默认子集为根目录 SOUL.md，若存在则含 IDENTITY.md；MEMORY.md 需 `--include` 追加。`--full` 整目录打包；非整目录下 `--include` 可重复追加根文件。无 `--slug` 时走交互向导"
   )
   .option("--api <url>", "registry base URL", apiBase())
   .option("--token <token>", "API token (or OPENCLAW_SOUL_TOKEN)")
@@ -406,6 +410,7 @@ program
       if (!fs.existsSync(sourceDir)) {
         throw new Error(`Source not found: ${sourceDir}`);
       }
+      assertWorkspaceRootSoulFileExists(sourceDir);
 
       let avatarPath: string | undefined;
       if (avatar) {
@@ -431,10 +436,10 @@ program
         if (wizardRootFiles !== undefined) {
           subsetFiles = wizardRootFiles;
         } else {
-          const extra = includeList.map((f) =>
-            assertSafeRootRelativeFile(sourceDir, f)
+          subsetFiles = buildNonInteractiveSubsetFiles(
+            sourceDir,
+            includeList.map((f) => assertSafeRootRelativeFile(sourceDir, f))
           );
-          subsetFiles = [...new Set(["SOUL.md", "MEMORY.md", ...extra])];
         }
       }
 

@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { assertSafeRootRelativeFile } from "./zip-utils.js";
 
 /**
  * 在 zip / 上传前校验 workspace 根目录存在 `SOUL.md` 普通文件。
@@ -25,6 +24,7 @@ export function assertWorkspaceRootSoulFileExists(sourceDir: string): void {
 
 /**
  * 非交互默认子集：`SOUL.md` + 根目录存在则 `IDENTITY.md` + `--include` 列表（去重）。
+ * `includeNames` 须为已校验的根文件名（例如经 `assertSafeRootRelativeFile` 规范化）。
  * 调用方应先执行 `assertWorkspaceRootSoulFileExists(sourceDir)`，再 zip。
  */
 export function buildNonInteractiveSubsetFiles(
@@ -42,11 +42,10 @@ export function buildNonInteractiveSubsetFiles(
       seen.add("IDENTITY.md");
     }
   } catch {
-    // 无 IDENTITY 或非文件：不自动加入（§3）
+    // 无 IDENTITY 或非文件：不自动加入
   }
 
-  for (const raw of includeNames) {
-    const name = assertSafeRootRelativeFile(sourceDir, raw);
+  for (const name of includeNames) {
     if (!seen.has(name)) {
       result.push(name);
       seen.add(name);
