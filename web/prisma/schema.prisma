@@ -7,6 +7,11 @@ datasource db {
   provider = "postgresql"
 }
 
+enum PackVisibility {
+  UNLISTED
+  LISTED
+}
+
 model User {
   id           String        @id @default(cuid())
   email        String        @unique
@@ -42,9 +47,8 @@ model Pack {
   packFilePaths        Json      @default("[]")
   authorId             String
   author               User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  createdAt            DateTime  @default(now())
-  /// Soft-unpublish: hidden from gallery & download; row and files kept.
-  revokedAt            DateTime?
+  createdAt            DateTime       @default(now())
+  visibility           PackVisibility @default(UNLISTED)
 
   @@unique([authorId, slug])
 }
