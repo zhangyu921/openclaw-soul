@@ -1,6 +1,6 @@
 # OpenClaw Soul
 
-Registry + CLI for sharing and applying **OpenClaw workspace** packs as zip uploads: by default only root **`SOUL.md`** + **`MEMORY.md`**; use **`--full`** for the whole directory or **`--include`** for extra root files. **`apply`** downloads the zip and extracts it locally.
+Registry + CLI for sharing and applying **OpenClaw workspace** packs as zip uploads: the non-interactive default subset is root **`SOUL.md`** plus **`IDENTITY.md`** when present; **`MEMORY.md`** is not included by default—use **`--include MEMORY.md`** or enable it in the interactive publish wizard. Use **`--full`** for the whole workspace directory, or **`--include`** for additional root files. **`apply`** downloads the zip and extracts it locally.
 
 ### Why
 
@@ -35,7 +35,7 @@ npx @openclaw-soul/cli apply <handle>/<slug>
 
 完整子命令与备份/恢复工具见 npm 包说明：**[`packages/cli/README.md`](packages/cli/README.md)**。
 
-`publish` 默认只打包 workspace **根目录**的 `SOUL.md` 与 `MEMORY.md`（缺一则报错）。需要整目录时加 **`--full`**；需要额外根文件时重复 **`--include <file>`**。交互式向导里可选子集或整目录。
+`publish` 非交互默认打包 workspace **根目录**的 `SOUL.md` 与（若存在）`IDENTITY.md`；根目录无 `SOUL.md` 会失败退出。`MEMORY.md` 需 **`--include MEMORY.md`** 或在向导中勾选。整目录用 **`--full`**；额外根文件可重复 **`--include <file>`**。交互式向导里「整目录」在首位；子集模式下 `SOUL.md` 必选，`IDENTITY.md` 存在则默认勾选，`MEMORY.md` 默认不勾选。
 
 `login` 使用浏览器授权（device flow），token 写入本机配置（见下）。
 

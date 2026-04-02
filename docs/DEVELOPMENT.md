@@ -63,17 +63,20 @@ pnpm run ocs -- login
 
 ## `publish`（开发时常用）
 
-默认只把 workspace **根目录**下的 `SOUL.md` 与 `MEMORY.md` 打进 zip（缺任一则报错）。**`--full`** 恢复整目录打包（旧行为）；**`--include`** 可重复指定额外根文件（如 `AGENTS.md`）。交互式向导里用多选：`SOUL.md` 必选不可取消，其余可选，也可选「整个目录」。
+未加 **`--full`** 且未由向导指定根文件时，非交互默认子集为 workspace **根目录**的 **`SOUL.md`** +（若存在）**`IDENTITY.md`**，并与 **`--include`** 列表合并去重；**不**默认包含 `MEMORY.md`，需要时加 **`--include MEMORY.md`** 或在交互向导中勾选。在已知源目录后，若根目录**没有** `SOUL.md` 文件则报错退出。**`--full`** 打包整 workspace 目录；**`--include`** 可重复指定额外根文件（如 `MEMORY.md`、`AGENTS.md`）。
+
+交互式向导（TTY）：**「整个 workspace 目录」**（等同 `--full`）在选项列表**第一位**、默认不勾选。子集模式下 **`SOUL.md` 必选**不可取消；**`IDENTITY.md`** 若存在则默认勾选，不存在则禁用；**`MEMORY.md`** 与其余可选根文件**默认不勾选**。勾选整目录后，其余根文件项变为不可选并显示为已勾选（表示整包纳入），仅可取消整目录以回到子集。
 
 ```bash
 # 交互式（TTY）：未带 --slug 时会引导选择目录，并从 IDENTITY.md 的 Name 建议 slug/title
 pnpm run ocs -- publish
 
 # 自动化 / CI：必须提供 --slug；--title 可省略（会用 IDENTITY Name 或回退为 slug）；token 用环境变量或 --token
+# 默认子集：SOUL.md + 若存在则 IDENTITY.md；MEMORY 需 --include MEMORY.md
 pnpm run ocs -- publish --slug my-pack --source current
 # pnpm run ocs -- publish --slug my-pack --title "My pack" --source ./path/to/workspace
 # 整目录 zip：pnpm run ocs -- publish --slug my-pack --source current --full
-# 附加根文件：pnpm run ocs -- publish --slug my-pack --source current --include AGENTS.md --include TOOLS.md
+# 附加根文件（含 MEMORY）：pnpm run ocs -- publish --slug my-pack --source current --include MEMORY.md --include AGENTS.md --include TOOLS.md
 ```
 
 非 TTY 下若未提供 `--slug`，或没有 `OPENCLAW_SOUL_TOKEN`/`--token`，命令会直接报错退出（不会挂住）。

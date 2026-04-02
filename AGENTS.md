@@ -18,7 +18,7 @@
 
 ## 项目一句话
 
-Monorepo（`web/` Next.js registry + `packages/cli`）让用户把 OpenClaw **workspace** 打成 zip 上架（**打包范围可选**：默认根目录子集、`--full` 整目录、`--include` 追加根文件），下载后由 CLI **一键 apply** 到本机 `openclaw.json` 指向的目录。命令细则不重复写，见 `README` / `docs/DEVELOPMENT.md`。
+Monorepo（`web/` Next.js registry + `packages/cli`）让用户把 OpenClaw **workspace** 打成 zip 上架（**打包范围可选**：非交互默认根目录子集为 `SOUL.md` 与存在的 `IDENTITY.md`、`--full` 整目录、`--include` 追加根文件如 `MEMORY.md`），下载后由 CLI **一键 apply** 到本机 `openclaw.json` 指向的目录。命令细则不重复写，见 `README` / `docs/DEVELOPMENT.md`。
 
 ---
 
