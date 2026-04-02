@@ -7,30 +7,22 @@
  *   pnpm --filter @openclaw-soul/web exec tsx --tsconfig tsconfig.json scripts/migrate-pack-to-db-source.ts --packIds=id1,id2
  *   pnpm --filter @openclaw-soul/web exec tsx --tsconfig tsconfig.json scripts/migrate-pack-to-db-source.ts --all
  */
-import { config as loadEnv } from "dotenv";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import "./load-env";
 import { PackArtifactSource } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ingestZipToPackSource } from "@/lib/pack-source-ingest";
 import { buildAndStoreZipFromPackDb } from "@/lib/pack-source-zip";
 import { readStoredFile, removeStoredFileIfExists } from "@/lib/storage";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-loadEnv({ path: path.join(__dirname, "../.env") });
-loadEnv({ path: path.join(__dirname, "../.env.local") });
-
 function parseArgs(argv: string[]): { packIds: string[] | null; all: boolean } {
-  let all = false;
+  const all = argv.includes("--all");
   let packIds: string[] | null = null;
-  for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === "--all") {
-      all = true;
-    }
-    if (argv[i] === "--packIds" && argv[i + 1]) {
-      packIds = argv[i + 1]!.split(",").map((s) => s.trim()).filter(Boolean);
-      i++;
-    }
+  const idx = argv.indexOf("--packIds");
+  if (idx >= 0 && argv[idx + 1]) {
+    packIds = argv[idx + 1]!
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
   return { packIds, all };
 }
