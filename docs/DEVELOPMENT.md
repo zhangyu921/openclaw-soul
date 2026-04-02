@@ -49,6 +49,8 @@ pnpm run ocs -- login
 
 **数据库**：表结构变更请用 `cd web && pnpm exec prisma migrate dev`（开发）或 `pnpm exec prisma migrate deploy`（CI/生产）。勿在生产对已有数据随意 `db push`。
 
+**维护者：pack 从 Blob zip 迁入库表真源**（P1-B-1）：配置 `DATABASE_URL` 后，`cd web && pnpm run migrate:pack-db-source -- --packIds=<cuid1,cuid2>` 或 `-- --all`（慎用）。
+
 ---
 
 ## `pnpm run ocs` 与源码运行

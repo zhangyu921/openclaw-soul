@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { PackVisibility } from "@/generated/prisma/client";
+import { PackArtifactSource, PackVisibility } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { findUserIdByApiToken } from "@/lib/token-api";
 import {
@@ -23,7 +23,13 @@ import {
   recordPublishSuccess,
 } from "@/lib/publish-rate-limit";
 import { requestOrigin } from "@/lib/device-auth";
-import { extractPackPreviewFromZip } from "@/lib/zip-pack-preview";
+import { ingestZipToPackSource } from "@/lib/pack-source-ingest";
+import { buildAndStoreZipFromPackDb } from "@/lib/pack-source-zip";
+import {
+  type PackZipPreview,
+  extractPackPreviewFromDb,
+  extractPackPreviewFromZip,
+} from "@/lib/zip-pack-preview";
 
 function resolvePackVisibility(
   form: FormData,
@@ -163,20 +169,95 @@ export async function POST(req: Request) {
 
   if (dup) {
     await ensurePackDirs();
-    let zipRelPath: string;
-    try {
-      zipRelPath = await writeZipForPack(dup.id, zipBuf);
-    } catch (e) {
-      console.error(e);
-      return NextResponse.json({ error: "failed to store zip" }, { status: 500 });
-    }
 
-    const preview = await extractPackPreviewFromZip(zipBuf);
+    let preview: PackZipPreview;
+
+    if (dup.artifactSource === PackArtifactSource.DB) {
+      try {
+        await ingestZipToPackSource(prisma, dup.id, zipBuf);
+        preview = await extractPackPreviewFromDb(prisma, dup.id);
+        await buildAndStoreZipFromPackDb(prisma, dup.id);
+      } catch (e) {
+        console.error(e);
+        return NextResponse.json(
+          { error: "failed to sync pack source" },
+          { status: 500 }
+        );
+      }
+    } else {
+      let zipRelPath: string;
+      try {
+        zipRelPath = await writeZipForPack(dup.id, zipBuf);
+      } catch (e) {
+        console.error(e);
+        return NextResponse.json({ error: "failed to store zip" }, { status: 500 });
+      }
+
+      preview = await extractPackPreviewFromZip(zipBuf);
+
+      const updateBlob: {
+        title: string;
+        summary: string | null;
+        zipRelPath: string;
+        soulPreviewMd: string | null;
+        soulPreviewTruncated: boolean;
+        packFilePaths: string[];
+        avatarRelPath?: string | null;
+      } = {
+        title,
+        summary,
+        zipRelPath,
+        soulPreviewMd: preview.soulPreviewMd,
+        soulPreviewTruncated: preview.soulPreviewTruncated,
+        packFilePaths: preview.packFilePaths,
+      };
+
+      if (avatar instanceof File && avatar.size > 0) {
+        if (dup.avatarRelPath && !isRemoteStored(dup.avatarRelPath)) {
+          await removeStoredFile(dup.avatarRelPath);
+        }
+        const ext = path.extname(avatar.name) || ".bin";
+        try {
+          updateBlob.avatarRelPath = await writeAvatarForPack(
+            dup.id,
+            ext,
+            Buffer.from(await avatar.arrayBuffer())
+          );
+        } catch (e) {
+          console.error(e);
+          return NextResponse.json({ error: "failed to store avatar" }, { status: 500 });
+        }
+      }
+
+      try {
+        await prisma.pack.update({
+          where: { id: dup.id },
+          data: { ...updateBlob, visibility: targetVisibility },
+        });
+      } catch (e) {
+        console.error(e);
+        return NextResponse.json({ error: "failed to update pack" }, { status: 500 });
+      }
+
+      recordPublishSuccess(authorId);
+      const encH = encodeURIComponent(handle);
+      const encS = encodeURIComponent(slug);
+      const viewPath = `/packs/${encH}/${encS}`;
+      const siteOrigin = requestOrigin(req);
+      return NextResponse.json({
+        ok: true,
+        handle,
+        slug,
+        visibility: targetVisibility,
+        downloadPath: `/api/packs/${encH}/${encS}/download`,
+        viewPath,
+        viewUrl: `${siteOrigin}${viewPath}`,
+      });
+    }
 
     const updateData: {
       title: string;
       summary: string | null;
-      zipRelPath: string;
       soulPreviewMd: string | null;
       soulPreviewTruncated: boolean;
       packFilePaths: string[];
@@ -184,7 +265,6 @@ export async function POST(req: Request) {
     } = {
       title,
       summary,
-      zipRelPath,
       soulPreviewMd: preview.soulPreviewMd,
       soulPreviewTruncated: preview.soulPreviewTruncated,
       packFilePaths: preview.packFilePaths,
