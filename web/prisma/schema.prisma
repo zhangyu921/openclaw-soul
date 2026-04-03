@@ -12,12 +12,6 @@ enum PackVisibility {
   LISTED
 }
 
-/// Where pack file bytes live: legacy Vercel Blob zip (`BLOB`) vs DB rows (`DB`).
-enum PackArtifactSource {
-  BLOB
-  DB
-}
-
 model User {
   id           String        @id @default(cuid())
   email        String        @unique
@@ -45,7 +39,7 @@ model Pack {
   summary              String?
   zipRelPath           String
   avatarRelPath        String?
-  /// SOUL.md excerpt from zip at publish (UTF-8); capped in extractPackPreviewFromZip.
+  /// SOUL.md excerpt at publish (UTF-8); capped in extractPackPreviewFromDb.
   soulPreviewMd        String?   @db.Text
   /// True when SOUL body was cut at the byte cap (full file in zip).
   soulPreviewTruncated Boolean   @default(false)
@@ -55,14 +49,13 @@ model Pack {
   author               User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt            DateTime       @default(now())
   visibility           PackVisibility @default(UNLISTED)
-  artifactSource       PackArtifactSource @default(BLOB)
   markdownFiles        PackMarkdownFile[]
   binaryFiles          PackBinaryFile[]
 
   @@unique([authorId, slug])
 }
 
-/// Markdown files stored in DB when `Pack.artifactSource` is `DB` (zip-relative `path`).
+/// Markdown files: pack source-of-truth (zip-relative `path`).
 model PackMarkdownFile {
   id        String   @id @default(cuid())
   packId    String
