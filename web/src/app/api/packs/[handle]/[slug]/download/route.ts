@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { PackArtifactSource, PackVisibility } from "@/generated/prisma/client";
+import { PackVisibility } from "@/generated/prisma/client";
 import { findPackByHandleAndSlug } from "@/lib/pack-lookup";
 import { prisma } from "@/lib/prisma";
 import { buildAndStoreZipFromPackDb } from "@/lib/pack-source-zip";
@@ -32,23 +32,19 @@ export async function GET(req: Request, { params }: Params) {
 
   try {
     let buf: Buffer;
-    if (pack.artifactSource === PackArtifactSource.DB) {
-      try {
-        buf = await readStoredFile(pack.zipRelPath);
-      } catch {
-        try {
-          const built = await buildAndStoreZipFromPackDb(prisma, pack.id);
-          buf = built.zipBuf;
-        } catch (e) {
-          console.error(e);
-          return NextResponse.json(
-            { error: "failed to build pack zip" },
-            { status: 500 }
-          );
-        }
-      }
-    } else {
+    try {
       buf = await readStoredFile(pack.zipRelPath);
+    } catch {
+      try {
+        const built = await buildAndStoreZipFromPackDb(prisma, pack.id);
+        buf = built.zipBuf;
+      } catch (e) {
+        console.error(e);
+        return NextResponse.json(
+          { error: "failed to build pack zip" },
+          { status: 500 }
+        );
+      }
     }
     return new NextResponse(new Uint8Array(buf), {
       status: 200,

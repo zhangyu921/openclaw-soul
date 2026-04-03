@@ -1,5 +1,7 @@
 # P1-B-1 库表真源与按需 zip Implementation Plan
 
+> **后续变更：** `PackArtifactSource`（`BLOB` / `DB`）双路径已在 [2026-04-03 pack-artifact-db-only spec](../specs/2026-04-03-pack-artifact-db-only-design.md) 中移除；现网仅保留子表真源 + 缓存 zip。下文 checklist 中关于双模式分支的表述保留作历史记录。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 实现 [`docs/superpowers/specs/2026-04-02-p1-b1-db-source-zip-design.md`](../specs/2026-04-02-p1-b1-db-source-zip-design.md)：Blob 模式与库表模式共存；库表模式下全部 `.md` 落库、非 md 走 Blob 映射；下载路由优先返回缓存 zip，否则组包并写回 Blob；`POST` 在库表模式下与 zip 同步真源；维护者迁移脚本；CLI `apply` 契约不变。

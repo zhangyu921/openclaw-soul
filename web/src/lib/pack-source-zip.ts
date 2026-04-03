@@ -1,5 +1,5 @@
 /**
- * Build a pack zip from `PackMarkdownFile` + `PackBinaryFile` rows (artifactSource === DB).
+ * Build a pack zip from `PackMarkdownFile` + `PackBinaryFile` rows.
  */
 import yazl from "yazl";
 import type { PrismaClient } from "@/generated/prisma/client";

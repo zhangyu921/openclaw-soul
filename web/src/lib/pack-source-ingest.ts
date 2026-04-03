@@ -1,5 +1,5 @@
 /**
- * Ingest uploaded zip into `PackMarkdownFile` + `PackBinaryFile` for `artifactSource === DB`.
+ * Ingest uploaded zip into `PackMarkdownFile` + `PackBinaryFile` (pack source of truth).
  * Blob writes are not transactional with Prisma; order: upload binary → upsert row → delete old blob ref.
  */
 import { createHash } from "node:crypto";
@@ -80,7 +80,6 @@ export function readZipFilesAsMap(zipBuf: Buffer): Promise<Map<string, Buffer>> 
 
 /**
  * Parse zip and persist all `.md` rows + non-md binaries for `packId`.
- * Caller must ensure pack is in or will switch to DB artifact mode.
  */
 export async function ingestZipToPackSource(
   db: PrismaClient,
