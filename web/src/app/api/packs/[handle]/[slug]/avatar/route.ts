@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import path from "node:path";
-import { findPackByHandleAndSlug } from "@/lib/pack-lookup";
+import { PackVisibility } from "@/generated/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
+import { findUserIdByApiToken } from "@/lib/token-api";
 import {
   ensurePackDirs,
   isRemoteStored,
@@ -9,8 +11,8 @@ import {
   removeStoredFile,
   writeAvatarForPack,
 } from "@/lib/storage";
-import { prisma } from "@/lib/prisma";
 import { MAX_AVATAR_BYTES, avatarTooLargeMessage } from "@/lib/upload-limits";
+import { findPackByHandleAndSlug } from "@/lib/pack-lookup";
 
 type Params = { params: Promise<{ handle: string; slug: string }> };
 
@@ -24,12 +26,39 @@ const MIME: Record<string, string> = {
   ".webp": "image/webp",
 };
 
-export async function GET(_req: Request, { params }: Params) {
+export async function GET(req: Request, { params }: Params) {
   const { handle, slug } = await params;
-  const pack = await findPackByHandleAndSlug(handle, slug);
+  const pack = await prisma.pack.findFirst({
+    where: { slug, author: { handle } },
+    select: {
+      avatarRelPath: true,
+      visibility: true,
+      authorId: true,
+    },
+  });
   if (!pack?.avatarRelPath) {
     return NextResponse.json({ error: "no avatar" }, { status: 404 });
   }
+
+  let allowed = pack.visibility === PackVisibility.LISTED;
+  if (!allowed) {
+    const sessionUserId = await readSessionUserId();
+    if (sessionUserId === pack.authorId) {
+      allowed = true;
+    } else {
+      const auth = req.headers.get("authorization");
+      const m = auth?.match(/^Bearer\s+(.+)$/i);
+      const plain = m?.[1]?.trim();
+      if (plain) {
+        const userId = await findUserIdByApiToken(plain);
+        if (userId === pack.authorId) allowed = true;
+      }
+    }
+  }
+  if (!allowed) {
+    return NextResponse.json({ error: "not found" }, { status: 404 });
+  }
+
   try {
     const buf = await readStoredFile(pack.avatarRelPath);
     const ext = path.extname(pack.avatarRelPath).toLowerCase();
