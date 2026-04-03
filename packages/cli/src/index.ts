@@ -427,17 +427,17 @@ program
         }
       }
 
-      let packVisibility: "UNLISTED" | "LISTED" | undefined;
-      if (replace && !opts.public) {
-        packVisibility = undefined;
-      } else if (opts.public) {
-        packVisibility = "LISTED";
-      } else {
-        packVisibility = "UNLISTED";
-      }
-
       const maxReauthAttempts = 1;
       for (let authAttempt = 0; ; authAttempt++) {
+        /** 须在每次重试前计算：409 后交互确认 `replace=true` 时须省略 visibility，以保留服务端已有上架状态。 */
+        let packVisibility: "UNLISTED" | "LISTED" | undefined;
+        if (replace && !opts.public) {
+          packVisibility = undefined;
+        } else if (opts.public) {
+          packVisibility = "LISTED";
+        } else {
+          packVisibility = "UNLISTED";
+        }
         try {
           const result = await publishPack({
             apiBase: api,
@@ -475,7 +475,7 @@ program
             }
             const ok = await confirm({
               message:
-                "你已用该 slug 发布过 pack。是否覆盖更新（ZIP、标题与摘要会替换；未传 --avatar 时保留原头像；页面链接不变）？",
+                "你已用该 slug 发布过 pack。是否覆盖更新（ZIP、标题与摘要会替换；未传 --avatar 时保留原头像；画廊上架状态不变；页面链接不变）？",
               default: true,
             });
             if (!ok) {
