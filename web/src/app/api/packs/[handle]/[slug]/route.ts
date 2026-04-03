@@ -3,6 +3,8 @@ import { PackVisibility } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
 import { findUserIdByApiToken } from "@/lib/token-api";
+import { normalizeShowcaseImageRefs } from "@/lib/showcase-refs";
+import { MAX_SHOWCASE_MD_CHARS } from "@/lib/upload-limits";
 
 const MAX_SUMMARY_LENGTH = 2048;
 const MAX_TITLE_LENGTH = 256;
@@ -21,6 +23,8 @@ export async function GET(req: Request, { params }: Params) {
       createdAt: true,
       visibility: true,
       authorId: true,
+      showcaseMd: true,
+      showcaseImageRefs: true,
       author: { select: { email: true, handle: true } },
     },
   });
@@ -29,10 +33,13 @@ export async function GET(req: Request, { params }: Params) {
   }
 
   const packJson = () => {
-    const { authorId: _id, author, ...rest } = pack;
+    const { authorId, author, showcaseImageRefs, ...rest } = pack;
+    void authorId;
+    const refs = normalizeShowcaseImageRefs(showcaseImageRefs);
     return {
       pack: {
         ...rest,
+        showcaseImageCount: refs.length,
         author: {
           handle: author.handle,
           email: maskEmail(author.email),
@@ -88,14 +95,19 @@ export async function PATCH(req: Request, { params }: Params) {
   const b = body as Record<string, unknown>;
   const hasTitle = "title" in b;
   const hasSummary = "summary" in b;
-  if (!hasTitle && !hasSummary) {
+  const hasShowcaseMd = "showcaseMd" in b;
+  if (!hasTitle && !hasSummary && !hasShowcaseMd) {
     return NextResponse.json(
-      { error: "provide at least one of: title, summary" },
+      { error: "provide at least one of: title, summary, showcaseMd" },
       { status: 400 }
     );
   }
 
-  const data: { title?: string; summary?: string | null } = {};
+  const data: {
+    title?: string;
+    summary?: string | null;
+    showcaseMd?: string | null;
+  } = {};
 
   if (hasTitle) {
     const rawTitle = b.title;
@@ -136,6 +148,33 @@ export async function PATCH(req: Request, { params }: Params) {
     data.summary = summary;
   }
 
+  if (hasShowcaseMd) {
+    const raw = b.showcaseMd;
+    if (raw !== null && typeof raw !== "string") {
+      return NextResponse.json(
+        { error: "showcaseMd must be a string or null" },
+        { status: 400 }
+      );
+    }
+    if (raw === null) {
+      data.showcaseMd = null;
+    } else {
+      const trimmed = raw.trim();
+      if (trimmed.length === 0) {
+        data.showcaseMd = null;
+      } else if (trimmed.length > MAX_SHOWCASE_MD_CHARS) {
+        return NextResponse.json(
+          {
+            error: `showcaseMd too long (max ${MAX_SHOWCASE_MD_CHARS} characters)`,
+          },
+          { status: 400 }
+        );
+      } else {
+        data.showcaseMd = trimmed;
+      }
+    }
+  }
+
   await prisma.pack.update({
     where: { id: pack.id },
     data,
@@ -143,11 +182,12 @@ export async function PATCH(req: Request, { params }: Params) {
 
   const updated = await prisma.pack.findUnique({
     where: { id: pack.id },
-    select: { title: true, summary: true },
+    select: { title: true, summary: true, showcaseMd: true },
   });
   return NextResponse.json({
     title: updated?.title,
     summary: updated?.summary ?? null,
+    showcaseMd: updated?.showcaseMd ?? null,
   });
 }
 

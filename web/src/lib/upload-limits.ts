@@ -11,3 +11,16 @@ export function zipTooLargeMessage(): string {
 export function avatarTooLargeMessage(): string {
   return `avatar exceeds ${MAX_AVATAR_BYTES} bytes (512 KiB limit)`;
 }
+
+/** Pack 详情页 showcase 正文（字符数）。 */
+export const MAX_SHOWCASE_MD_CHARS = 32_000;
+
+/** Showcase 画廊最多张数。 */
+export const MAX_SHOWCASE_IMAGES = 10;
+
+/** Showcase 单张图（与头像一致，上传前可经浏览器压缩）。 */
+export const MAX_SHOWCASE_IMAGE_BYTES = MAX_AVATAR_BYTES;
+
+export function showcaseImageTooLargeMessage(): string {
+  return `showcase image exceeds ${MAX_SHOWCASE_IMAGE_BYTES} bytes (512 KiB limit)`;
+}

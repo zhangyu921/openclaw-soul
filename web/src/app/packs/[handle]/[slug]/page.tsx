@@ -14,9 +14,11 @@ import { PackVisibility } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
 import { cn, privacyLinkClassName } from "@/lib/utils";
+import { normalizeShowcaseImageRefs } from "@/lib/showcase-refs";
 import { parsePackFilePaths } from "@/lib/zip-pack-preview";
 
 import AvatarUpload from "./avatar-upload";
+import PackShowcase from "./pack-showcase";
 import PackPublishButton from "./pack-publish";
 import PackRevokeButton from "./pack-revoke";
 import PackSummaryEdit from "./pack-summary-edit";
@@ -42,6 +44,8 @@ export default async function PackDetailPage({ params }: Props) {
       soulPreviewMd: true,
       soulPreviewTruncated: true,
       packFilePaths: true,
+      showcaseMd: true,
+      showcaseImageRefs: true,
       author: { select: { handle: true } },
     },
   });
@@ -56,6 +60,7 @@ export default async function PackDetailPage({ params }: Props) {
   const filePaths = parsePackFilePaths(pack.packFilePaths);
   const showPreview =
     (Boolean(pack.soulPreviewMd) || filePaths.length > 0) && (isAuthor || isListed);
+  const showcaseImageCount = normalizeShowcaseImageRefs(pack.showcaseImageRefs).length;
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
@@ -113,6 +118,15 @@ export default async function PackDetailPage({ params }: Props) {
           </div>
         </div>
       </Card>
+
+      <PackShowcase
+        handle={pack.author.handle}
+        slug={pack.slug}
+        initialShowcaseMd={pack.showcaseMd}
+        imageCount={showcaseImageCount}
+        isAuthor={isAuthor}
+        isListed={isListed}
+      />
 
       {showPreview ? (
         <div className="mt-8 space-y-6">

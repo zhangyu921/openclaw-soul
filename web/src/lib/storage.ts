@@ -52,6 +52,7 @@ export async function ensurePackDirs(): Promise<void> {
   const root = /* turbopackIgnore: true */ storageRoot();
   await fs.mkdir(path.join(root, "packs"), { recursive: true });
   await fs.mkdir(path.join(root, "avatars"), { recursive: true });
+  await fs.mkdir(path.join(root, "showcase"), { recursive: true });
 }
 
 export function zipPathForPack(packId: string): string {
@@ -156,6 +157,37 @@ export async function writeZipForPack(
   }
   await ensurePackDirs();
   const abs = zipPathForPack(packId);
+  await fs.writeFile(abs, buf);
+  return rel;
+}
+
+export function showcaseImageRelPathForPack(
+  packId: string,
+  uniqueId: string,
+  ext: string
+): string {
+  return `showcase/${packId}/${uniqueId}${ext}`;
+}
+
+export async function writeShowcaseImageForPack(
+  packId: string,
+  uniqueId: string,
+  ext: string,
+  buf: Buffer
+): Promise<string> {
+  const rel = showcaseImageRelPathForPack(packId, uniqueId, ext);
+  if (isVercelBlobStorage()) {
+    const { put } = await import("@vercel/blob");
+    const { url } = await put(rel, buf, {
+      access: blobAccess(),
+      addRandomSuffix: true,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
+    return url;
+  }
+  await ensurePackDirs();
+  const abs = path.join(/* turbopackIgnore: true */ storageRoot(), rel);
+  await fs.mkdir(path.dirname(abs), { recursive: true });
   await fs.writeFile(abs, buf);
   return rel;
 }

@@ -45,6 +45,10 @@ model Pack {
   soulPreviewTruncated Boolean   @default(false)
   /// Sorted relative paths of file entries (max count capped); full contents via zip download.
   packFilePaths        Json      @default("[]")
+  /// 详情页展示：Markdown 正文（与 zip 解耦，可重复编辑）。
+  showcaseMd           String?   @db.Text
+  /// 对话截图等展示图，顺序即展示顺序；每项为 storage 引用（本地相对路径或 Blob URL），最多 10 条。
+  showcaseImageRefs    Json      @default("[]")
   authorId             String
   author               User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt            DateTime       @default(now())
