@@ -5,6 +5,7 @@ import { readSessionUserId } from "@/lib/session";
 import { findUserIdByApiToken } from "@/lib/token-api";
 
 const MAX_SUMMARY_LENGTH = 2048;
+const MAX_TITLE_LENGTH = 256;
 
 type Params = { params: Promise<{ handle: string; slug: string }> };
 
@@ -81,31 +82,73 @@ export async function PATCH(req: Request, { params }: Params) {
   } catch {
     return NextResponse.json({ error: "invalid JSON" }, { status: 400 });
   }
-  if (typeof body !== "object" || body === null || !("summary" in body)) {
-    return NextResponse.json({ error: "summary field required" }, { status: 400 });
+  if (typeof body !== "object" || body === null) {
+    return NextResponse.json({ error: "invalid body" }, { status: 400 });
   }
-  const raw = (body as { summary: unknown }).summary;
-  if (raw !== null && typeof raw !== "string") {
-    return NextResponse.json({ error: "summary must be a string or null" }, { status: 400 });
-  }
-  const trimmed =
-    raw === null ? null : typeof raw === "string" ? raw.trim() : null;
-  const summary = trimmed && trimmed.length > 0 ? trimmed : null;
-  if (summary && summary.length > MAX_SUMMARY_LENGTH) {
+  const b = body as Record<string, unknown>;
+  const hasTitle = "title" in b;
+  const hasSummary = "summary" in b;
+  if (!hasTitle && !hasSummary) {
     return NextResponse.json(
-      {
-        error: `summary too long (max ${MAX_SUMMARY_LENGTH} characters)`,
-      },
+      { error: "provide at least one of: title, summary" },
       { status: 400 }
     );
   }
 
+  const data: { title?: string; summary?: string | null } = {};
+
+  if (hasTitle) {
+    const rawTitle = b.title;
+    if (typeof rawTitle !== "string") {
+      return NextResponse.json({ error: "title must be a string" }, { status: 400 });
+    }
+    const trimmedTitle = rawTitle.trim();
+    if (!trimmedTitle) {
+      return NextResponse.json({ error: "title cannot be empty" }, { status: 400 });
+    }
+    if (trimmedTitle.length > MAX_TITLE_LENGTH) {
+      return NextResponse.json(
+        {
+          error: `title too long (max ${MAX_TITLE_LENGTH} characters)`,
+        },
+        { status: 400 }
+      );
+    }
+    data.title = trimmedTitle;
+  }
+
+  if (hasSummary) {
+    const raw = b.summary;
+    if (raw !== null && typeof raw !== "string") {
+      return NextResponse.json({ error: "summary must be a string or null" }, { status: 400 });
+    }
+    const trimmed =
+      raw === null ? null : typeof raw === "string" ? raw.trim() : null;
+    const summary = trimmed && trimmed.length > 0 ? trimmed : null;
+    if (summary && summary.length > MAX_SUMMARY_LENGTH) {
+      return NextResponse.json(
+        {
+          error: `summary too long (max ${MAX_SUMMARY_LENGTH} characters)`,
+        },
+        { status: 400 }
+      );
+    }
+    data.summary = summary;
+  }
+
   await prisma.pack.update({
     where: { id: pack.id },
-    data: { summary },
+    data,
   });
 
-  return NextResponse.json({ summary });
+  const updated = await prisma.pack.findUnique({
+    where: { id: pack.id },
+    select: { title: true, summary: true },
+  });
+  return NextResponse.json({
+    title: updated?.title,
+    summary: updated?.summary ?? null,
+  });
 }
 
 function maskEmail(email: string): string {

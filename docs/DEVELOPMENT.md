@@ -68,7 +68,7 @@ pnpm run ocs -- login
 交互式向导（TTY）：**「整个 workspace 目录」**（等同 `--full`）在选项列表**第一位**、默认不勾选。子集模式下 **`SOUL.md` 必选**不可取消；**`IDENTITY.md`** 若存在则默认勾选，不存在则禁用；**`MEMORY.md`** 与其余可选根文件**默认不勾选**。勾选整目录后，其余根文件项变为不可选并显示为已勾选（表示整包纳入），仅可取消整目录以回到子集。
 
 ```bash
-# 交互式（TTY）：未带 --slug 时会引导选择目录，并从 IDENTITY.md 的 Name 建议 slug/title
+# 交互式（TTY）：未带 --slug 时会引导选择目录，并从 IDENTITY.md 的 Name 建议 slug；先问是否整 workspace（默认否），再问根文件。不向终端询问展示标题/摘要/头像（默认标题：IDENTITY Name 否则 slug；展示信息可在站点改）
 pnpm run ocs -- publish
 
 # 自动化 / CI：必须提供 --slug；--title 可省略（会用 IDENTITY Name 或回退为 slug）；token 用环境变量或 --token
@@ -81,7 +81,7 @@ pnpm run ocs -- publish --slug my-pack --source current
 
 非 TTY 下若未提供 `--slug`，或没有 `OPENCLAW_SOUL_TOKEN`/`--token`，命令会直接报错退出（不会挂住）。
 
-`publish` 成功后仅在 **stderr** 打印可点击查看的 pack 页面完整 URL（服务端返回的 **`viewUrl`**，优先于用 `OPENCLAW_SOUL_API` 拼接；生产请配 **`OPENCLAW_SOUL_SITE_URL`** 与主域一致）。
+`publish` 成功后仅在 **stderr** 打印可点击查看的 pack 页面完整 URL（服务端返回的 **`viewUrl`**，优先于用 `OPENCLAW_SOUL_API` 拼接；生产请配 **`OPENCLAW_SOUL_SITE_URL`** 与主域一致），并提示可在网页修改展示标题、简介、头像与上架。
 
 若服务端返回 **409**（你已用过该 `slug`）：交互模式下会询问是否**覆盖**（仅更新 ZIP、标题、摘要；`--avatar` 未传则保留原头像；URL 不变）。非交互请显式加 **`--replace`**。
 

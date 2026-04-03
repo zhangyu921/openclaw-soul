@@ -20,6 +20,7 @@ import AvatarUpload from "./avatar-upload";
 import PackPublishButton from "./pack-publish";
 import PackRevokeButton from "./pack-revoke";
 import PackSummaryEdit from "./pack-summary-edit";
+import PackTitleEdit from "./pack-title-edit";
 
 export const dynamic = "force-dynamic";
 
@@ -94,9 +95,12 @@ export default async function PackDetailPage({ params }: Props) {
             ) : null}
           </div>
           <div className="min-w-0 flex-1 text-center sm:text-left">
-            <h1 className="font-heading text-balance text-2xl font-bold tracking-tight sm:text-3xl">
-              {pack.title}
-            </h1>
+            <PackTitleEdit
+              handle={pack.author.handle}
+              slug={pack.slug}
+              initialTitle={pack.title}
+              isAuthor={isAuthor}
+            />
             <PackSummaryEdit
               handle={pack.author.handle}
               slug={pack.slug}

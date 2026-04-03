@@ -29,7 +29,7 @@ import { runDeviceLogin } from "./device-login.js";
 import { upsertEnvKeyInFile, setEnvKeyIfMissing } from "./env-cli-file.js";
 import { getUserEnvFilePath } from "./user-config-path.js";
 import { validateSlug } from "./slug.js";
-import { readIdentityDefaults } from "./read-identity.js";
+import { resolvePublishTitle } from "./resolve-publish-title.js";
 import { ensurePublishPrivacyConsent } from "./privacy-ack.js";
 import {
   assertWorkspaceRootSoulFileExists,
@@ -265,12 +265,15 @@ program
 program
   .command("publish")
   .description(
-    "将 workspace 打成 zip 并上传（需 token 或先 login）。默认子集为根目录 SOUL.md，若存在则含 IDENTITY.md；MEMORY.md 需 `--include` 追加。`--full` 整目录打包；非整目录下 `--include` 可重复追加根文件。无 `--slug` 时走交互向导"
+    "将 workspace 打成 zip 并上传（需 token 或先 login）。默认子集为根目录 SOUL.md，若存在则含 IDENTITY.md；MEMORY.md 需 `--include` 追加。`--full` 整目录打包；非整目录下 `--include` 可重复追加根文件。无 `--slug` 时走交互向导（向导不询问展示标题/摘要/头像；默认标题来自 IDENTITY Name 否则 slug，展示信息可在 registry 网页修改）。"
   )
   .option("--api <url>", "registry base URL", apiBase())
   .option("--token <token>", "API token (or OPENCLAW_SOUL_TOKEN)")
   .option("--slug <slug>", "unique slug for this pack")
-  .option("--title <title>", "display title")
+  .option(
+    "--title <title>",
+    "display title (optional; default: IDENTITY Name else slug; prefer editing on the registry site)"
+  )
   .option("--summary <text>", "short description")
   .option(
     "--source <mode>",
@@ -351,27 +354,12 @@ program
       }
 
       let slug = (opts.slug ?? "").trim();
-      let title = (opts.title ?? "").trim();
+      const explicitTitle = (opts.title ?? "").trim();
       let summary = opts.summary?.trim();
       let source = opts.source;
       let avatar = opts.avatar;
       let wizardFullZip: boolean | undefined;
       let wizardRootFiles: string[] | undefined;
-
-      if (slug && !title) {
-        let sourceDir: string | null = null;
-        if (source === "current") {
-          sourceDir = readWorkspaceFromConfig(config);
-        } else {
-          const p = resolveWorkspacePath(source);
-          if (fs.existsSync(p)) sourceDir = p;
-        }
-        if (sourceDir) {
-          const id = readIdentityDefaults(sourceDir);
-          if (id) title = id.displayName;
-        }
-        if (!title) title = slug;
-      }
 
       if (!slug) {
         if (!process.stdin.isTTY) {
@@ -382,17 +370,11 @@ program
         const w = await runPublishWizard({
           configPath: config,
           slug,
-          title,
-          summary,
           source,
-          avatar,
           skipPackRootPrompt: Boolean(opts.full),
         });
         slug = w.slug;
-        title = w.title;
-        summary = w.summary;
         source = w.source;
-        avatar = w.avatar;
         wizardFullZip = w.fullZip;
         wizardRootFiles = w.selectedRootFiles;
       }
@@ -411,6 +393,8 @@ program
         throw new Error(`Source not found: ${sourceDir}`);
       }
       assertWorkspaceRootSoulFileExists(sourceDir);
+
+      const title = resolvePublishTitle(sourceDir, slug, explicitTitle);
 
       let avatarPath: string | undefined;
       if (avatar) {
@@ -470,6 +454,9 @@ program
           });
           const viewUrl = result.viewUrl ?? `${api}${result.viewPath}`;
           console.error(`上传成功。在浏览器中查看：${viewUrl}`);
+          console.error(
+            "提示：可在网页上修改展示标题、简介与头像；需要对外公开时请在网页上架到画廊（或使用 --public）。"
+          );
           if (result.visibility === "UNLISTED" && process.stdin.isTTY) {
             console.error(
               "提示：当前为草稿（未在画廊公开）。公开请使用 `--public` 或在网站「上架到画廊」。"

@@ -6,15 +6,10 @@ import { readIdentityDefaults } from "./read-identity.js";
 import { validateSlug } from "./slug.js";
 import { WORKSPACE_ROOT_FILE_ALLOWLIST } from "./workspace-root-files.js";
 
-const PACK_FULL_SENTINEL = "__FULL_WORKSPACE__";
-
 export type WizardPublishResult = {
   slug: string;
-  title: string;
-  summary?: string;
   source: string;
-  avatar?: string;
-  /** Set when interactive file picker ran; omitted when slug/title were both preset. */
+  /** Set when interactive file picker ran; omitted when `--full` skips prompts. */
   fullZip?: boolean;
   selectedRootFiles?: string[];
 };
@@ -54,7 +49,7 @@ function listExtras(fileNames: Set<string>): string[] {
   return extras;
 }
 
-/** Build subset-mode checkbox choices. `snapshot` = checked filenames (no sentinel), when restoring after leaving full mode. */
+/** Subset-mode checkbox choices (整包由前置 confirm 处理，不在此列表中). */
 function buildSubsetChoices(
   fileNames: Set<string>,
   extras: string[],
@@ -72,11 +67,6 @@ function buildSubsetChoices(
     : false;
 
   const choices: CheckboxChoice[] = [
-    {
-      name: "整个 workspace 目录（含子文件夹，等同 --full）",
-      value: PACK_FULL_SENTINEL,
-      checked: false,
-    },
     {
       name: "SOUL.md（必选）",
       value: "SOUL.md",
@@ -109,55 +99,8 @@ function buildSubsetChoices(
   return choices;
 }
 
-function buildFullDisplayChoices(
-  fileNames: Set<string>,
-  extras: string[]
-): CheckboxChoice[] {
-  const hasIdentity = fileNames.has("IDENTITY.md");
-  const hasMemory = fileNames.has("MEMORY.md");
-
-  const choices: CheckboxChoice[] = [
-    {
-      name: "整个 workspace 目录（含子文件夹，等同 --full）",
-      value: PACK_FULL_SENTINEL,
-      checked: true,
-    },
-    {
-      name: "SOUL.md（必选）",
-      value: "SOUL.md",
-      checked: true,
-      disabled: true,
-    },
-    {
-      name: hasIdentity
-        ? "IDENTITY.md"
-        : "IDENTITY.md（根目录无此文件，不会打入 zip）",
-      value: "IDENTITY.md",
-      checked: hasIdentity,
-      disabled: true,
-    },
-    {
-      name: hasMemory
-        ? "MEMORY.md"
-        : "MEMORY.md（根目录无此文件，不会打入 zip）",
-      value: "MEMORY.md",
-      checked: hasMemory,
-      disabled: true,
-    },
-    ...extras.map((n) => ({
-      name: n,
-      value: n,
-      checked: true,
-      disabled: true,
-    })),
-  ];
-
-  return choices;
-}
-
 function normalizeSubsetSelection(picked: string[]): string[] {
-  const without = picked.filter((v) => v !== PACK_FULL_SENTINEL);
-  return [...new Set([...without, "SOUL.md"])];
+  return [...new Set([...picked, "SOUL.md"])];
 }
 
 async function promptPackRootFiles(sourceDir: string): Promise<{
@@ -167,72 +110,39 @@ async function promptPackRootFiles(sourceDir: string): Promise<{
   const fileNames = collectRootFileNames(sourceDir);
   const extras = listExtras(fileNames);
 
-  let subsetSnapshot: string[] | undefined;
+  const choices = buildSubsetChoices(fileNames, extras, undefined);
 
-  for (;;) {
-    const choices = buildSubsetChoices(fileNames, extras, subsetSnapshot);
-
-    const picked = await checkbox({
-      message: "要打入 zip 的 workspace 根文件（可多选）：",
-      choices,
-      validate: (normalized) => {
-        const values = normalized.filter((c) => c.checked).map((c) => c.value);
-        if (values.includes(PACK_FULL_SENTINEL)) return true;
-        if (values.length === 0) {
-          return "请至少选择一项（SOUL.md 为必选）";
-        }
-        return true;
-      },
-    });
-
-    if (picked.includes(PACK_FULL_SENTINEL)) {
-      subsetSnapshot = picked.filter((v) => v !== PACK_FULL_SENTINEL);
-
-      for (;;) {
-        const fullChoices = buildFullDisplayChoices(fileNames, extras);
-        const fullPicked = await checkbox({
-          message:
-            "整目录打包：仅可取消下方「整个 workspace 目录」以返回根文件子集；确认请保持该项勾选并提交。",
-          choices: fullChoices,
-          validate: () => true,
-        });
-
-        if (fullPicked.includes(PACK_FULL_SENTINEL)) {
-          return { fullZip: true };
-        }
-        break;
+  const picked = await checkbox({
+    message: "要打入 zip 的 workspace 根文件（可多选）：",
+    choices,
+    validate: (normalized) => {
+      const values = normalized.filter((c) => c.checked).map((c) => c.value);
+      if (values.length === 0) {
+        return "请至少选择一项（SOUL.md 为必选）";
       }
-      continue;
-    }
+      return true;
+    },
+  });
 
-    return {
-      fullZip: false,
-      selectedRootFiles: normalizeSubsetSelection(picked),
-    };
-  }
+  return {
+    fullZip: false,
+    selectedRootFiles: normalizeSubsetSelection(picked),
+  };
 }
 
 export async function runPublishWizard(params: {
   configPath: string;
   slug: string;
-  title: string;
-  summary?: string;
   source: string;
-  avatar?: string;
   /** When true, do not prompt for root files (caller already passed e.g. `--full`). */
   skipPackRootPrompt?: boolean;
 }): Promise<WizardPublishResult> {
   let source = params.source;
-  let summary = (params.summary ?? "").trim();
-  let avatar = params.avatar;
   let slug = params.slug.trim();
-  let title = params.title.trim();
   let fullZip: boolean | undefined;
   let selectedRootFiles: string[] | undefined;
 
-  const missingSlugOrTitle = !slug || !title;
-
-  if (missingSlugOrTitle) {
+  if (!slug) {
     const sourceChoice = await select({
       message: "Pack from:",
       choices: [
@@ -261,83 +171,43 @@ export async function runPublishWizard(params: {
     const sourceDir = resolveSourceDir(source, params.configPath);
     const identity = readIdentityDefaults(sourceDir);
     const defaultSlug = identity?.slugCandidate ?? "";
-    const defaultTitle = identity?.displayName ?? (defaultSlug || "persona");
 
-    if (!slug) {
-      const s = await input({
-        message: "Pack slug (from IDENTITY Name if present):",
-        default: defaultSlug || undefined,
-        validate: (raw) => {
-          const t = raw.trim();
-          if (!t) return "Required";
-          try {
-            validateSlug(t);
-            return true;
-          } catch (e) {
-            return (e as Error).message;
-          }
-        },
-      });
-      slug = s.trim();
-    }
+    const s = await input({
+      message: "Pack slug (from IDENTITY Name if present):",
+      default: defaultSlug || undefined,
+      validate: (raw) => {
+        const t = raw.trim();
+        if (!t) return "Required";
+        try {
+          validateSlug(t);
+          return true;
+        } catch (e) {
+          return (e as Error).message;
+        }
+      },
+    });
+    slug = s.trim();
     validateSlug(slug);
 
-    if (!title) {
-      const t = await input({
-        message: "Display title (Enter = use persona name or slug):",
-        default: defaultTitle,
-      });
-      title = t.trim() || defaultTitle;
-    }
-
     if (!params.skipPackRootPrompt) {
-      const pick = await promptPackRootFiles(sourceDir);
-      fullZip = pick.fullZip;
-      selectedRootFiles = pick.selectedRootFiles;
-    }
-
-    const customize = await confirm({
-      message: "Customize summary or avatar?",
-      default: false,
-    });
-
-    if (customize) {
-      summary = (
-        await input({
-          message: "Summary (optional, Enter to skip):",
-          default: summary,
-        })
-      ).trim();
-
-      const wantAvatar = await confirm({
-        message: "Add avatar image?",
+      const wantFull = await confirm({
+        message:
+          "是否上传整个 workspace 目录（含子文件夹，等同 --full）？",
         default: false,
       });
-      if (wantAvatar) {
-        const p = await input({
-          message: "Avatar file path:",
-          validate: (raw) => {
-            const t = raw.trim();
-            if (!t) return "Required";
-            const abs = resolveWorkspacePath(t);
-            if (!fs.existsSync(abs)) return "File not found";
-            if (!fs.statSync(abs).isFile()) return "Not a file";
-            return true;
-          },
-        });
-        avatar = resolveWorkspacePath(p.trim());
+      if (wantFull) {
+        fullZip = true;
       } else {
-        avatar = undefined;
+        const pick = await promptPackRootFiles(sourceDir);
+        fullZip = pick.fullZip;
+        selectedRootFiles = pick.selectedRootFiles;
       }
     }
   }
 
   const out: WizardPublishResult = {
     slug,
-    title,
-    summary: summary || undefined,
     source,
-    avatar,
   };
   if (fullZip !== undefined) {
     out.fullZip = fullZip;

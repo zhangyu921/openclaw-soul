@@ -35,7 +35,7 @@ npx @openclaw-soul/cli apply <handle>/<slug>
 
 完整子命令与备份/恢复工具见 npm 包说明：**[`packages/cli/README.md`](packages/cli/README.md)**。
 
-`publish` 非交互默认打包 workspace **根目录**的 `SOUL.md` 与（若存在）`IDENTITY.md`；根目录无 `SOUL.md` 会失败退出。`MEMORY.md` 需 **`--include MEMORY.md`** 或在向导中勾选。整目录用 **`--full`**；额外根文件可重复 **`--include <file>`**。交互式向导里「整目录」在首位；子集模式下 `SOUL.md` 必选，`IDENTITY.md` 存在则默认勾选，`MEMORY.md` 默认不勾选。
+`publish` 非交互默认打包 workspace **根目录**的 `SOUL.md` 与（若存在）`IDENTITY.md`；根目录无 `SOUL.md` 会失败退出。`MEMORY.md` 需 **`--include MEMORY.md`** 或在向导中勾选。整目录用 **`--full`**；额外根文件可重复 **`--include <file>`**。交互式向导会先询问是否上传**整个 workspace**（默认否）；选否时再勾选根目录文件。向导**不**再询问展示标题/摘要/头像（默认标题为 IDENTITY **Name**，否则为 slug；可在 registry 网页修改）。子集模式下 `SOUL.md` 必选，`IDENTITY.md` 存在则默认勾选，`MEMORY.md` 默认不勾选。
 
 `login` 使用浏览器授权（device flow），token 写入本机配置（见下）。
 
