@@ -181,12 +181,13 @@ function VisitorGallery({
   }, []);
 
   return (
-    <div className="relative -mx-4 sm:-mx-6">
+    <div className="relative ml-0 -mr-4 sm:-mr-6">
       <div
         ref={scrollRef}
         className={cn(
-          "flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-2 pl-6 pr-4 sm:pl-8 sm:pr-6",
-          "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          "flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-2 pl-0 pr-3 sm:pr-4",
+          "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          "[mask-image:linear-gradient(to_right,black_0,black_calc(100%-1.25rem),transparent_100%)]"
         )}
       >
         {Array.from({ length: imageCount }, (_, i) => (
@@ -587,8 +588,6 @@ export default function PackShowcase({
             <CardTitle className="text-base">Showcase</CardTitle>
             <CardDescription>
               展示对话截图与补充说明（Markdown）。未上架时仅本人可见；上架后随详情页公开。
-              {isAuthor && !showcaseEditMode ? " 作者点「编辑截图」可排序与增删，保存后生效。" : null}
-              {isAuthor && showcaseEditMode ? " 编辑中：调整完成后点「保存截图」。" : null}
             </CardDescription>
           </div>
           {isAuthor ? (
@@ -606,49 +605,6 @@ export default function PackShowcase({
                 <Pencil className="size-4" aria-hidden />
                 编辑正文
               </Button>
-              {!showcaseEditMode ? (
-                <Button type="button" variant="secondary" size="sm" onClick={() => enterShowcaseEditMode()}>
-                  编辑截图
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={uploading}
-                    onClick={() => cancelShowcaseEditMode()}
-                  >
-                    取消
-                  </Button>
-                  <Button type="button" size="sm" disabled={uploading} onClick={() => saveShowcaseEdits()}>
-                    {uploading ? "…" : "保存截图"}
-                  </Button>
-                  <div className="relative">
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/png,image/jpeg,image/gif,image/webp"
-                      className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
-                      disabled={uploading || draftTokens.length >= MAX_SHOWCASE_IMAGES}
-                      aria-label="添加展示图"
-                      title="添加展示图"
-                      onChange={onPickShowcaseImages}
-                    />
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      className="pointer-events-none gap-1"
-                      disabled={uploading || draftTokens.length >= MAX_SHOWCASE_IMAGES}
-                    >
-                      <ImagePlus className="size-4" aria-hidden />
-                      添加图片
-                      {draftTokens.length > 0 ? ` (${draftTokens.length}/${MAX_SHOWCASE_IMAGES})` : ""}
-                    </Button>
-                  </div>
-                </>
-              )}
             </div>
           ) : null}
         </CardHeader>
@@ -683,10 +639,62 @@ export default function PackShowcase({
 
           {hasGallery || isAuthor ? (
             <div className="space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-medium text-muted-foreground">对话截图</p>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+                  <p className="shrink-0 text-sm font-medium text-muted-foreground">对话截图</p>
+                  {isAuthor && !showcaseEditMode ? (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="shrink-0"
+                      onClick={() => enterShowcaseEditMode()}
+                    >
+                      编辑截图
+                    </Button>
+                  ) : null}
+                  {isAuthor && showcaseEditMode ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={uploading}
+                        onClick={() => cancelShowcaseEditMode()}
+                      >
+                        取消
+                      </Button>
+                      <Button type="button" size="sm" disabled={uploading} onClick={() => saveShowcaseEdits()}>
+                        {uploading ? "…" : "保存截图"}
+                      </Button>
+                      <div className="relative">
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/png,image/jpeg,image/gif,image/webp"
+                          className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
+                          disabled={uploading || draftTokens.length >= MAX_SHOWCASE_IMAGES}
+                          aria-label="添加展示图"
+                          title="添加展示图"
+                          onChange={onPickShowcaseImages}
+                        />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          className="pointer-events-none gap-1"
+                          disabled={uploading || draftTokens.length >= MAX_SHOWCASE_IMAGES}
+                        >
+                          <ImagePlus className="size-4" aria-hidden />
+                          添加图片
+                          {draftTokens.length > 0 ? ` (${draftTokens.length}/${MAX_SHOWCASE_IMAGES})` : ""}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
                 {!showcaseEditMode && imageCount > 2 ? (
-                  <div className="flex gap-1">
+                  <div className="flex shrink-0 gap-1 self-start sm:self-center">
                     <Button
                       type="button"
                       variant="ghost"
@@ -726,7 +734,9 @@ export default function PackShowcase({
                         onOpenLightbox={openLightboxFromToken}
                       />
                     ) : (
-                      <p className="text-sm text-muted-foreground">点击下方「添加图片」上传截图（单张最大约 2 MiB）。</p>
+                      <p className="text-sm text-muted-foreground">
+                        在上方「添加图片」上传截图（单张最大约 2 MiB）。
+                      </p>
                     )
                   ) : hasGallery ? (
                     <VisitorGallery
@@ -802,16 +812,21 @@ export default function PackShowcase({
 
       <Dialog open={lightbox !== null} onOpenChange={(o) => !o && setLightbox(null)}>
         <DialogContent
-          className="flex max-h-[min(96vh,920px)] w-[min(96vw,90rem)] max-w-[95vw] border-0 bg-transparent p-3 shadow-none sm:p-4"
+          className={cn(
+            "!fixed !inset-0 !left-0 !top-0 !h-[100dvh] !max-h-[100dvh] !w-screen !max-w-none !translate-x-0 !translate-y-0",
+            "!rounded-none border-0 bg-black/88 p-0 pt-14 pb-3 shadow-none sm:!max-w-none sm:pt-16 sm:pb-4",
+            "flex flex-col items-center justify-center gap-0 text-white",
+            "[&_[data-slot=dialog-close]_button]:text-white [&_[data-slot=dialog-close]_button]:hover:bg-white/10"
+          )}
           showCloseButton
         >
           {lightboxSrc ? (
-            <div className="flex max-h-[min(92vh,900px)] w-full items-center justify-center">
+            <div className="flex h-[calc(100dvh-3.75rem)] w-full max-w-[100vw] items-center justify-center px-2 sm:h-[calc(100dvh-4.5rem)] sm:px-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={lightboxSrc}
                 alt=""
-                className="max-h-[min(88vh,900px)] w-auto max-w-full rounded-lg object-contain shadow-2xl ring-1 ring-white/10"
+                className="max-h-full max-w-full object-contain shadow-2xl ring-1 ring-white/15"
               />
             </div>
           ) : null}
