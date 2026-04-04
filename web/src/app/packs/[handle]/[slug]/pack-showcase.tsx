@@ -1,6 +1,10 @@
 "use client";
 
-import { compressAvatarForUpload } from "@/lib/compress-avatar-client";
+import { compressShowcaseForUpload } from "@/lib/compress-showcase-client";
+import {
+  applyShowcaseBatchSave,
+  type DraftToken,
+} from "@/lib/showcase-batch-save";
 import { MAX_SHOWCASE_IMAGES, MAX_SHOWCASE_MD_CHARS } from "@/lib/upload-limits";
 import {
   DndContext,
@@ -14,16 +18,23 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
 import {
   SortableContext,
   arrayMove,
-  horizontalListSortingStrategy,
+  rectSortingStrategy,
   sortableKeyboardCoordinates,
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ChevronLeft, ChevronRight, GripVertical, ImagePlus, Pencil, Trash2, ZoomIn } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  GripVertical,
+  ImagePlus,
+  Pencil,
+  Trash2,
+  ZoomIn,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -47,9 +58,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
-/** 展示图定高（px）；约 1:1 时三张并排 ≈ 3*h + gap，可落入常见首屏宽度。 */
+/** 展示态横向画廊定高（px）。 */
 const GALLERY_H_PX = 176;
-/** 最大宽高比 width / height（防止过于扁宽） */
 const MAX_W_TO_H = 2;
 
 function showcaseImageUrl(
@@ -67,149 +77,34 @@ function boxWidthPx(aspectRatio: number | undefined): number {
   return GALLERY_H_PX * Math.min(ar, MAX_W_TO_H);
 }
 
-type SortableTileProps = {
-  handle: string;
-  slug: string;
-  serverIndex: number;
-  cacheBust: number;
-  isAuthor: boolean;
-  onOpenLightbox: (serverIndex: number) => void;
-  onRemove: (serverIndex: number) => void;
-  sortableId: string;
-  aspectByServerIndex: Record<number, number>;
-  onMeasured: (serverIndex: number, width: number, height: number) => void;
-};
-
-function SortableShowcaseTile({
-  handle,
-  slug,
-  serverIndex,
-  cacheBust,
-  isAuthor,
-  onOpenLightbox,
-  onRemove,
-  sortableId,
-  aspectByServerIndex,
-  onMeasured,
-}: SortableTileProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: sortableId,
-  });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 50 : undefined,
-  };
-
-  const ar = aspectByServerIndex[serverIndex];
-  const wPx = boxWidthPx(ar);
-
-  return (
-    <figure
-      ref={setNodeRef}
-      style={style}
-      className={cn(
-        "group relative shrink-0 snap-start snap-always overflow-hidden rounded-xl bg-muted shadow-inner ring-1 ring-border/50",
-        isDragging && "opacity-90 shadow-lg ring-2 ring-primary/50"
-      )}
-    >
-      <div
-        className="relative flex flex-col"
-        style={{ width: wPx, maxWidth: `${GALLERY_H_PX * MAX_W_TO_H}px` }}
-      >
-        {isAuthor ? (
-          <button
-            type="button"
-            className="touch-none flex h-9 shrink-0 cursor-grab items-center justify-center gap-1 border-b border-border/60 bg-muted/80 text-muted-foreground active:cursor-grabbing"
-            aria-label="拖拽排序"
-            {...attributes}
-            {...listeners}
-          >
-            <GripVertical className="size-4" aria-hidden />
-            <span className="text-[10px] font-medium uppercase tracking-wide">拖拽</span>
-          </button>
-        ) : null}
-        <div
-          className="relative flex items-center justify-center bg-muted/60"
-          style={{ height: GALLERY_H_PX, width: wPx }}
-        >
-          <button
-            type="button"
-            className="relative flex max-h-full max-w-full cursor-zoom-in items-center justify-center outline-none transition hover:ring-2 hover:ring-primary/40 focus-visible:ring-2 focus-visible:ring-primary"
-            onClick={() => onOpenLightbox(serverIndex)}
-            aria-label="查看大图"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={showcaseImageUrl(handle, slug, serverIndex, cacheBust)}
-              alt=""
-              className={cn(
-                "max-h-full max-w-full object-contain",
-                ar !== undefined && ar > MAX_W_TO_H && "object-cover"
-              )}
-              style={
-                ar !== undefined && ar > MAX_W_TO_H
-                  ? { width: GALLERY_H_PX * MAX_W_TO_H, height: GALLERY_H_PX }
-                  : undefined
-              }
-              loading="lazy"
-              decoding="async"
-              draggable={false}
-              onLoad={(e) => {
-                const el = e.currentTarget;
-                onMeasured(serverIndex, el.naturalWidth, el.naturalHeight);
-              }}
-            />
-            <span className="pointer-events-none absolute bottom-2 right-2 flex size-8 items-center justify-center rounded-full bg-background/80 text-muted-foreground shadow backdrop-blur-sm">
-              <ZoomIn className="size-4" aria-hidden />
-            </span>
-          </button>
-        </div>
-        {isAuthor ? (
-          <div className="flex justify-end border-t border-border/60 bg-muted/40 px-1 py-1">
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="destructive"
-              className="size-8 shadow"
-              aria-label="删除"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemove(serverIndex);
-              }}
-            >
-              <Trash2 className="size-4" />
-            </Button>
-          </div>
-        ) : null}
-      </div>
-    </figure>
-  );
+function tokenSortableId(t: DraftToken): string {
+  return t.kind === "server" ? `s-${t.initialIdx}` : `p-${t.id}`;
 }
 
-type StaticTileProps = {
+type LightboxState =
+  | { kind: "server"; index: number }
+  | { kind: "pending"; id: string; src: string }
+  | null;
+
+type DisplayTileProps = {
   handle: string;
   slug: string;
   serverIndex: number;
   cacheBust: number;
-  isAuthor: boolean;
   onOpenLightbox: (serverIndex: number) => void;
-  onRemove: (serverIndex: number) => void;
   aspectByServerIndex: Record<number, number>;
   onMeasured: (serverIndex: number, width: number, height: number) => void;
 };
 
-function StaticShowcaseTile({
+function DisplayShowcaseTile({
   handle,
   slug,
   serverIndex,
   cacheBust,
-  isAuthor,
   onOpenLightbox,
-  onRemove,
   aspectByServerIndex,
   onMeasured,
-}: StaticTileProps) {
+}: DisplayTileProps) {
   const ar = aspectByServerIndex[serverIndex];
   const wPx = boxWidthPx(ar);
 
@@ -258,155 +153,8 @@ function StaticShowcaseTile({
             </span>
           </button>
         </div>
-        {isAuthor ? (
-          <div className="flex justify-end border-t border-border/60 bg-muted/40 px-1 py-1">
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="destructive"
-              className="size-8 shadow"
-              aria-label="删除"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemove(serverIndex);
-              }}
-            >
-              <Trash2 className="size-4" />
-            </Button>
-          </div>
-        ) : null}
       </div>
     </figure>
-  );
-}
-
-type GalleryProps = {
-  handle: string;
-  slug: string;
-  imageCount: number;
-  cacheBust: number;
-  onOpenLightbox: (serverIndex: number) => void;
-  onRemove: (serverIndex: number) => void;
-  onReorder: (order: number[]) => Promise<boolean>;
-  scrollRef: React.RefObject<HTMLDivElement | null>;
-};
-
-function AuthorSortableGallery({
-  handle,
-  slug,
-  imageCount,
-  cacheBust,
-  onOpenLightbox,
-  onRemove,
-  onReorder,
-  scrollRef,
-}: GalleryProps) {
-  const [orderedIds, setOrderedIds] = useState<number[]>(() =>
-    Array.from({ length: imageCount }, (_, i) => i)
-  );
-  const [aspectByServerIndex, setAspectByServerIndex] = useState<Record<number, number>>({});
-  const [activeId, setActiveId] = useState<string | null>(null);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
-
-  const measure = useCallback((serverIndex: number, w: number, h: number) => {
-    if (h <= 0 || w <= 0) return;
-    const r = w / h;
-    setAspectByServerIndex((prev) => (prev[serverIndex] === r ? prev : { ...prev, [serverIndex]: r }));
-  }, []);
-
-  const sortableIds = useMemo(() => orderedIds.map((sid) => `img-${sid}`), [orderedIds]);
-
-  function onDragStart(e: DragStartEvent) {
-    setActiveId(String(e.active.id));
-  }
-
-  function onDragEnd(e: DragEndEvent) {
-    setActiveId(null);
-    const { active, over } = e;
-    if (!over || active.id === over.id) return;
-    const oldIndex = sortableIds.indexOf(String(active.id));
-    const newIndex = sortableIds.indexOf(String(over.id));
-    if (oldIndex < 0 || newIndex < 0) return;
-
-    const previous = orderedIds;
-    const next = arrayMove(orderedIds, oldIndex, newIndex);
-    setOrderedIds(next);
-    void (async () => {
-      const ok = await onReorder(next);
-      if (!ok) setOrderedIds(previous);
-    })();
-  }
-
-  function onDragCancel() {
-    setActiveId(null);
-  }
-
-  const activeServerIndex =
-    activeId && activeId.startsWith("img-") ? Number.parseInt(activeId.slice(4), 10) : null;
-
-  return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      modifiers={[restrictToHorizontalAxis]}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-      onDragCancel={onDragCancel}
-    >
-      <div className="relative -mx-4 sm:-mx-6">
-        <div
-          ref={scrollRef}
-          className={cn(
-            "flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-2 pl-6 pr-4 sm:pl-8 sm:pr-6",
-            "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          )}
-        >
-          <SortableContext items={sortableIds} strategy={horizontalListSortingStrategy}>
-            {orderedIds.map((serverIndex) => (
-              <SortableShowcaseTile
-                key={`img-${serverIndex}`}
-                handle={handle}
-                slug={slug}
-                serverIndex={serverIndex}
-                cacheBust={cacheBust}
-                isAuthor
-                sortableId={`img-${serverIndex}`}
-                onOpenLightbox={onOpenLightbox}
-                onRemove={onRemove}
-                aspectByServerIndex={aspectByServerIndex}
-                onMeasured={measure}
-              />
-            ))}
-          </SortableContext>
-        </div>
-      </div>
-      <DragOverlay dropAnimation={null}>
-        {activeServerIndex !== null && !Number.isNaN(activeServerIndex) ? (
-          <div
-            className="pointer-events-none overflow-hidden rounded-xl bg-muted shadow-2xl ring-2 ring-primary/40"
-            style={{ width: boxWidthPx(aspectByServerIndex[activeServerIndex]) }}
-          >
-            <div className="flex h-9 items-center justify-center border-b border-border/60 bg-muted/80 text-[10px] text-muted-foreground">
-              排序中…
-            </div>
-            <div className="relative bg-muted/60" style={{ height: GALLERY_H_PX }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={showcaseImageUrl(handle, slug, activeServerIndex, cacheBust)}
-                alt=""
-                className="size-full object-cover"
-                draggable={false}
-              />
-            </div>
-          </div>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
   );
 }
 
@@ -417,10 +165,14 @@ function VisitorGallery({
   cacheBust,
   onOpenLightbox,
   scrollRef,
-}: Pick<
-  GalleryProps,
-  "handle" | "slug" | "imageCount" | "cacheBust" | "onOpenLightbox" | "scrollRef"
-> & { onRemove?: never }) {
+}: {
+  handle: string;
+  slug: string;
+  imageCount: number;
+  cacheBust: number;
+  onOpenLightbox: (serverIndex: number) => void;
+  scrollRef: React.RefObject<HTMLDivElement | null>;
+}) {
   const [aspectByServerIndex, setAspectByServerIndex] = useState<Record<number, number>>({});
   const measure = useCallback((serverIndex: number, w: number, h: number) => {
     if (h <= 0 || w <= 0) return;
@@ -438,21 +190,204 @@ function VisitorGallery({
         )}
       >
         {Array.from({ length: imageCount }, (_, i) => (
-          <StaticShowcaseTile
+          <DisplayShowcaseTile
             key={i}
             handle={handle}
             slug={slug}
             serverIndex={i}
             cacheBust={cacheBust}
-            isAuthor={false}
             onOpenLightbox={onOpenLightbox}
-            onRemove={() => {}}
             aspectByServerIndex={aspectByServerIndex}
             onMeasured={measure}
           />
         ))}
       </div>
     </div>
+  );
+}
+
+function EditGridTile({
+  token,
+  handle,
+  slug,
+  cacheBust,
+  previewUrl,
+  onRemove,
+  onOpenLightbox,
+}: {
+  token: DraftToken;
+  handle: string;
+  slug: string;
+  cacheBust: number;
+  previewUrl: string | null;
+  onRemove: () => void;
+  onOpenLightbox: () => void;
+}) {
+  const id = tokenSortableId(token);
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+  });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  const src =
+    token.kind === "server"
+      ? showcaseImageUrl(handle, slug, token.initialIdx, cacheBust)
+      : previewUrl ?? "";
+
+  return (
+    <figure
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "group relative aspect-square w-[calc(50%-0.375rem)] max-w-[9rem] shrink-0 overflow-hidden rounded-xl bg-muted shadow-inner ring-1 ring-border/50 sm:w-28",
+        isDragging && "opacity-90 shadow-lg ring-2 ring-primary/50"
+      )}
+    >
+      <div className="relative size-full min-h-0">
+        <button
+          type="button"
+          className="relative size-full cursor-zoom-in outline-none"
+          onClick={onOpenLightbox}
+          aria-label="查看大图"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt=""
+            className="size-full object-cover"
+            draggable={false}
+          />
+          <span className="pointer-events-none absolute bottom-1.5 right-1.5 flex size-7 items-center justify-center rounded-full bg-background/85 text-muted-foreground shadow backdrop-blur-sm">
+            <ZoomIn className="size-3.5" aria-hidden />
+          </span>
+        </button>
+        <button
+          type="button"
+          className={cn(
+            "touch-none absolute left-1 top-1 flex size-7 cursor-grab items-center justify-center rounded-md border border-border/60 bg-background/90 text-muted-foreground shadow-sm backdrop-blur-sm active:cursor-grabbing",
+            "opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100"
+          )}
+          aria-label="拖拽排序"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="size-3.5" aria-hidden />
+        </button>
+        <Button
+          type="button"
+          size="icon-sm"
+          variant="destructive"
+          className="absolute right-1 top-1 size-7 shadow"
+          aria-label="移除"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+        >
+          <Trash2 className="size-3.5" />
+        </Button>
+      </div>
+    </figure>
+  );
+}
+
+function EditShowcaseGrid({
+  handle,
+  slug,
+  cacheBust,
+  draftTokens,
+  onChangeDraft,
+  previewByPendingId,
+  onRemoveToken,
+  onOpenLightbox,
+}: {
+  handle: string;
+  slug: string;
+  cacheBust: number;
+  draftTokens: DraftToken[];
+  onChangeDraft: (next: DraftToken[]) => void;
+  previewByPendingId: Record<string, string>;
+  onRemoveToken: (t: DraftToken) => void;
+  onOpenLightbox: (t: DraftToken) => void;
+}) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 220, tolerance: 12 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const sortableIds = useMemo(() => draftTokens.map(tokenSortableId), [draftTokens]);
+
+  function onDragStart(e: DragStartEvent) {
+    setActiveId(String(e.active.id));
+  }
+
+  function onDragEnd(e: DragEndEvent) {
+    setActiveId(null);
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIndex = sortableIds.indexOf(String(active.id));
+    const newIndex = sortableIds.indexOf(String(over.id));
+    if (oldIndex < 0 || newIndex < 0) return;
+    onChangeDraft(arrayMove(draftTokens, oldIndex, newIndex));
+  }
+
+  function onDragCancel() {
+    setActiveId(null);
+  }
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onDragCancel={onDragCancel}
+    >
+      <SortableContext items={sortableIds} strategy={rectSortingStrategy}>
+        <div className="flex flex-wrap gap-3">
+          {draftTokens.map((t) => (
+            <EditGridTile
+              key={tokenSortableId(t)}
+              token={t}
+              handle={handle}
+              slug={slug}
+              cacheBust={cacheBust}
+              previewUrl={t.kind === "pending" ? (previewByPendingId[t.id] ?? null) : null}
+              onRemove={() => onRemoveToken(t)}
+              onOpenLightbox={() => onOpenLightbox(t)}
+            />
+          ))}
+        </div>
+      </SortableContext>
+      <DragOverlay dropAnimation={null}>
+        {activeId ? (
+          <div className="pointer-events-none aspect-square w-28 overflow-hidden rounded-xl bg-muted ring-2 ring-primary/40">
+            <div className="flex h-8 items-center justify-center border-b border-border/60 text-[10px] text-muted-foreground">
+              排序中…
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={
+                activeId.startsWith("p-")
+                  ? previewByPendingId[activeId.slice("p-".length)] ?? ""
+                  : (() => {
+                      const idx = Number.parseInt(activeId.replace(/^s-/, ""), 10);
+                      return showcaseImageUrl(handle, slug, idx, cacheBust);
+                    })()
+              }
+              alt=""
+              className="size-full object-cover"
+            />
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 }
 
@@ -473,7 +408,7 @@ export default function PackShowcase({
 }) {
   const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [lightbox, setLightbox] = useState<number | null>(null);
+  const [lightbox, setLightbox] = useState<LightboxState>(null);
   const [mdOpen, setMdOpen] = useState(false);
   const [mdValue, setMdValue] = useState(initialShowcaseMd ?? "");
   const [mdError, setMdError] = useState<string | null>(null);
@@ -482,6 +417,11 @@ export default function PackShowcase({
   const [uploading, setUploading] = useState(false);
   const [imageCount, setImageCount] = useState(initialImageCount);
   const [cacheBust, setCacheBust] = useState(0);
+
+  const [showcaseEditMode, setShowcaseEditMode] = useState(false);
+  const [editSnapshotCount, setEditSnapshotCount] = useState(0);
+  const [draftTokens, setDraftTokens] = useState<DraftToken[]>([]);
+  const [previewByPendingId, setPreviewByPendingId] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setMdValue(initialShowcaseMd ?? "");
@@ -504,24 +444,104 @@ export default function PackShowcase({
     el.scrollBy({ left: dir * amount, behavior: "smooth" });
   }, []);
 
-  async function onReorder(order: number[]): Promise<boolean> {
+  function enterShowcaseEditMode() {
     setUploadStatus(null);
-    const res = await fetch(
-      `/api/packs/${encodeURIComponent(handle)}/${encodeURIComponent(slug)}/showcase-image`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order }),
+    const n = imageCount;
+    setEditSnapshotCount(n);
+    setDraftTokens(Array.from({ length: n }, (_, i) => ({ kind: "server" as const, initialIdx: i })));
+    setShowcaseEditMode(true);
+  }
+
+  function cancelShowcaseEditMode() {
+    Object.values(previewByPendingId).forEach((u) => URL.revokeObjectURL(u));
+    setPreviewByPendingId({});
+    setDraftTokens([]);
+    setShowcaseEditMode(false);
+  }
+
+  async function saveShowcaseEdits() {
+    setUploadStatus(null);
+    setUploading(true);
+    try {
+      const result = await applyShowcaseBatchSave(handle, slug, draftTokens, editSnapshotCount);
+      if (!result.ok) {
+        setUploadStatus(result.error);
+        return;
       }
-    );
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setUploadStatus(typeof data.error === "string" ? data.error : "Reorder failed");
-      return false;
+      setCacheBust((c) => c + 1);
+      Object.values(previewByPendingId).forEach((u) => URL.revokeObjectURL(u));
+      setPreviewByPendingId({});
+      setShowcaseEditMode(false);
+      setDraftTokens([]);
+      router.refresh();
+    } finally {
+      setUploading(false);
     }
-    setCacheBust((n) => n + 1);
-    router.refresh();
-    return true;
+  }
+
+  function removeDraftToken(t: DraftToken) {
+    if (t.kind === "pending") {
+      const u = previewByPendingId[t.id];
+      if (u) URL.revokeObjectURL(u);
+      setPreviewByPendingId((prev) => {
+        const next = { ...prev };
+        delete next[t.id];
+        return next;
+      });
+    }
+    setDraftTokens((prev) =>
+      prev.filter((x) => {
+        if (x.kind !== t.kind) return true;
+        if (x.kind === "server" && t.kind === "server") return x.initialIdx !== t.initialIdx;
+        if (x.kind === "pending" && t.kind === "pending") return x.id !== t.id;
+        return true;
+      })
+    );
+  }
+
+  function openLightboxFromToken(t: DraftToken) {
+    if (t.kind === "server") {
+      setLightbox({ kind: "server", index: t.initialIdx });
+    } else {
+      const src = previewByPendingId[t.id];
+      if (src) setLightbox({ kind: "pending", id: t.id, src });
+    }
+  }
+
+  async function onPickShowcaseImages(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files?.length) return;
+    setUploadStatus(null);
+    setUploading(true);
+    try {
+      const remaining = MAX_SHOWCASE_IMAGES - draftTokens.length;
+      if (remaining <= 0) {
+        setUploadStatus(`最多 ${MAX_SHOWCASE_IMAGES} 张`);
+        return;
+      }
+      const toAdd = Array.from(files).slice(0, remaining);
+      const nextTokens = [...draftTokens];
+      const nextPreview = { ...previewByPendingId };
+
+      for (const file of toAdd) {
+        let toSend = file;
+        try {
+          toSend = await compressShowcaseForUpload(file);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          setUploadStatus(msg);
+          return;
+        }
+        const id = crypto.randomUUID();
+        nextPreview[id] = URL.createObjectURL(toSend);
+        nextTokens.push({ kind: "pending", id, file: toSend });
+      }
+      setPreviewByPendingId(nextPreview);
+      setDraftTokens(nextTokens);
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
   }
 
   if (!isAuthor && !visitorCanSee) {
@@ -552,66 +572,12 @@ export default function PackShowcase({
     }
   }
 
-  async function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadStatus(null);
-    setUploading(true);
-    try {
-      let toSend = file;
-      try {
-        toSend = await compressAvatarForUpload(file);
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        setUploadStatus(msg);
-        return;
-      }
-      const form = new FormData();
-      form.append("image", toSend);
-      const res = await fetch(
-        `/api/packs/${encodeURIComponent(handle)}/${encodeURIComponent(slug)}/showcase-image`,
-        { method: "POST", body: form }
-      );
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setUploadStatus(typeof data.error === "string" ? data.error : "Upload failed");
-        return;
-      }
-      if (typeof data.count === "number") setImageCount(data.count);
-      setUploadStatus("已添加。");
-      setCacheBust((n) => n + 1);
-      router.refresh();
-    } finally {
-      setUploading(false);
-      e.target.value = "";
-    }
-  }
-
-  async function removeImage(serverIndex: number) {
-    setUploadStatus(null);
-    const res = await fetch(
-      `/api/packs/${encodeURIComponent(handle)}/${encodeURIComponent(slug)}/showcase-image`,
-      {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ index: serverIndex }),
-      }
-    );
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setUploadStatus(typeof data.error === "string" ? data.error : "Delete failed");
-      return;
-    }
-    if (typeof data.count === "number") setImageCount(data.count);
-    setLightbox((prev) => {
-      if (prev === null) return prev;
-      if (prev === serverIndex) return null;
-      if (prev > serverIndex) return prev - 1;
-      return prev;
-    });
-    setCacheBust((n) => n + 1);
-    router.refresh();
-  }
+  const lightboxSrc =
+    lightbox?.kind === "server"
+      ? showcaseImageUrl(handle, slug, lightbox.index, cacheBust)
+      : lightbox?.kind === "pending"
+        ? lightbox.src
+        : null;
 
   return (
     <>
@@ -621,7 +587,8 @@ export default function PackShowcase({
             <CardTitle className="text-base">Showcase</CardTitle>
             <CardDescription>
               展示对话截图与补充说明（Markdown）。未上架时仅本人可见；上架后随详情页公开。
-              {isAuthor ? " 图片可拖拽排序。" : null}
+              {isAuthor && !showcaseEditMode ? " 作者点「编辑截图」可排序与增删，保存后生效。" : null}
+              {isAuthor && showcaseEditMode ? " 编辑中：调整完成后点「保存截图」。" : null}
             </CardDescription>
           </div>
           {isAuthor ? (
@@ -639,28 +606,49 @@ export default function PackShowcase({
                 <Pencil className="size-4" aria-hidden />
                 编辑正文
               </Button>
-              <div className="relative">
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/gif,image/webp"
-                  className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
-                  disabled={uploading || imageCount >= MAX_SHOWCASE_IMAGES}
-                  aria-label="上传展示图"
-                  title="上传展示图"
-                  onChange={onPickImage}
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="pointer-events-none gap-1"
-                  disabled={uploading || imageCount >= MAX_SHOWCASE_IMAGES}
-                >
-                  <ImagePlus className="size-4" aria-hidden />
-                  添加图片
-                  {imageCount > 0 ? ` (${imageCount}/${MAX_SHOWCASE_IMAGES})` : ""}
+              {!showcaseEditMode ? (
+                <Button type="button" variant="secondary" size="sm" onClick={() => enterShowcaseEditMode()}>
+                  编辑截图
                 </Button>
-              </div>
+              ) : (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={uploading}
+                    onClick={() => cancelShowcaseEditMode()}
+                  >
+                    取消
+                  </Button>
+                  <Button type="button" size="sm" disabled={uploading} onClick={() => saveShowcaseEdits()}>
+                    {uploading ? "…" : "保存截图"}
+                  </Button>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/png,image/jpeg,image/gif,image/webp"
+                      className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
+                      disabled={uploading || draftTokens.length >= MAX_SHOWCASE_IMAGES}
+                      aria-label="添加展示图"
+                      title="添加展示图"
+                      onChange={onPickShowcaseImages}
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="pointer-events-none gap-1"
+                      disabled={uploading || draftTokens.length >= MAX_SHOWCASE_IMAGES}
+                    >
+                      <ImagePlus className="size-4" aria-hidden />
+                      添加图片
+                      {draftTokens.length > 0 ? ` (${draftTokens.length}/${MAX_SHOWCASE_IMAGES})` : ""}
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           ) : null}
         </CardHeader>
@@ -697,7 +685,7 @@ export default function PackShowcase({
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-medium text-muted-foreground">对话截图</p>
-                {imageCount > 2 ? (
+                {!showcaseEditMode && imageCount > 2 ? (
                   <div className="flex gap-1">
                     <Button
                       type="button"
@@ -723,38 +711,41 @@ export default function PackShowcase({
                 ) : null}
               </div>
 
-              {hasGallery ? (
+              {hasGallery || (isAuthor && showcaseEditMode) ? (
                 <div className="relative">
-                  {isAuthor ? (
-                    <AuthorSortableGallery
-                      key={imageCount}
-                      handle={handle}
-                      slug={slug}
-                      imageCount={imageCount}
-                      cacheBust={cacheBust}
-                      onOpenLightbox={(idx) => setLightbox(idx)}
-                      onRemove={removeImage}
-                      onReorder={onReorder}
-                      scrollRef={scrollRef}
-                    />
-                  ) : (
+                  {isAuthor && showcaseEditMode ? (
+                    draftTokens.length > 0 ? (
+                      <EditShowcaseGrid
+                        handle={handle}
+                        slug={slug}
+                        cacheBust={cacheBust}
+                        draftTokens={draftTokens}
+                        onChangeDraft={setDraftTokens}
+                        previewByPendingId={previewByPendingId}
+                        onRemoveToken={removeDraftToken}
+                        onOpenLightbox={openLightboxFromToken}
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground">点击下方「添加图片」上传截图（单张最大约 2 MiB）。</p>
+                    )
+                  ) : hasGallery ? (
                     <VisitorGallery
                       handle={handle}
                       slug={slug}
                       imageCount={imageCount}
                       cacheBust={cacheBust}
-                      onOpenLightbox={(idx) => setLightbox(idx)}
+                      onOpenLightbox={(idx) => setLightbox({ kind: "server", index: idx })}
                       scrollRef={scrollRef}
                     />
-                  )}
+                  ) : null}
                 </div>
-              ) : isAuthor ? (
-                <p className="text-sm italic text-muted-foreground">尚未上传截图。</p>
+              ) : isAuthor && !showcaseEditMode ? (
+                <p className="text-sm italic text-muted-foreground">尚未上传截图。点「编辑截图」添加。</p>
               ) : null}
 
               {uploadStatus ? (
                 <p
-                  className={`text-sm ${uploadStatus.startsWith("已") ? "text-muted-foreground" : "text-destructive"}`}
+                  className={`text-sm ${uploadStatus.includes("成功") || uploadStatus.startsWith("已") ? "text-muted-foreground" : "text-destructive"}`}
                   role="status"
                 >
                   {uploadStatus}
@@ -811,16 +802,16 @@ export default function PackShowcase({
 
       <Dialog open={lightbox !== null} onOpenChange={(o) => !o && setLightbox(null)}>
         <DialogContent
-          className="max-h-[95vh] max-w-[min(96vw,56rem)] border-0 bg-transparent p-2 shadow-none"
+          className="flex max-h-[min(96vh,920px)] w-[min(96vw,90rem)] max-w-[95vw] border-0 bg-transparent p-3 shadow-none sm:p-4"
           showCloseButton
         >
-          {lightbox !== null ? (
-            <div className="relative flex max-h-[90vh] items-center justify-center">
+          {lightboxSrc ? (
+            <div className="flex max-h-[min(92vh,900px)] w-full items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={showcaseImageUrl(handle, slug, lightbox, cacheBust)}
+                src={lightboxSrc}
                 alt=""
-                className="max-h-[85vh] max-w-full rounded-lg object-contain shadow-2xl ring-1 ring-white/10"
+                className="max-h-[min(88vh,900px)] w-auto max-w-full rounded-lg object-contain shadow-2xl ring-1 ring-white/10"
               />
             </div>
           ) : null}
