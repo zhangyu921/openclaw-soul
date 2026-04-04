@@ -15,10 +15,9 @@ import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
 import { cn, privacyLinkClassName } from "@/lib/utils";
 import { normalizeShowcaseImageRefs } from "@/lib/showcase-refs";
-import { parsePackFilePaths } from "@/lib/zip-pack-preview";
-
 import AvatarUpload from "./avatar-upload";
 import PackShowcase from "./pack-showcase";
+import PackSourceFiles from "./pack-source-files";
 import PackPublishButton from "./pack-publish";
 import PackRevokeButton from "./pack-revoke";
 import PackSummaryEdit from "./pack-summary-edit";
@@ -47,6 +46,8 @@ export default async function PackDetailPage({ params }: Props) {
       showcaseMd: true,
       showcaseImageRefs: true,
       author: { select: { handle: true } },
+      markdownFiles: { select: { path: true } },
+      binaryFiles: { select: { path: true } },
     },
   });
   if (!pack || !pack.author.handle) notFound();
@@ -57,9 +58,18 @@ export default async function PackDetailPage({ params }: Props) {
   const encH = encodeURIComponent(pack.author.handle);
   const encS = encodeURIComponent(pack.slug);
   const downloadUrl = `/api/packs/${encH}/${encS}/download`;
-  const filePaths = parsePackFilePaths(pack.packFilePaths);
+  const sourceFiles = [
+    ...pack.markdownFiles.map((m) => ({
+      path: m.path,
+      kind: "markdown" as const,
+    })),
+    ...pack.binaryFiles.map((b) => ({
+      path: b.path,
+      kind: "binary" as const,
+    })),
+  ].sort((a, b) => a.path.localeCompare(b.path));
   const showPreview =
-    (Boolean(pack.soulPreviewMd) || filePaths.length > 0) && (isAuthor || isListed);
+    (Boolean(pack.soulPreviewMd) || sourceFiles.length > 0) && (isAuthor || isListed);
   const showcaseRefs = normalizeShowcaseImageRefs(pack.showcaseImageRefs);
   const showcaseImageCount = showcaseRefs.length;
   const showcaseImageAspects: (number | null)[] = showcaseRefs.map((r) =>
@@ -152,29 +162,13 @@ export default async function PackDetailPage({ params }: Props) {
             </Card>
           ) : null}
 
-          {filePaths.length > 0 ? (
-            <Card className="border-0 shadow-md ring-1 ring-border/80">
-              <CardHeader>
-                <CardTitle className="text-base">包内文件</CardTitle>
-                <CardDescription>
-                  共 {filePaths.length} 条路径
-                  {filePaths.length >= 300 ? "（已达单包展示上限 300，更多请下载 zip）" : ""}。
-                  其他文件的完整内容请使用下方 Download zip。
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="max-h-64 overflow-y-auto rounded-xl border border-border/80 bg-muted/40 px-3 py-2 font-mono text-xs leading-relaxed text-muted-foreground">
-                  {filePaths.map((p) => (
-                    <li key={p} className="break-all py-0.5">
-                      {p}
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-3 text-sm text-muted-foreground">
-                  仅作目录展示；在线通览更多文件的能力可在后续版本加入。
-                </p>
-              </CardContent>
-            </Card>
+          {sourceFiles.length > 0 ? (
+            <PackSourceFiles
+              handle={pack.author.handle}
+              slug={pack.slug}
+              files={sourceFiles}
+              isAuthor={isAuthor}
+            />
           ) : null}
         </div>
       ) : null}

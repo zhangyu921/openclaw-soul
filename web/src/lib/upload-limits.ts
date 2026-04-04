@@ -15,6 +15,9 @@ export function avatarTooLargeMessage(): string {
 /** Pack 详情页 showcase 正文（字符数）。 */
 export const MAX_SHOWCASE_MD_CHARS = 32_000;
 
+/** 单个包内 Markdown 文件（UTF-8 字节）；与整包 zip 上限对齐，避免单文件撑爆 zip。 */
+export const MAX_PACK_MARKDOWN_UTF8_BYTES = MAX_PACK_ZIP_BYTES;
+
 /** Showcase 画廊最多张数。 */
 export const MAX_SHOWCASE_IMAGES = 10;
 
