@@ -36,7 +36,7 @@ import {
   ZoomIn,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -77,6 +77,20 @@ function boxWidthPx(aspectRatio: number | undefined): number {
   return GALLERY_H_PX * Math.min(ar, MAX_W_TO_H);
 }
 
+/** 服务端记录的宽高比（与 image 索引对齐）；无记录时由 onLoad 测量。 */
+function buildAspectMapFromHints(
+  hints: (number | null)[] | undefined,
+  imageCount: number
+): Record<number, number> {
+  const m: Record<number, number> = {};
+  if (!hints) return m;
+  for (let i = 0; i < imageCount && i < hints.length; i++) {
+    const h = hints[i];
+    if (h != null && Number.isFinite(h) && h > 0) m[i] = h;
+  }
+  return m;
+}
+
 function tokenSortableId(t: DraftToken): string {
   return t.kind === "server" ? `s-${t.initialIdx}` : `p-${t.id}`;
 }
@@ -93,7 +107,8 @@ type DisplayTileProps = {
   cacheBust: number;
   onOpenLightbox: (serverIndex: number) => void;
   aspectByServerIndex: Record<number, number>;
-  onMeasured: (serverIndex: number, width: number, height: number) => void;
+  /** 无则于 onLoad 测量（旧数据无服务端宽高时）。 */
+  onMeasured?: (serverIndex: number, width: number, height: number) => void;
 };
 
 function DisplayShowcaseTile({
@@ -110,7 +125,7 @@ function DisplayShowcaseTile({
 
   return (
     <figure
-      className="group relative shrink-0 snap-start snap-always overflow-hidden rounded-xl bg-muted shadow-inner ring-1 ring-border/50"
+      className="group relative shrink-0 snap-start overflow-hidden rounded-xl bg-muted shadow-inner ring-1 ring-border/50"
       style={{ width: wPx }}
     >
       <div
@@ -144,6 +159,7 @@ function DisplayShowcaseTile({
               decoding="async"
               draggable={false}
               onLoad={(e) => {
+                if (!onMeasured) return;
                 const el = e.currentTarget;
                 onMeasured(serverIndex, el.naturalWidth, el.naturalHeight);
               }}
@@ -165,6 +181,7 @@ function VisitorGallery({
   cacheBust,
   onOpenLightbox,
   scrollRef,
+  aspectHints,
 }: {
   handle: string;
   slug: string;
@@ -172,22 +189,56 @@ function VisitorGallery({
   cacheBust: number;
   onOpenLightbox: (serverIndex: number) => void;
   scrollRef: React.RefObject<HTMLDivElement | null>;
+  aspectHints?: (number | null)[];
 }) {
-  const [aspectByServerIndex, setAspectByServerIndex] = useState<Record<number, number>>({});
-  const measure = useCallback((serverIndex: number, w: number, h: number) => {
-    if (h <= 0 || w <= 0) return;
-    const r = w / h;
-    setAspectByServerIndex((prev) => (prev[serverIndex] === r ? prev : { ...prev, [serverIndex]: r }));
-  }, []);
+  const serverAspectMap = useMemo(
+    () => buildAspectMapFromHints(aspectHints, imageCount),
+    [aspectHints, imageCount]
+  );
+  /** 无 DB 尺寸的旧图：onLoad 测量写入；有服务端宽高比时不写入。 */
+  const [clientAspectOverrides, setClientAspectOverrides] = useState<Record<number, number>>({});
+
+  const aspectByServerIndex = useMemo(() => {
+    const merged: Record<number, number> = { ...serverAspectMap };
+    for (const [k, v] of Object.entries(clientAspectOverrides)) {
+      const i = Number(k);
+      if (Number.isInteger(i) && merged[i] === undefined) merged[i] = v;
+    }
+    return merged;
+  }, [serverAspectMap, clientAspectOverrides]);
+
+  /** 图片测量改子项宽度后，浏览器常把 scrollLeft 夹到 0；在布局提交后写回（仅无服务端尺寸的旧图）。 */
+  const savedScrollLeftRef = useRef<number | null>(null);
+
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el || savedScrollLeftRef.current === null) return;
+    el.scrollLeft = savedScrollLeftRef.current;
+    savedScrollLeftRef.current = null;
+  }, [aspectByServerIndex, scrollRef]);
+
+  const measure = useCallback(
+    (serverIndex: number, w: number, h: number) => {
+      if (serverAspectMap[serverIndex] !== undefined) return;
+      if (h <= 0 || w <= 0) return;
+      const r = w / h;
+      setClientAspectOverrides((prev) => {
+        if (prev[serverIndex] === r) return prev;
+        const el = scrollRef.current;
+        if (el) savedScrollLeftRef.current = el.scrollLeft;
+        return { ...prev, [serverIndex]: r };
+      });
+    },
+    [scrollRef, serverAspectMap]
+  );
 
   return (
-    <div className="relative ml-0 -mr-4 sm:-mr-6">
+    <div className="relative -mx-4 sm:-mx-6">
       <div
         ref={scrollRef}
         className={cn(
-          "flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-2 pl-0 pr-3 sm:pr-4",
-          "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-          "[mask-image:linear-gradient(to_right,black_0,black_calc(100%-1.25rem),transparent_100%)]"
+          "flex snap-x snap-proximity gap-3 overflow-x-auto pb-2 pl-4 pr-4 sm:pl-6 sm:pr-6",
+          "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         )}
       >
         {Array.from({ length: imageCount }, (_, i) => (
@@ -199,7 +250,7 @@ function VisitorGallery({
             cacheBust={cacheBust}
             onOpenLightbox={onOpenLightbox}
             aspectByServerIndex={aspectByServerIndex}
-            onMeasured={measure}
+            onMeasured={serverAspectMap[i] !== undefined ? undefined : measure}
           />
         ))}
       </div>
@@ -397,6 +448,7 @@ export default function PackShowcase({
   slug,
   initialShowcaseMd,
   imageCount: initialImageCount,
+  showcaseImageAspects,
   isAuthor,
   isListed,
 }: {
@@ -404,6 +456,8 @@ export default function PackShowcase({
   slug: string;
   initialShowcaseMd: string | null;
   imageCount: number;
+  /** 与每张展示图对应的高宽比 w/h；上传后由服务端写入 DB，避免画廊首屏后再量宽导致横向滚动跳动。 */
+  showcaseImageAspects?: (number | null)[];
   isAuthor: boolean;
   isListed: boolean;
 }) {
@@ -590,51 +644,12 @@ export default function PackShowcase({
               展示对话截图与补充说明（Markdown）。未上架时仅本人可见；上架后随详情页公开。
             </CardDescription>
           </div>
-          {isAuthor ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="gap-1"
-                onClick={() => {
-                  setMdError(null);
-                  setMdOpen(true);
-                }}
-              >
-                <Pencil className="size-4" aria-hidden />
-                编辑正文
-              </Button>
-            </div>
-          ) : null}
         </CardHeader>
         <CardContent className="space-y-8">
           {authorSeesEmpty ? (
             <p className="text-sm text-muted-foreground">
               尚无展示内容。编写正文或上传对话截图，让读者了解这个 pack 的细节能力。
             </p>
-          ) : null}
-
-          {hasBody || isAuthor ? (
-            <div>
-              {hasBody ? (
-                <div
-                  className={cn(
-                    "rounded-xl border border-border/60 bg-muted/20 p-4 text-sm leading-relaxed",
-                    "[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4",
-                    "[&_code]:rounded-md [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.9em]",
-                    "[&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-muted [&_pre]:p-3 [&_pre]:font-mono",
-                    "[&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5",
-                    "[&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-3 [&_blockquote]:italic",
-                    "[&_h1]:text-lg [&_h1]:font-semibold [&_h2]:text-base [&_h2]:font-semibold [&_h3]:text-sm [&_h3]:font-semibold"
-                  )}
-                >
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{mdTrimmed}</ReactMarkdown>
-                </div>
-              ) : isAuthor ? (
-                <p className="text-sm italic text-muted-foreground">尚未编写展示正文。</p>
-              ) : null}
-            </div>
           ) : null}
 
           {hasGallery || isAuthor ? (
@@ -746,6 +761,7 @@ export default function PackShowcase({
                       cacheBust={cacheBust}
                       onOpenLightbox={(idx) => setLightbox({ kind: "server", index: idx })}
                       scrollRef={scrollRef}
+                      aspectHints={showcaseImageAspects}
                     />
                   ) : null}
                 </div>
@@ -760,6 +776,46 @@ export default function PackShowcase({
                 >
                   {uploadStatus}
                 </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          {hasBody || isAuthor ? (
+            <div className="space-y-3">
+              {isAuthor ? (
+                <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+                  <p className="shrink-0 text-sm font-medium text-muted-foreground">展示正文</p>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="shrink-0 gap-1"
+                    onClick={() => {
+                      setMdError(null);
+                      setMdOpen(true);
+                    }}
+                  >
+                    <Pencil className="size-4" aria-hidden />
+                    编辑正文
+                  </Button>
+                </div>
+              ) : null}
+              {hasBody ? (
+                <div
+                  className={cn(
+                    "rounded-xl border border-border/60 bg-muted/20 p-4 text-sm leading-relaxed",
+                    "[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4",
+                    "[&_code]:rounded-md [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.9em]",
+                    "[&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-muted [&_pre]:p-3 [&_pre]:font-mono",
+                    "[&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5",
+                    "[&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-3 [&_blockquote]:italic",
+                    "[&_h1]:text-lg [&_h1]:font-semibold [&_h2]:text-base [&_h2]:font-semibold [&_h3]:text-sm [&_h3]:font-semibold"
+                  )}
+                >
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{mdTrimmed}</ReactMarkdown>
+                </div>
+              ) : isAuthor ? (
+                <p className="text-sm italic text-muted-foreground">尚未编写展示正文。</p>
               ) : null}
             </div>
           ) : null}
@@ -813,20 +869,22 @@ export default function PackShowcase({
       <Dialog open={lightbox !== null} onOpenChange={(o) => !o && setLightbox(null)}>
         <DialogContent
           className={cn(
-            "!fixed !inset-0 !left-0 !top-0 !h-[100dvh] !max-h-[100dvh] !w-screen !max-w-none !translate-x-0 !translate-y-0",
-            "!rounded-none border-0 bg-black/88 p-0 pt-14 pb-3 shadow-none sm:!max-w-none sm:pt-16 sm:pb-4",
-            "flex flex-col items-center justify-center gap-0 text-white",
-            "[&_[data-slot=dialog-close]_button]:text-white [&_[data-slot=dialog-close]_button]:hover:bg-white/10"
+            "!fixed !left-1/2 !top-1/2 !z-50 !max-h-[min(90vh,880px)] !w-[min(calc(100vw-1.5rem),56rem)] !max-w-[min(calc(100vw-1.5rem),56rem)] !translate-x-[-50%] !translate-y-[-50%]",
+            "!rounded-xl border-0 bg-zinc-950 p-0 shadow-2xl ring-1 ring-white/10 sm:!max-w-[min(calc(100vw-2rem),56rem)]",
+            "flex flex-col gap-0 overflow-hidden",
+            "[&_[data-slot=dialog-close]_button]:absolute [&_[data-slot=dialog-close]_button]:right-3 [&_[data-slot=dialog-close]_button]:top-3 [&_[data-slot=dialog-close]_button]:z-20",
+            "[&_[data-slot=dialog-close]_button]:bg-white [&_[data-slot=dialog-close]_button]:text-zinc-900",
+            "[&_[data-slot=dialog-close]_button]:shadow-md hover:[&_[data-slot=dialog-close]_button]:bg-zinc-100"
           )}
           showCloseButton
         >
           {lightboxSrc ? (
-            <div className="flex h-[calc(100dvh-3.75rem)] w-full max-w-[100vw] items-center justify-center px-2 sm:h-[calc(100dvh-4.5rem)] sm:px-4">
+            <div className="flex max-h-[min(82vh,760px)] min-h-[12rem] w-full items-center justify-center px-4 pb-4 pt-14 sm:px-6 sm:pb-6 sm:pt-16">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={lightboxSrc}
                 alt=""
-                className="max-h-full max-w-full object-contain shadow-2xl ring-1 ring-white/15"
+                className="max-h-[min(72vh,680px)] w-auto max-w-full rounded-md object-contain"
               />
             </div>
           ) : null}

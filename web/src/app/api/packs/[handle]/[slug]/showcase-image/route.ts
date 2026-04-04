@@ -7,7 +7,8 @@ import { readSessionUserId } from "@/lib/session";
 import { findUserIdByApiToken } from "@/lib/token-api";
 import { findPackByHandleAndSlug } from "@/lib/pack-lookup";
 import { readStoredFile, removeStoredFile, writeShowcaseImageForPack } from "@/lib/storage";
-import { normalizeShowcaseImageRefs } from "@/lib/showcase-refs";
+import { normalizeShowcaseImageRefs, type ShowcaseImageRef } from "@/lib/showcase-refs";
+import { probeImageDimensions } from "@/lib/probe-image-dimensions";
 import {
   MAX_SHOWCASE_IMAGE_BYTES,
   MAX_SHOWCASE_IMAGES,
@@ -79,8 +80,8 @@ export async function GET(req: Request, { params }: Params) {
   }
 
   const refs = normalizeShowcaseImageRefs(pack.showcaseImageRefs);
-  const ref = refs[index];
-  if (!ref) {
+  const entry = refs[index];
+  if (!entry) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 
@@ -90,8 +91,8 @@ export async function GET(req: Request, { params }: Params) {
   }
 
   try {
-    const buf = await readStoredFile(ref);
-    const type = contentTypeForRef(ref);
+    const buf = await readStoredFile(entry.ref);
+    const type = contentTypeForRef(entry.ref);
     return new NextResponse(new Uint8Array(buf), {
       status: 200,
       headers: {
@@ -155,7 +156,13 @@ export async function POST(req: Request, { params }: Params) {
   const buf = Buffer.from(await file.arrayBuffer());
   const unique = crypto.randomUUID();
   const newRef = await writeShowcaseImageForPack(pack.id, unique, ext, buf);
-  const nextRefs = [...refs, newRef];
+  const dims = probeImageDimensions(buf);
+  const newEntry: ShowcaseImageRef = { ref: newRef };
+  if (dims) {
+    newEntry.width = dims.width;
+    newEntry.height = dims.height;
+  }
+  const nextRefs = [...refs, newEntry];
 
   await prisma.pack.update({
     where: { id: pack.id },
@@ -201,13 +208,13 @@ export async function DELETE(req: Request, { params }: Params) {
   }
 
   const refs = normalizeShowcaseImageRefs(pack.showcaseImageRefs);
-  const ref = refs[idx];
-  if (!ref) {
+  const entry = refs[idx];
+  if (!entry) {
     return NextResponse.json({ error: "index out of range" }, { status: 400 });
   }
 
   const nextRefs = refs.filter((_, j) => j !== idx);
-  await removeStoredFile(ref);
+  await removeStoredFile(entry.ref);
   await prisma.pack.update({
     where: { id: pack.id },
     data: { showcaseImageRefs: nextRefs },

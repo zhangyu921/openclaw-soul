@@ -60,7 +60,11 @@ export default async function PackDetailPage({ params }: Props) {
   const filePaths = parsePackFilePaths(pack.packFilePaths);
   const showPreview =
     (Boolean(pack.soulPreviewMd) || filePaths.length > 0) && (isAuthor || isListed);
-  const showcaseImageCount = normalizeShowcaseImageRefs(pack.showcaseImageRefs).length;
+  const showcaseRefs = normalizeShowcaseImageRefs(pack.showcaseImageRefs);
+  const showcaseImageCount = showcaseRefs.length;
+  const showcaseImageAspects: (number | null)[] = showcaseRefs.map((r) =>
+    r.width && r.height && r.width > 0 && r.height > 0 ? r.width / r.height : null
+  );
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
@@ -124,6 +128,7 @@ export default async function PackDetailPage({ params }: Props) {
         slug={pack.slug}
         initialShowcaseMd={pack.showcaseMd}
         imageCount={showcaseImageCount}
+        showcaseImageAspects={showcaseImageAspects}
         isAuthor={isAuthor}
         isListed={isListed}
       />
