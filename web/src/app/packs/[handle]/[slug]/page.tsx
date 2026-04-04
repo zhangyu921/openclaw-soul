@@ -40,9 +40,6 @@ export default async function PackDetailPage({ params }: Props) {
       createdAt: true,
       authorId: true,
       visibility: true,
-      soulPreviewMd: true,
-      soulPreviewTruncated: true,
-      packFilePaths: true,
       showcaseMd: true,
       showcaseImageRefs: true,
       author: { select: { handle: true } },
@@ -68,8 +65,7 @@ export default async function PackDetailPage({ params }: Props) {
       kind: "binary" as const,
     })),
   ].sort((a, b) => a.path.localeCompare(b.path));
-  const showPreview =
-    (Boolean(pack.soulPreviewMd) || sourceFiles.length > 0) && (isAuthor || isListed);
+  const showPreview = sourceFiles.length > 0 && (isAuthor || isListed);
   const showcaseRefs = normalizeShowcaseImageRefs(pack.showcaseImageRefs);
   const showcaseImageCount = showcaseRefs.length;
   const showcaseImageAspects: (number | null)[] = showcaseRefs.map((r) =>
@@ -145,31 +141,12 @@ export default async function PackDetailPage({ params }: Props) {
 
       {showPreview ? (
         <div className="mt-8 space-y-6">
-          {pack.soulPreviewMd ? (
-            <Card className="border-0 shadow-md ring-1 ring-border/80">
-              <CardHeader>
-                <CardTitle className="text-base">SOUL.md</CardTitle>
-                <CardDescription>
-                  完整内容以 SOUL.md 为准。
-                  {pack.soulPreviewTruncated ? " 以下正文已按长度截断。" : null}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <pre className="max-h-[min(70vh,32rem)] overflow-auto whitespace-pre-wrap break-words rounded-xl bg-muted p-4 font-mono text-sm leading-relaxed">
-                  {pack.soulPreviewMd}
-                </pre>
-              </CardContent>
-            </Card>
-          ) : null}
-
-          {sourceFiles.length > 0 ? (
-            <PackSourceFiles
-              handle={pack.author.handle}
-              slug={pack.slug}
-              files={sourceFiles}
-              isAuthor={isAuthor}
-            />
-          ) : null}
+          <PackSourceFiles
+            handle={pack.author.handle}
+            slug={pack.slug}
+            files={sourceFiles}
+            isAuthor={isAuthor}
+          />
         </div>
       ) : null}
 

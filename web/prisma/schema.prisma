@@ -39,11 +39,7 @@ model Pack {
   summary              String?
   zipRelPath           String
   avatarRelPath        String?
-  /// SOUL.md excerpt at publish (UTF-8); capped in extractPackPreviewFromDb.
-  soulPreviewMd        String?   @db.Text
-  /// True when SOUL body was cut at the byte cap (full file in zip).
-  soulPreviewTruncated Boolean   @default(false)
-  /// Sorted relative paths of file entries (max count capped); full contents via zip download.
+  /// Sorted relative paths of file entries (max count capped); derived from md/binary rows; full contents via zip download.
   packFilePaths        Json      @default("[]")
   /// 详情页展示：Markdown 正文（与 zip 解耦，可重复编辑）。
   showcaseMd           String?   @db.Text

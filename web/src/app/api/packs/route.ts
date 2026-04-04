@@ -25,7 +25,7 @@ import {
 import { requestOrigin } from "@/lib/device-auth";
 import { ingestZipToPackSource } from "@/lib/pack-source-ingest";
 import { buildAndStoreZipFromPackDb } from "@/lib/pack-source-zip";
-import { extractPackPreviewFromDb } from "@/lib/zip-pack-preview";
+import { extractPackFilePathsFromDb } from "@/lib/zip-pack-preview";
 
 function resolvePackVisibility(
   form: FormData,
@@ -166,11 +166,11 @@ export async function POST(req: Request) {
   if (dup) {
     await ensurePackDirs();
 
-    let preview: Awaited<ReturnType<typeof extractPackPreviewFromDb>>;
+    let preview: Awaited<ReturnType<typeof extractPackFilePathsFromDb>>;
 
     try {
       await ingestZipToPackSource(prisma, dup.id, zipBuf);
-      preview = await extractPackPreviewFromDb(prisma, dup.id);
+      preview = await extractPackFilePathsFromDb(prisma, dup.id);
       await buildAndStoreZipFromPackDb(prisma, dup.id);
     } catch (e) {
       console.error(e);
@@ -183,15 +183,11 @@ export async function POST(req: Request) {
     const updateData: {
       title: string;
       summary: string | null;
-      soulPreviewMd: string | null;
-      soulPreviewTruncated: boolean;
       packFilePaths: string[];
       avatarRelPath?: string | null;
     } = {
       title,
       summary,
-      soulPreviewMd: preview.soulPreviewMd,
-      soulPreviewTruncated: preview.soulPreviewTruncated,
       packFilePaths: preview.packFilePaths,
     };
 
@@ -274,8 +270,6 @@ export async function POST(req: Request) {
         summary,
         zipRelPath,
         avatarRelPath,
-        soulPreviewMd: null,
-        soulPreviewTruncated: false,
         packFilePaths: [],
         authorId,
         visibility: targetVisibility,
@@ -290,13 +284,11 @@ export async function POST(req: Request) {
 
   try {
     await ingestZipToPackSource(prisma, id, zipBuf);
-    const preview = await extractPackPreviewFromDb(prisma, id);
+    const preview = await extractPackFilePathsFromDb(prisma, id);
     await buildAndStoreZipFromPackDb(prisma, id);
     await prisma.pack.update({
       where: { id },
       data: {
-        soulPreviewMd: preview.soulPreviewMd,
-        soulPreviewTruncated: preview.soulPreviewTruncated,
         packFilePaths: preview.packFilePaths,
       },
     });

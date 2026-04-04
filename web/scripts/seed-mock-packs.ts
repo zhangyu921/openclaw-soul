@@ -14,7 +14,7 @@ import { hashPassword } from "@/lib/password";
 import { ingestZipToPackSource } from "@/lib/pack-source-ingest";
 import { buildAndStoreZipFromPackDb } from "@/lib/pack-source-zip";
 import { ensurePackDirs, writeZipForPack } from "@/lib/storage";
-import { extractPackPreviewFromDb } from "@/lib/zip-pack-preview";
+import { extractPackFilePathsFromDb } from "@/lib/zip-pack-preview";
 
 const HANDLE = "testzh";
 const COUNT = 30;
@@ -73,8 +73,6 @@ async function main(): Promise<void> {
         title: `模拟 Pack ${i}`,
         summary: `本地种子数据 #${i}（${HANDLE}）`,
         zipRelPath,
-        soulPreviewMd: null,
-        soulPreviewTruncated: false,
         packFilePaths: [],
         authorId: user.id,
         visibility: PackVisibility.LISTED,
@@ -82,13 +80,11 @@ async function main(): Promise<void> {
     });
 
     await ingestZipToPackSource(prisma, id, zipBuf);
-    const preview = await extractPackPreviewFromDb(prisma, id);
+    const preview = await extractPackFilePathsFromDb(prisma, id);
     await buildAndStoreZipFromPackDb(prisma, id);
     await prisma.pack.update({
       where: { id },
       data: {
-        soulPreviewMd: preview.soulPreviewMd,
-        soulPreviewTruncated: preview.soulPreviewTruncated,
         packFilePaths: preview.packFilePaths,
       },
     });
