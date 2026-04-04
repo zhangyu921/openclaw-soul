@@ -2,9 +2,30 @@
 
 import { compressAvatarForUpload } from "@/lib/compress-avatar-client";
 import { MAX_SHOWCASE_IMAGES, MAX_SHOWCASE_MD_CHARS } from "@/lib/upload-limits";
-import { ChevronLeft, ChevronRight, ImagePlus, Pencil, Trash2, ZoomIn } from "lucide-react";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
+import {
+  SortableContext,
+  arrayMove,
+  horizontalListSortingStrategy,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { ChevronLeft, ChevronRight, GripVertical, ImagePlus, Pencil, Trash2, ZoomIn } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -26,14 +47,413 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
-function orderAfterSwapIndices(n: number, i: number, j: number): number[] {
-  const order = Array.from({ length: n }, (_, k) => k);
-  [order[i], order[j]] = [order[j], order[i]];
-  return order;
+/** 展示图定高（px）；约 1:1 时三张并排 ≈ 3*h + gap，可落入常见首屏宽度。 */
+const GALLERY_H_PX = 176;
+/** 最大宽高比 width / height（防止过于扁宽） */
+const MAX_W_TO_H = 2;
+
+function showcaseImageUrl(
+  handle: string,
+  slug: string,
+  serverIndex: number,
+  cacheBust: number
+): string {
+  const base = `/api/packs/${encodeURIComponent(handle)}/${encodeURIComponent(slug)}/showcase-image?i=${serverIndex}`;
+  return cacheBust > 0 ? `${base}&v=${cacheBust}` : base;
 }
 
-function showcaseImageUrl(handle: string, slug: string, index: number): string {
-  return `/api/packs/${encodeURIComponent(handle)}/${encodeURIComponent(slug)}/showcase-image?i=${index}`;
+function boxWidthPx(aspectRatio: number | undefined): number {
+  const ar = aspectRatio && aspectRatio > 0 ? aspectRatio : 1;
+  return GALLERY_H_PX * Math.min(ar, MAX_W_TO_H);
+}
+
+type SortableTileProps = {
+  handle: string;
+  slug: string;
+  serverIndex: number;
+  cacheBust: number;
+  isAuthor: boolean;
+  onOpenLightbox: (serverIndex: number) => void;
+  onRemove: (serverIndex: number) => void;
+  sortableId: string;
+  aspectByServerIndex: Record<number, number>;
+  onMeasured: (serverIndex: number, width: number, height: number) => void;
+};
+
+function SortableShowcaseTile({
+  handle,
+  slug,
+  serverIndex,
+  cacheBust,
+  isAuthor,
+  onOpenLightbox,
+  onRemove,
+  sortableId,
+  aspectByServerIndex,
+  onMeasured,
+}: SortableTileProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: sortableId,
+  });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  const ar = aspectByServerIndex[serverIndex];
+  const wPx = boxWidthPx(ar);
+
+  return (
+    <figure
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "group relative shrink-0 snap-start snap-always overflow-hidden rounded-xl bg-muted shadow-inner ring-1 ring-border/50",
+        isDragging && "opacity-90 shadow-lg ring-2 ring-primary/50"
+      )}
+    >
+      <div
+        className="relative flex flex-col"
+        style={{ width: wPx, maxWidth: `${GALLERY_H_PX * MAX_W_TO_H}px` }}
+      >
+        {isAuthor ? (
+          <button
+            type="button"
+            className="touch-none flex h-9 shrink-0 cursor-grab items-center justify-center gap-1 border-b border-border/60 bg-muted/80 text-muted-foreground active:cursor-grabbing"
+            aria-label="拖拽排序"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="size-4" aria-hidden />
+            <span className="text-[10px] font-medium uppercase tracking-wide">拖拽</span>
+          </button>
+        ) : null}
+        <div
+          className="relative flex items-center justify-center bg-muted/60"
+          style={{ height: GALLERY_H_PX, width: wPx }}
+        >
+          <button
+            type="button"
+            className="relative flex max-h-full max-w-full cursor-zoom-in items-center justify-center outline-none transition hover:ring-2 hover:ring-primary/40 focus-visible:ring-2 focus-visible:ring-primary"
+            onClick={() => onOpenLightbox(serverIndex)}
+            aria-label="查看大图"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={showcaseImageUrl(handle, slug, serverIndex, cacheBust)}
+              alt=""
+              className={cn(
+                "max-h-full max-w-full object-contain",
+                ar !== undefined && ar > MAX_W_TO_H && "object-cover"
+              )}
+              style={
+                ar !== undefined && ar > MAX_W_TO_H
+                  ? { width: GALLERY_H_PX * MAX_W_TO_H, height: GALLERY_H_PX }
+                  : undefined
+              }
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+              onLoad={(e) => {
+                const el = e.currentTarget;
+                onMeasured(serverIndex, el.naturalWidth, el.naturalHeight);
+              }}
+            />
+            <span className="pointer-events-none absolute bottom-2 right-2 flex size-8 items-center justify-center rounded-full bg-background/80 text-muted-foreground shadow backdrop-blur-sm">
+              <ZoomIn className="size-4" aria-hidden />
+            </span>
+          </button>
+        </div>
+        {isAuthor ? (
+          <div className="flex justify-end border-t border-border/60 bg-muted/40 px-1 py-1">
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="destructive"
+              className="size-8 shadow"
+              aria-label="删除"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove(serverIndex);
+              }}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
+        ) : null}
+      </div>
+    </figure>
+  );
+}
+
+type StaticTileProps = {
+  handle: string;
+  slug: string;
+  serverIndex: number;
+  cacheBust: number;
+  isAuthor: boolean;
+  onOpenLightbox: (serverIndex: number) => void;
+  onRemove: (serverIndex: number) => void;
+  aspectByServerIndex: Record<number, number>;
+  onMeasured: (serverIndex: number, width: number, height: number) => void;
+};
+
+function StaticShowcaseTile({
+  handle,
+  slug,
+  serverIndex,
+  cacheBust,
+  isAuthor,
+  onOpenLightbox,
+  onRemove,
+  aspectByServerIndex,
+  onMeasured,
+}: StaticTileProps) {
+  const ar = aspectByServerIndex[serverIndex];
+  const wPx = boxWidthPx(ar);
+
+  return (
+    <figure
+      className="group relative shrink-0 snap-start snap-always overflow-hidden rounded-xl bg-muted shadow-inner ring-1 ring-border/50"
+      style={{ width: wPx }}
+    >
+      <div
+        className="relative flex flex-col"
+        style={{ width: wPx, maxWidth: `${GALLERY_H_PX * MAX_W_TO_H}px` }}
+      >
+        <div
+          className="relative flex items-center justify-center bg-muted/60"
+          style={{ height: GALLERY_H_PX, width: wPx }}
+        >
+          <button
+            type="button"
+            className="relative flex max-h-full max-w-full cursor-zoom-in items-center justify-center outline-none transition hover:ring-2 hover:ring-primary/40 focus-visible:ring-2 focus-visible:ring-primary"
+            onClick={() => onOpenLightbox(serverIndex)}
+            aria-label="查看大图"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={showcaseImageUrl(handle, slug, serverIndex, cacheBust)}
+              alt=""
+              className={cn(
+                "max-h-full max-w-full object-contain",
+                ar !== undefined && ar > MAX_W_TO_H && "object-cover"
+              )}
+              style={
+                ar !== undefined && ar > MAX_W_TO_H
+                  ? { width: GALLERY_H_PX * MAX_W_TO_H, height: GALLERY_H_PX }
+                  : undefined
+              }
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+              onLoad={(e) => {
+                const el = e.currentTarget;
+                onMeasured(serverIndex, el.naturalWidth, el.naturalHeight);
+              }}
+            />
+            <span className="pointer-events-none absolute bottom-2 right-2 flex size-8 items-center justify-center rounded-full bg-background/80 text-muted-foreground shadow backdrop-blur-sm">
+              <ZoomIn className="size-4" aria-hidden />
+            </span>
+          </button>
+        </div>
+        {isAuthor ? (
+          <div className="flex justify-end border-t border-border/60 bg-muted/40 px-1 py-1">
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="destructive"
+              className="size-8 shadow"
+              aria-label="删除"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove(serverIndex);
+              }}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
+        ) : null}
+      </div>
+    </figure>
+  );
+}
+
+type GalleryProps = {
+  handle: string;
+  slug: string;
+  imageCount: number;
+  cacheBust: number;
+  onOpenLightbox: (serverIndex: number) => void;
+  onRemove: (serverIndex: number) => void;
+  onReorder: (order: number[]) => Promise<boolean>;
+  scrollRef: React.RefObject<HTMLDivElement | null>;
+};
+
+function AuthorSortableGallery({
+  handle,
+  slug,
+  imageCount,
+  cacheBust,
+  onOpenLightbox,
+  onRemove,
+  onReorder,
+  scrollRef,
+}: GalleryProps) {
+  const [orderedIds, setOrderedIds] = useState<number[]>(() =>
+    Array.from({ length: imageCount }, (_, i) => i)
+  );
+  const [aspectByServerIndex, setAspectByServerIndex] = useState<Record<number, number>>({});
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const measure = useCallback((serverIndex: number, w: number, h: number) => {
+    if (h <= 0 || w <= 0) return;
+    const r = w / h;
+    setAspectByServerIndex((prev) => (prev[serverIndex] === r ? prev : { ...prev, [serverIndex]: r }));
+  }, []);
+
+  const sortableIds = useMemo(() => orderedIds.map((sid) => `img-${sid}`), [orderedIds]);
+
+  function onDragStart(e: DragStartEvent) {
+    setActiveId(String(e.active.id));
+  }
+
+  function onDragEnd(e: DragEndEvent) {
+    setActiveId(null);
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIndex = sortableIds.indexOf(String(active.id));
+    const newIndex = sortableIds.indexOf(String(over.id));
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    const previous = orderedIds;
+    const next = arrayMove(orderedIds, oldIndex, newIndex);
+    setOrderedIds(next);
+    void (async () => {
+      const ok = await onReorder(next);
+      if (!ok) setOrderedIds(previous);
+    })();
+  }
+
+  function onDragCancel() {
+    setActiveId(null);
+  }
+
+  const activeServerIndex =
+    activeId && activeId.startsWith("img-") ? Number.parseInt(activeId.slice(4), 10) : null;
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      modifiers={[restrictToHorizontalAxis]}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onDragCancel={onDragCancel}
+    >
+      <div className="relative -mx-4 sm:-mx-6">
+        <div
+          ref={scrollRef}
+          className={cn(
+            "flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-2 pl-6 pr-4 sm:pl-8 sm:pr-6",
+            "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          )}
+        >
+          <SortableContext items={sortableIds} strategy={horizontalListSortingStrategy}>
+            {orderedIds.map((serverIndex) => (
+              <SortableShowcaseTile
+                key={`img-${serverIndex}`}
+                handle={handle}
+                slug={slug}
+                serverIndex={serverIndex}
+                cacheBust={cacheBust}
+                isAuthor
+                sortableId={`img-${serverIndex}`}
+                onOpenLightbox={onOpenLightbox}
+                onRemove={onRemove}
+                aspectByServerIndex={aspectByServerIndex}
+                onMeasured={measure}
+              />
+            ))}
+          </SortableContext>
+        </div>
+      </div>
+      <DragOverlay dropAnimation={null}>
+        {activeServerIndex !== null && !Number.isNaN(activeServerIndex) ? (
+          <div
+            className="pointer-events-none overflow-hidden rounded-xl bg-muted shadow-2xl ring-2 ring-primary/40"
+            style={{ width: boxWidthPx(aspectByServerIndex[activeServerIndex]) }}
+          >
+            <div className="flex h-9 items-center justify-center border-b border-border/60 bg-muted/80 text-[10px] text-muted-foreground">
+              排序中…
+            </div>
+            <div className="relative bg-muted/60" style={{ height: GALLERY_H_PX }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={showcaseImageUrl(handle, slug, activeServerIndex, cacheBust)}
+                alt=""
+                className="size-full object-cover"
+                draggable={false}
+              />
+            </div>
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
+  );
+}
+
+function VisitorGallery({
+  handle,
+  slug,
+  imageCount,
+  cacheBust,
+  onOpenLightbox,
+  scrollRef,
+}: Pick<
+  GalleryProps,
+  "handle" | "slug" | "imageCount" | "cacheBust" | "onOpenLightbox" | "scrollRef"
+> & { onRemove?: never }) {
+  const [aspectByServerIndex, setAspectByServerIndex] = useState<Record<number, number>>({});
+  const measure = useCallback((serverIndex: number, w: number, h: number) => {
+    if (h <= 0 || w <= 0) return;
+    const r = w / h;
+    setAspectByServerIndex((prev) => (prev[serverIndex] === r ? prev : { ...prev, [serverIndex]: r }));
+  }, []);
+
+  return (
+    <div className="relative -mx-4 sm:-mx-6">
+      <div
+        ref={scrollRef}
+        className={cn(
+          "flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-2 pl-6 pr-4 sm:pl-8 sm:pr-6",
+          "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        )}
+      >
+        {Array.from({ length: imageCount }, (_, i) => (
+          <StaticShowcaseTile
+            key={i}
+            handle={handle}
+            slug={slug}
+            serverIndex={i}
+            cacheBust={cacheBust}
+            isAuthor={false}
+            onOpenLightbox={onOpenLightbox}
+            onRemove={() => {}}
+            aspectByServerIndex={aspectByServerIndex}
+            onMeasured={measure}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function PackShowcase({
@@ -61,6 +481,7 @@ export default function PackShowcase({
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [imageCount, setImageCount] = useState(initialImageCount);
+  const [cacheBust, setCacheBust] = useState(0);
 
   useEffect(() => {
     setMdValue(initialShowcaseMd ?? "");
@@ -79,9 +500,29 @@ export default function PackShowcase({
   const scrollGallery = useCallback((dir: -1 | 1) => {
     const el = scrollRef.current;
     if (!el) return;
-    const amount = Math.min(el.clientWidth * 0.72, 320) + 12;
+    const amount = Math.min(el.clientWidth * 0.32, GALLERY_H_PX * MAX_W_TO_H + 12);
     el.scrollBy({ left: dir * amount, behavior: "smooth" });
   }, []);
+
+  async function onReorder(order: number[]): Promise<boolean> {
+    setUploadStatus(null);
+    const res = await fetch(
+      `/api/packs/${encodeURIComponent(handle)}/${encodeURIComponent(slug)}/showcase-image`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order }),
+      }
+    );
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setUploadStatus(typeof data.error === "string" ? data.error : "Reorder failed");
+      return false;
+    }
+    setCacheBust((n) => n + 1);
+    router.refresh();
+    return true;
+  }
 
   if (!isAuthor && !visitorCanSee) {
     return null;
@@ -138,6 +579,7 @@ export default function PackShowcase({
       }
       if (typeof data.count === "number") setImageCount(data.count);
       setUploadStatus("已添加。");
+      setCacheBust((n) => n + 1);
       router.refresh();
     } finally {
       setUploading(false);
@@ -145,14 +587,14 @@ export default function PackShowcase({
     }
   }
 
-  async function removeImage(index: number) {
+  async function removeImage(serverIndex: number) {
     setUploadStatus(null);
     const res = await fetch(
       `/api/packs/${encodeURIComponent(handle)}/${encodeURIComponent(slug)}/showcase-image`,
       {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ index }),
+        body: JSON.stringify({ index: serverIndex }),
       }
     );
     const data = await res.json().catch(() => ({}));
@@ -163,30 +605,11 @@ export default function PackShowcase({
     if (typeof data.count === "number") setImageCount(data.count);
     setLightbox((prev) => {
       if (prev === null) return prev;
-      if (prev === index) return null;
-      if (prev > index) return prev - 1;
+      if (prev === serverIndex) return null;
+      if (prev > serverIndex) return prev - 1;
       return prev;
     });
-    router.refresh();
-  }
-
-  async function moveImage(index: number, dir: -1 | 1) {
-    const next = index + dir;
-    if (next < 0 || next >= imageCount) return;
-    const order = orderAfterSwapIndices(imageCount, index, next);
-    const res = await fetch(
-      `/api/packs/${encodeURIComponent(handle)}/${encodeURIComponent(slug)}/showcase-image`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order }),
-      }
-    );
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setUploadStatus(typeof data.error === "string" ? data.error : "Reorder failed");
-      return;
-    }
+    setCacheBust((n) => n + 1);
     router.refresh();
   }
 
@@ -198,6 +621,7 @@ export default function PackShowcase({
             <CardTitle className="text-base">Showcase</CardTitle>
             <CardDescription>
               展示对话截图与补充说明（Markdown）。未上架时仅本人可见；上架后随详情页公开。
+              {isAuthor ? " 图片可拖拽排序。" : null}
             </CardDescription>
           </div>
           {isAuthor ? (
@@ -301,90 +725,28 @@ export default function PackShowcase({
 
               {hasGallery ? (
                 <div className="relative">
-                  <div
-                    ref={scrollRef}
-                    className={cn(
-                      "flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-2",
-                      "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                    )}
-                    style={{
-                      maskImage:
-                        "linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%)",
-                    }}
-                  >
-                    {Array.from({ length: imageCount }, (_, i) => (
-                      <figure
-                        key={i}
-                        className={cn(
-                          "group relative snap-start snap-always overflow-hidden rounded-xl bg-muted shadow-inner ring-1 ring-border/50",
-                          "w-[min(78vw,20rem)] shrink-0 sm:w-[min(56vw,18rem)]"
-                        )}
-                      >
-                        <button
-                          type="button"
-                          className="relative block aspect-[4/3] w-full cursor-zoom-in outline-none transition duration-300 hover:ring-2 hover:ring-primary/40 focus-visible:ring-2 focus-visible:ring-primary"
-                          onClick={() => setLightbox(i)}
-                          aria-label={`查看大图 ${i + 1}`}
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={showcaseImageUrl(handle, slug, i)}
-                            alt=""
-                            className="size-full object-cover transition duration-500 group-hover:scale-[1.03]"
-                            loading={i < 3 ? "eager" : "lazy"}
-                          />
-                          <span className="pointer-events-none absolute bottom-2 right-2 flex size-8 items-center justify-center rounded-full bg-background/80 text-muted-foreground shadow backdrop-blur-sm">
-                            <ZoomIn className="size-4" aria-hidden />
-                          </span>
-                        </button>
-                        {isAuthor ? (
-                          <figcaption className="absolute left-2 top-2 flex gap-1 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
-                            <Button
-                              type="button"
-                              size="icon-sm"
-                              variant="secondary"
-                              className="size-8 bg-background/90 shadow"
-                              disabled={i === 0}
-                              aria-label="前移"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                moveImage(i, -1);
-                              }}
-                            >
-                              <ChevronLeft className="size-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              size="icon-sm"
-                              variant="secondary"
-                              className="size-8 bg-background/90 shadow"
-                              disabled={i >= imageCount - 1}
-                              aria-label="后移"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                moveImage(i, 1);
-                              }}
-                            >
-                              <ChevronRight className="size-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              size="icon-sm"
-                              variant="destructive"
-                              className="size-8 shadow"
-                              aria-label="删除"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeImage(i);
-                              }}
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          </figcaption>
-                        ) : null}
-                      </figure>
-                    ))}
-                  </div>
+                  {isAuthor ? (
+                    <AuthorSortableGallery
+                      key={imageCount}
+                      handle={handle}
+                      slug={slug}
+                      imageCount={imageCount}
+                      cacheBust={cacheBust}
+                      onOpenLightbox={(idx) => setLightbox(idx)}
+                      onRemove={removeImage}
+                      onReorder={onReorder}
+                      scrollRef={scrollRef}
+                    />
+                  ) : (
+                    <VisitorGallery
+                      handle={handle}
+                      slug={slug}
+                      imageCount={imageCount}
+                      cacheBust={cacheBust}
+                      onOpenLightbox={(idx) => setLightbox(idx)}
+                      scrollRef={scrollRef}
+                    />
+                  )}
                 </div>
               ) : isAuthor ? (
                 <p className="text-sm italic text-muted-foreground">尚未上传截图。</p>
@@ -456,7 +818,7 @@ export default function PackShowcase({
             <div className="relative flex max-h-[90vh] items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={showcaseImageUrl(handle, slug, lightbox)}
+                src={showcaseImageUrl(handle, slug, lightbox, cacheBust)}
                 alt=""
                 className="max-h-[85vh] max-w-full rounded-lg object-contain shadow-2xl ring-1 ring-white/10"
               />

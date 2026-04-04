@@ -96,7 +96,8 @@ export async function GET(req: Request, { params }: Params) {
       status: 200,
       headers: {
         "Content-Type": type,
-        "Cache-Control": "public, max-age=3600",
+        // 索引 URL 在重排后仍复用 ?i=，避免浏览器强缓存导致顺序与画面不一致
+        "Cache-Control": "private, no-store",
       },
     });
   } catch {
