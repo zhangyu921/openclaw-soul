@@ -30,9 +30,11 @@ type Props = {
   handle: string;
   slug: string;
   userId: string | null;
+  /** Display title for CTA (e.g. Pack.title). */
+  packTitle: string;
 };
 
-export default function PackChat({ handle, slug, userId }: Props) {
+export default function PackChat({ handle, slug, userId, packTitle }: Props) {
   const pathname = usePathname();
   const loginHref = `/login?next=${encodeURIComponent(pathname)}`;
 
@@ -45,7 +47,8 @@ export default function PackChat({ handle, slug, userId }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogTitle, setDialogTitle] = useState("对话者设定");
   const [dialogFields, setDialogFields] = useState<ParsedUserFields>({});
-  const [hydrated, setHydrated] = useState(false);
+  /** User clicked「开始与 … 对话」；未点击前不弹 USER 窗、不进入聊天区。 */
+  const [flowStarted, setFlowStarted] = useState(false);
   const [usingCached, setUsingCached] = useState(false);
 
   const chatApi = useMemo(
@@ -109,28 +112,21 @@ export default function PackChat({ handle, slug, userId }: Props) {
     return fields;
   }, [handle, slug]);
 
-  useEffect(() => {
-    if (!userId) {
-      setHydrated(true);
+  const startChatFlow = useCallback(async () => {
+    if (!userId) return;
+    setFlowStarted(true);
+    const key = packChatUserBlockStorageKey(userId, handle, slug);
+    const cached =
+      typeof window !== "undefined" ? window.localStorage.getItem(key) : null;
+    if (cached && cached.trim()) {
+      setUserBlock(cached);
+      setUsingCached(true);
       return;
     }
-    setHydrated(false);
-    (async () => {
-      const key = packChatUserBlockStorageKey(userId, handle, slug);
-      const cached =
-        typeof window !== "undefined" ? window.localStorage.getItem(key) : null;
-      if (cached && cached.trim()) {
-        setUserBlock(cached);
-        setUsingCached(true);
-        setHydrated(true);
-        return;
-      }
-      const fields = await loadDefaults();
-      setDialogFields(fields);
-      setDialogTitle("对话者设定");
-      setDialogOpen(true);
-      setHydrated(true);
-    })();
+    const fields = await loadDefaults();
+    setDialogFields(fields);
+    setDialogTitle("对话者设定");
+    setDialogOpen(true);
   }, [userId, handle, slug, loadDefaults]);
 
   function openDialogForReset() {
@@ -166,8 +162,11 @@ export default function PackChat({ handle, slug, userId }: Props) {
     if (!userId) {
       setUserBlock(null);
       setMessages([]);
+      setFlowStarted(false);
     }
   }, [userId, setMessages]);
+
+  const ctaLabel = `开始与「${packTitle.trim() || `${handle}/${slug}`}」对话`;
 
   if (!userId) {
     return (
@@ -179,19 +178,27 @@ export default function PackChat({ handle, slug, userId }: Props) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button render={<Link href={loginHref} />}>登录后开始</Button>
+          <Button render={<Link href={loginHref} />}>{ctaLabel}</Button>
         </CardContent>
       </Card>
     );
   }
 
-  if (!hydrated) {
+  if (!flowStarted) {
     return (
       <Card className="mt-8 border-0 shadow-md ring-1 ring-border/80">
         <CardHeader>
           <CardTitle className="text-base">与 pack 对话</CardTitle>
-          <CardDescription>准备中…</CardDescription>
+          <CardDescription>
+            使用当前 pack 的 SOUL / IDENTITY / AGENTS 与你在对话前确认的 USER
+            上下文。对话仅在当前浏览器会话中保留。
+          </CardDescription>
         </CardHeader>
+        <CardContent>
+          <Button type="button" onClick={() => void startChatFlow()}>
+            {ctaLabel}
+          </Button>
+        </CardContent>
       </Card>
     );
   }
@@ -215,8 +222,17 @@ export default function PackChat({ handle, slug, userId }: Props) {
               请先完成对话者（USER）设定，以便注入与 OpenClaw 对齐的上下文。
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button type="button" onClick={() => setDialogOpen(true)}>
+          <CardContent className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              onClick={() => {
+                void loadDefaults().then((fields) => {
+                  setDialogFields(fields);
+                  setDialogTitle("对话者设定");
+                  setDialogOpen(true);
+                });
+              }}
+            >
               打开设定
             </Button>
           </CardContent>

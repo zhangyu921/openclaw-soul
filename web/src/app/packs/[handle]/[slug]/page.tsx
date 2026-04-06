@@ -140,7 +140,12 @@ export default async function PackDetailPage({ params }: Props) {
         isListed={isListed}
       />
 
-      <PackChat handle={pack.author.handle} slug={pack.slug} userId={userId} />
+      <PackChat
+        handle={pack.author.handle}
+        slug={pack.slug}
+        userId={userId}
+        packTitle={pack.title}
+      />
 
       {showPreview ? (
         <div className="mt-8 space-y-6">
