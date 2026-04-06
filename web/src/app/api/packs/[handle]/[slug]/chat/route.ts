@@ -57,7 +57,10 @@ export async function POST(req: Request, { params }: Params) {
   }
 
   if (!Array.isArray(body.messages)) {
-    return NextResponse.json({ error: "invalid messages" }, { status: 400 });
+    return NextResponse.json(
+      { error: "messages must be an array (include chat history + new user turn)" },
+      { status: 400 }
+    );
   }
 
   const ip =
@@ -94,7 +97,10 @@ export async function POST(req: Request, { params }: Params) {
       })
     );
   } catch {
-    return NextResponse.json({ error: "invalid messages" }, { status: 400 });
+    return NextResponse.json(
+      { error: "could not convert messages to model format" },
+      { status: 400 }
+    );
   }
 
   const result = streamText({

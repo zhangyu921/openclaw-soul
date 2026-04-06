@@ -16,7 +16,10 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { packChatUserBlockStorageKey } from "@/lib/pack-chat-storage";
-import { parsePackUserMd, type ParsedUserFields } from "@/lib/user-md-parse";
+import {
+  applyUserMdPlaceholders,
+  DEFAULT_USER_MD_TEMPLATE,
+} from "@/lib/user-md-template";
 import PackChatUserDialog from "./pack-chat-user-dialog";
 
 function textFromMessage(m: UIMessage): string {
@@ -46,7 +49,7 @@ export default function PackChat({ handle, slug, userId, packTitle }: Props) {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogTitle, setDialogTitle] = useState("对话者设定");
-  const [dialogFields, setDialogFields] = useState<ParsedUserFields>({});
+  const [dialogMarkdown, setDialogMarkdown] = useState("");
   /** User clicked「开始与 … 对话」；未点击前不弹 USER 窗、不进入聊天区。 */
   const [flowStarted, setFlowStarted] = useState(false);
   const [usingCached, setUsingCached] = useState(false);
@@ -66,6 +69,10 @@ export default function PackChat({ handle, slug, userId, packTitle }: Props) {
         prepareSendMessagesRequest: async (opts) => ({
           body: {
             ...(opts.body ?? {}),
+            id: opts.id,
+            messages: opts.messages,
+            trigger: opts.trigger,
+            messageId: opts.messageId,
             userBlock: userBlockRef.current,
           },
         }),
@@ -80,37 +87,33 @@ export default function PackChat({ handle, slug, userId, packTitle }: Props) {
     transport,
   });
 
-  const loadDefaults = useCallback(async (): Promise<ParsedUserFields> => {
+  /** Pack `USER.md` if present; otherwise default template with `${…}` replaced. */
+  const loadUserMdInitial = useCallback(async (): Promise<string> => {
+    const encH = encodeURIComponent(handle);
+    const encS = encodeURIComponent(slug);
+    const res = await fetch(
+      `/api/packs/${encH}/${encS}/source-file?path=USER.md`
+    );
+    if (res.ok) {
+      const j = (await res.json()) as { kind?: string; content?: string };
+      if (j.kind === "markdown" && typeof j.content === "string") {
+        return j.content;
+      }
+    }
+    const me = (await fetch("/api/auth/me").then((r) =>
+      r.json()
+    )) as { user?: { handle?: string | null } };
+    const userHandle = me?.user?.handle?.trim() ?? "";
     const tz =
       typeof Intl !== "undefined"
         ? Intl.DateTimeFormat().resolvedOptions().timeZone ?? ""
         : "";
-    const res = await fetch("/api/auth/me");
-    const data = (await res.json().catch(() => ({}))) as {
-      user?: { handle?: string | null };
-    };
-    const h = data.user?.handle?.trim() || "";
-    const fields: ParsedUserFields = {
-      name: h || undefined,
-      whatToCall: h || undefined,
-      timezone: tz || undefined,
-    };
-    const encH = encodeURIComponent(handle);
-    const encS = encodeURIComponent(slug);
-    try {
-      const u = await fetch(
-        `/api/packs/${encH}/${encS}/source-file?path=USER.md`
-      );
-      if (u.ok) {
-        const j = (await u.json()) as { kind?: string; content?: string };
-        if (j.kind === "markdown" && typeof j.content === "string") {
-          Object.assign(fields, parsePackUserMd(j.content));
-        }
-      }
-    } catch {
-      /* ignore */
-    }
-    return fields;
+    return applyUserMdPlaceholders(DEFAULT_USER_MD_TEMPLATE, {
+      userHandle,
+      packHandle: handle,
+      packSlug: slug,
+      timezone: tz,
+    });
   }, [handle, slug]);
 
   const startChatFlow = useCallback(async () => {
@@ -126,15 +129,15 @@ export default function PackChat({ handle, slug, userId, packTitle }: Props) {
         setFlowStarted(true);
         return;
       }
-      const fields = await loadDefaults();
-      setDialogFields(fields);
+      const md = await loadUserMdInitial();
+      setDialogMarkdown(md);
       setDialogTitle("对话者设定");
       setFlowStarted(true);
       setDialogOpen(true);
     } finally {
       setStartLoading(false);
     }
-  }, [userId, handle, slug, loadDefaults]);
+  }, [userId, handle, slug, loadUserMdInitial]);
 
   function openDialogForReset() {
     setMessages([]);
@@ -146,9 +149,9 @@ export default function PackChat({ handle, slug, userId, packTitle }: Props) {
         ? window.localStorage.getItem(key)
         : null;
     if (cached && cached.trim()) {
-      setDialogFields(parsePackUserMd(cached));
+      setDialogMarkdown(cached);
     } else {
-      void loadDefaults().then(setDialogFields);
+      void loadUserMdInitial().then(setDialogMarkdown);
     }
     setDialogTitle("重新设定对话者");
     setDialogOpen(true);
@@ -222,7 +225,7 @@ export default function PackChat({ handle, slug, userId, packTitle }: Props) {
       <PackChatUserDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        initialFields={dialogFields}
+        initialMarkdown={dialogMarkdown}
         title={dialogTitle}
         onConfirm={onDialogConfirm}
       />
@@ -238,8 +241,8 @@ export default function PackChat({ handle, slug, userId, packTitle }: Props) {
             <Button
               type="button"
               onClick={() => {
-                void loadDefaults().then((fields) => {
-                  setDialogFields(fields);
+                void loadUserMdInitial().then((md) => {
+                  setDialogMarkdown(md);
                   setDialogTitle("对话者设定");
                   setDialogOpen(true);
                 });
