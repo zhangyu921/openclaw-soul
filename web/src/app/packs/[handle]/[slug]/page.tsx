@@ -22,6 +22,7 @@ import PackPublishButton from "./pack-publish";
 import PackRevokeButton from "./pack-revoke";
 import PackSummaryEdit from "./pack-summary-edit";
 import PackTitleEdit from "./pack-title-edit";
+import PackChat from "./pack-chat";
 
 export const dynamic = "force-dynamic";
 
@@ -138,6 +139,8 @@ export default async function PackDetailPage({ params }: Props) {
         isAuthor={isAuthor}
         isListed={isListed}
       />
+
+      <PackChat handle={pack.author.handle} slug={pack.slug} userId={userId} />
 
       {showPreview ? (
         <div className="mt-8 space-y-6">

@@ -26,6 +26,10 @@ Web：**Prisma ORM 7** + **PostgreSQL**（`docker-compose.yml` 将容器 `5432` 
 
 打开 http://localhost:3000 — **注册时需填写 public handle**（全站唯一，用于 `/packs/<handle>/<slug>` 与 CLI `apply`）。**在 monorepo 根目录**（无需先 `cd packages/cli`、也无需先 build CLI）：
 
+### Pack 即时 chat（详情页）
+
+「与 pack 对话」使用 **Vercel AI SDK** 调用 OpenAI 兼容 API。在 **`web/.env`** 中设置 **`OPENAI_API_KEY`**（必填）；可选 **`OPENAI_CHAT_MODEL`**（默认 `gpt-4o-mini`）。未配置时 **`POST /api/packs/.../chat`** 返回 **503**。示例见 `web/.env.example`。
+
 ### 推荐：浏览器登录（类 OAuth device flow）
 
 ```bash

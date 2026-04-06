@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { PackVisibility } from "@/generated/prisma/client";
 import { normalizeZipEntryPath } from "@/lib/pack-paths";
+import { canViewPack } from "@/lib/pack-access";
 import { prisma } from "@/lib/prisma";
 import { syncPackDerivedAfterSourceChange } from "@/lib/pack-source-sync";
 import { readSessionUserId } from "@/lib/session";
@@ -23,14 +23,6 @@ async function findPackForSourceApi(handle: string, slug: string) {
   });
 }
 
-async function canViewPack(
-  userId: string | null,
-  pack: { authorId: string; visibility: PackVisibility }
-): Promise<boolean> {
-  if (pack.visibility === PackVisibility.LISTED) return true;
-  return Boolean(userId && userId === pack.authorId);
-}
-
 function normalizePathParam(raw: string | null): string | null {
   if (raw == null || raw === "") return null;
   return normalizeZipEntryPath(raw);
@@ -43,7 +35,7 @@ export async function GET(req: Request, { params }: Params) {
   if (!pack) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
-  if (!(await canViewPack(userId, pack))) {
+  if (!canViewPack(userId, pack)) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 
