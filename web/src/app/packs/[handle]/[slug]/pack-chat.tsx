@@ -50,6 +50,7 @@ export default function PackChat({ handle, slug, userId, packTitle }: Props) {
   /** User clicked「开始与 … 对话」；未点击前不弹 USER 窗、不进入聊天区。 */
   const [flowStarted, setFlowStarted] = useState(false);
   const [usingCached, setUsingCached] = useState(false);
+  const [startLoading, setStartLoading] = useState(false);
 
   const chatApi = useMemo(
     () =>
@@ -114,19 +115,25 @@ export default function PackChat({ handle, slug, userId, packTitle }: Props) {
 
   const startChatFlow = useCallback(async () => {
     if (!userId) return;
-    setFlowStarted(true);
-    const key = packChatUserBlockStorageKey(userId, handle, slug);
-    const cached =
-      typeof window !== "undefined" ? window.localStorage.getItem(key) : null;
-    if (cached && cached.trim()) {
-      setUserBlock(cached);
-      setUsingCached(true);
-      return;
+    setStartLoading(true);
+    try {
+      const key = packChatUserBlockStorageKey(userId, handle, slug);
+      const cached =
+        typeof window !== "undefined" ? window.localStorage.getItem(key) : null;
+      if (cached && cached.trim()) {
+        setUserBlock(cached);
+        setUsingCached(true);
+        setFlowStarted(true);
+        return;
+      }
+      const fields = await loadDefaults();
+      setDialogFields(fields);
+      setDialogTitle("对话者设定");
+      setFlowStarted(true);
+      setDialogOpen(true);
+    } finally {
+      setStartLoading(false);
     }
-    const fields = await loadDefaults();
-    setDialogFields(fields);
-    setDialogTitle("对话者设定");
-    setDialogOpen(true);
   }, [userId, handle, slug, loadDefaults]);
 
   function openDialogForReset() {
@@ -166,7 +173,8 @@ export default function PackChat({ handle, slug, userId, packTitle }: Props) {
     }
   }, [userId, setMessages]);
 
-  const ctaLabel = `开始与「${packTitle.trim() || `${handle}/${slug}`}」对话`;
+  const displayName = packTitle.trim() || `${handle}/${slug}`;
+  const ctaLabel = `开始与【${displayName}】对话`;
 
   if (!userId) {
     return (
@@ -195,8 +203,12 @@ export default function PackChat({ handle, slug, userId, packTitle }: Props) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button type="button" onClick={() => void startChatFlow()}>
-            {ctaLabel}
+          <Button
+            type="button"
+            disabled={startLoading}
+            onClick={() => void startChatFlow()}
+          >
+            {startLoading ? "…" : ctaLabel}
           </Button>
         </CardContent>
       </Card>
