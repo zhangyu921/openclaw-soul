@@ -28,7 +28,12 @@ Web：**Prisma ORM 7** + **PostgreSQL**（`docker-compose.yml` 将容器 `5432` 
 
 ### Pack 即时 chat（详情页）
 
-「与 pack 对话」使用 **Vercel AI SDK** 调用 OpenAI 兼容 API。在 **`web/.env`** 中设置 **`OPENAI_API_KEY`**（必填）；可选 **`OPENAI_CHAT_MODEL`**（默认 `gpt-4o-mini`）。未配置时 **`POST /api/packs/.../chat`** 返回 **503**。示例见 `web/.env.example`。
+「与 pack 对话」使用 **Vercel AI SDK**。在 **`web/.env`** 中**任选其一**：
+
+- **本地 Ollama**：设置 **`OLLAMA_BASE_URL`**（例如 `http://127.0.0.1:11434`，无尾斜杠亦可）；可选 **`OLLAMA_MODEL`**（默认 **`qwen2:7b-instruct`**）。无需 **`OPENAI_API_KEY`**。
+- **OpenAI 兼容 API**：设置 **`OPENAI_API_KEY`**；可选 **`OPENAI_CHAT_MODEL`**（默认 `gpt-4o-mini`）。
+
+若 **`OLLAMA_BASE_URL`** 已设置，优先走 Ollama。均未配置时 **`POST /api/packs/.../chat`** 返回 **503**。示例见 `web/.env.example`。
 
 ### 推荐：浏览器登录（类 OAuth device flow）
 

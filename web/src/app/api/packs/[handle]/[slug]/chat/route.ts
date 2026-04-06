@@ -1,4 +1,3 @@
-import { createOpenAI } from "@ai-sdk/openai";
 import {
   convertToModelMessages,
   streamText,
@@ -6,6 +5,7 @@ import {
 } from "ai";
 import { NextResponse } from "next/server";
 
+import { resolvePackChatModel } from "@/lib/chat-model";
 import { canViewPack } from "@/lib/pack-access";
 import { perUserMinuteLimitPolicy, runChatAbusePolicies } from "@/lib/pack-chat-abuse";
 import { MAX_USER_BLOCK_CHARS } from "@/lib/pack-chat-constants";
@@ -70,9 +70,13 @@ export async function POST(req: Request, { params }: Params) {
     return NextResponse.json({ error: abuse.error }, { status: abuse.status });
   }
 
-  if (!process.env.OPENAI_API_KEY) {
+  const languageModel = resolvePackChatModel();
+  if (!languageModel) {
     return NextResponse.json(
-      { error: "chat unavailable (missing OPENAI_API_KEY)" },
+      {
+        error:
+          "chat unavailable: set OLLAMA_BASE_URL (and optional OLLAMA_MODEL) for Ollama, or OPENAI_API_KEY for OpenAI",
+      },
       { status: 503 }
     );
   }
@@ -93,11 +97,8 @@ export async function POST(req: Request, { params }: Params) {
     return NextResponse.json({ error: "invalid messages" }, { status: 400 });
   }
 
-  const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const modelId = process.env.OPENAI_CHAT_MODEL ?? "gpt-4o-mini";
-
   const result = streamText({
-    model: openai(modelId),
+    model: languageModel,
     system,
     messages: modelMessages,
   });
