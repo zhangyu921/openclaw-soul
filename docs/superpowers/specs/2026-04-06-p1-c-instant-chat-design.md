@@ -17,8 +17,9 @@
 - **入口**：pack 详情页提供 chat **入口**，**所有人可见**。
 - **鉴权**：**真正发消息 / 多轮对话须登录**；未登录时**引导登录**（沿用站点现有登录流）。
 - **上下文**：
-  - 实现**可扩展的「按路径注入 pack 内 Markdown」**能力；**当前默认**仅注入 **`SOUL.md`** 与 **`IDENTITY.md`**（存在则全文；缺失则明确说明缺失，不伪造）。
-  - 若 pack 内存在 **`USER.md`**（路径与 zip 根相对路径一致，见 §4.2），**优先解析其内容**，用于 **USER 弹窗**的**默认填值**；用户仍可编辑；注入会话时以**用户最终确认或缓存**为准。
+  - 实现**可扩展的「按路径注入 pack 内 Markdown」**能力；**拼装顺序**遵循 OpenClaw「灵魂先于工具」的层级（见 §4.0）。
+  - **默认从 pack 注入**：**`SOUL.md`**、**`IDENTITY.md`**、**`AGENTS.md`**（均存在则全文；缺失则明确说明缺失，不伪造）。**`AGENTS.md`** 为**程序层**（工作流 / SOP）；仓库内参考模板见 [`docs/pack-context/AGENTS.md`](../../pack-context/AGENTS.md)（与根目录 [`AGENTS.md`](../../../AGENTS.md) 协作指引区分）。
+  - 若 pack 内存在 **`USER.md`**（路径与 zip 根相对路径一致，见 §4.2），**优先解析其内容**，用于 **USER 弹窗**的**默认填值**；用户仍可编辑；**注入到模型侧的用户层正文**以**用户最终确认或缓存**为准（pack 内 `USER.md`**不**替代该确认块）。解析失败见 §4.2。
   - **USER 块**的展示结构须 **refer** 固定模板（见 §4.3）；服务端拼装进 system 侧上下文。
 - **USER 弹窗与本地缓存**（见 §5）：
   - **首次**与**某一 pack** 发起 chat：**必然**弹出 USER 设定并确认；**若该 `(用户, pack)` 已有有效本地缓存**则**跳过弹窗**。
@@ -30,7 +31,7 @@
 **非目标**（与 ROADMAP 一致）
 
 - 复杂推荐、社交图谱、全站评论、全自动脱敏流水线。
-- **OpenClaw 真实 workspace 上下文拼装**的逐行对齐（见 §7 调研项）；不阻塞本阶段交付。
+- **OpenClaw 全量能力**（如 `memory/`、`MEMORY.md`、heartbeat 等）在**浏览器内站点 chat**中的对齐（见 §7）；不阻塞本阶段交付。
 
 ---
 
@@ -52,22 +53,35 @@
 - **建议路径**：`POST /api/packs/[handle]/[slug]/chat`（最终实现以代码为准）。
 - **鉴权**：**Session**；未登录 **401**。
 - **读 pack 正文**：与现有 **`canViewPack`**（及详情页/source-file 一致）对齐；**未上架且非作者**不可对话、不可读注入正文。
-- **请求体**（概念）：至少包含 **多轮消息**（user/assistant 等）；**USER 块**的最终文本或经校验的结构化字段（见 §4.4）；**不得**由客户端单独上传 `SOUL`/`IDENTITY` 全文来绕过权限（正文**始终**服务端按 pack id 读取）。
+- **请求体**（概念）：至少包含 **多轮消息**（user/assistant 等）；**USER 块**的最终文本或经校验的结构化字段（见 §4.4）；**不得**由客户端单独上传 `SOUL`/`IDENTITY`/`AGENTS` 全文来绕过权限（正文**始终**服务端按 pack id 读取）。
 
 ---
 
 ## 4. 上下文拼装细节
 
+### 4.0 OpenClaw 层级与站内注入顺序（概念对齐）
+
+OpenClaw 在每一轮对话开始时按**由内到外、灵魂先于工具**的原则组织上下文，与本站 pack chat 的**推荐注入顺序**如下（**实际 system 拼装由服务端按此顺序拼接文本块**）：
+
+| 顺序 | 层级 | 文件 / 来源 | 含义（简） |
+| --- | --- | --- | --- |
+| 1 | 灵魂层 | `SOUL.md` | 价值观、性格底色、道德与交流风格；「我是谁」。 |
+| 2 | 身份层 | `IDENTITY.md` | 外在面具与场景身份；相对 SOUL 更偏展示与角色。 |
+| 3 | 用户偏好层 | **用户确认的 USER 块**（§4.3 模板） | 关于**当前对话者**的事实与偏好；由弹窗 + 缓存确定，**最终以用户确认内容为准**。 |
+| 4 | 程序层 | `AGENTS.md` | 工作流、SOP、决策逻辑；「我该怎么做」。 |
+
+**说明**：pack 内 **`USER.md`** 仅用于**预填弹窗**，不视为已生效的用户层注入；**生效**的是用户在弹窗中确认并提交的文本（或与 localStorage 一致的缓存）。**pack 内 `AGENTS.md`** 则按上表第 4 层注入（存在则全文）。
+
 ### 4.1 Pack 侧（默认策略）
 
-- 从 `PackMarkdownFile` 读取 **`SOUL.md`**、**IDENTITY.md**（路径名与库内存储一致）。
-- **扩展点**：内部模块支持**按路径列表**注入任意 md；**默认列表**仅上述两项；后续对齐 OpenClaw 或产品变更时**只改策略**，不改权限模型。
+- 从 `PackMarkdownFile` 读取 **`SOUL.md`**、**IDENTITY.md**、**AGENTS.md**（路径名与库内存储一致）。
+- **扩展点**：内部模块支持**按路径列表**注入任意 md；**默认列表**为上述三项 + **用户层块**（非文件路径，来自请求侧已校验的 USER 文本）；后续**只改策略**，不改权限模型。
 
-### 4.2 Pack 内 `USER.md`
+### 4.2 Pack 内 `USER.md`（仅预填弹窗）
 
 - **若存在**路径为 **`USER.md`** 的文件：在**需要展示 USER 弹窗**时（见 §5），服务端在**已授权读 pack** 的前提下将内容返回给前端，或由前端经**已有 source-file 读接口**获取（**须遵守同一可见性规则**）。
-- **解析**：用**轻量启发式**将正文映射到模板各字段（Name、What to call them、Pronouns、Timezone、Notes、`## Context` 等）；无法解析的段落可落入 **Notes** 或 **Context**，避免丢信息。
-- **优先级**：弹窗**默认值**顺序为 **`USER.md` 解析结果** > **注册用户信息推导**（如 handle、默认称呼）> **Timezone 客户端推断**（见 §5）。用户编辑始终优先。
+- **解析**：用**轻量启发式**将正文映射到模板各字段（Name、What to call them、Pronouns、Timezone、Notes、`## Context` 等）；可解析的段落落入对应字段，**无法解析或解析失败时**：**对应字段留空**，由**用户自行填写**；**不**因解析失败而阻塞弹窗。
+- **优先级**：弹窗**默认值**顺序为 **`USER.md` 解析结果**（成功字段）> **注册用户信息推导**（如 handle、默认称呼）> **Timezone 客户端推断**（见 §5）。**用户编辑与最终确认始终优先**；**注入到模型的用户层** = **用户确认后的 USER 块**（§4.3），与解析是否完美无关。
 
 ### 4.3 USER 模板（须保留结构与文末说明）
 
@@ -133,10 +147,10 @@ The more you know, the better you can help. But remember — you're learning abo
 
 ---
 
-## 7. OpenClaw 上下文对齐（调研项）
+## 7. OpenClaw 上下文对齐
 
-- **待查证**：OpenClaw / Agent Workspace 在真实运行时如何拼装 `SOUL` / `IDENTITY` / `USER` 及目录遍历顺序。
-- **本阶段**：以本 spec 为准实现闭环；后续单独 diff 清单，调整**默认注入路径列表**与解析规则。
+- **已对齐（本 spec）**：四层顺序 **SOUL → IDENTITY →（用户确认的）USER → AGENTS**；与「灵魂先于工具」一致；**`AGENTS.md`** 参考模板见 [`docs/pack-context/AGENTS.md`](../../pack-context/AGENTS.md)。
+- **刻意不在 P1-C 站点 chat 模拟**：本机 workspace 下的 **`memory/`、`MEMORY.md`、heartbeat、BOOTSTRAP** 等文件依赖与运行时钩子；若未来要做「更贴近 OpenClaw」，再单独立项扩展注入列表与 UX。
 
 ---
 
@@ -147,7 +161,7 @@ The more you know, the better you can help. But remember — you're learning abo
 **测试建议**
 
 - 鉴权矩阵：未登录、`UNLISTED` 非作者、`LISTED` 访客、作者。
-- 注入快照：给定 fixture，`system` 或等价层含 `SOUL`+`IDENTITY`+USER 块。
+- 注入快照：给定 fixture，`system` 或等价层含 **`SOUL` → `IDENTITY` → USER 确认块 → `AGENTS`**（按 §4.0 顺序）。
 - **有 / 无** pack 内 `USER.md` 时弹窗默认值与缓存跳过逻辑。
 - 滥用中间层：至少一条策略的单元测试（例如超限返回 429）。
 
@@ -168,3 +182,4 @@ The more you know, the better you can help. But remember — you're learning abo
 ## 10. 修订记录
 
 - **2026-04-06**：初稿，含 USER.md 优先、`localStorage` 按 pack、重新设定流、滥用中间层。
+- **2026-04-06**：对齐 OpenClaw 四层注入顺序；默认增加 **`AGENTS.md`**；**USER.md** 解析失败则留空由用户填写；参考模板迁至 [`docs/pack-context/AGENTS.md`](../../pack-context/AGENTS.md)。
