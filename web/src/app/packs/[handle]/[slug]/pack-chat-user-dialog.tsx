@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,16 +10,76 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { ParsedUserFields } from "@/lib/user-md-parse";
-import { buildUserBlockMarkdown } from "@/lib/user-md-template";
+
+type FormProps = {
+  initialMarkdown: string;
+  title: string;
+  onConfirm: (userBlockMarkdown: string) => void;
+  onOpenChange: (open: boolean) => void;
+};
+
+function PackChatUserDialogForm({
+  initialMarkdown,
+  title,
+  onConfirm,
+  onOpenChange,
+}: FormProps) {
+  const [markdown, setMarkdown] = useState(initialMarkdown);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    onConfirm(markdown.trim());
+    onOpenChange(false);
+  }
+
+  return (
+    <form
+      className="flex max-h-[90vh] flex-col"
+      onSubmit={handleSubmit}
+    >
+      <DialogHeader className="shrink-0 border-b px-6 py-4">
+        <DialogTitle>{title}</DialogTitle>
+      </DialogHeader>
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+        <div className="space-y-2">
+          <Label htmlFor="pack-chat-user-md">USER.md（Markdown）</Label>
+          <Textarea
+            id="pack-chat-user-md"
+            value={markdown}
+            onChange={(e) => setMarkdown(e.target.value)}
+            className="min-h-[min(60vh,420px)] resize-y font-mono text-sm leading-relaxed"
+            spellCheck={false}
+            autoComplete="off"
+          />
+          <p className="text-xs text-muted-foreground">
+            若 pack 内已有 <code className="font-mono">USER.md</code>{" "}
+            会载入为原文；否则使用默认模板。可直接编辑全文。
+          </p>
+        </div>
+      </div>
+      <DialogFooter className="shrink-0 border-t px-6 py-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => onOpenChange(false)}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" disabled={!markdown.trim()}>
+          确认并开始
+        </Button>
+      </DialogFooter>
+    </form>
+  );
+}
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  initialFields: ParsedUserFields;
+  /** Full markdown when the dialog opens (or updates while open). */
+  initialMarkdown: string;
   title: string;
   onConfirm: (userBlockMarkdown: string) => void;
 };
@@ -27,108 +87,20 @@ type Props = {
 export default function PackChatUserDialog({
   open,
   onOpenChange,
-  initialFields,
+  initialMarkdown,
   title,
   onConfirm,
 }: Props) {
-  const [name, setName] = useState("");
-  const [whatToCall, setWhatToCall] = useState("");
-  const [pronouns, setPronouns] = useState("");
-  const [timezone, setTimezone] = useState("");
-  const [notes, setNotes] = useState("");
-  const [context, setContext] = useState("");
-
-  useEffect(() => {
-    if (!open) return;
-    setName(initialFields.name ?? "");
-    setWhatToCall(initialFields.whatToCall ?? "");
-    setPronouns(initialFields.pronouns ?? "");
-    setTimezone(initialFields.timezone ?? "");
-    setNotes(initialFields.notes ?? "");
-    setContext(initialFields.context ?? "");
-  }, [open, initialFields]);
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const md = buildUserBlockMarkdown({
-      name,
-      whatToCall,
-      pronouns,
-      timezone,
-      notes,
-      context,
-    });
-    onConfirm(md);
-    onOpenChange(false);
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-3 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="chat-user-name">Name</Label>
-              <Input
-                id="chat-user-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                autoComplete="name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="chat-user-call">What to call them</Label>
-              <Input
-                id="chat-user-call"
-                value={whatToCall}
-                onChange={(e) => setWhatToCall(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="chat-user-pronouns">Pronouns</Label>
-              <Input
-                id="chat-user-pronouns"
-                value={pronouns}
-                onChange={(e) => setPronouns(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="chat-user-tz">Timezone</Label>
-              <Input
-                id="chat-user-tz"
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="chat-user-notes">Notes</Label>
-              <Textarea
-                id="chat-user-notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={2}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="chat-user-ctx">Context</Label>
-              <Textarea
-                id="chat-user-ctx"
-                value={context}
-                onChange={(e) => setContext(e.target.value)}
-                rows={4}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit">确认并开始</Button>
-          </DialogFooter>
-        </form>
+      <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
+        <PackChatUserDialogForm
+          key={open ? initialMarkdown : "closed"}
+          initialMarkdown={initialMarkdown}
+          title={title}
+          onConfirm={onConfirm}
+          onOpenChange={onOpenChange}
+        />
       </DialogContent>
     </Dialog>
   );

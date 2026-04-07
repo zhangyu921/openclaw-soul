@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildUserBlockMarkdown } from "./user-md-template";
+import { applyUserMdPlaceholders, DEFAULT_USER_MD_TEMPLATE } from "./user-md-template";
 import { parsePackUserMd } from "./user-md-parse";
 
 describe("parsePackUserMd", () => {
@@ -37,34 +37,29 @@ likes tea
   });
 
   it("does not put footer after --- into context", () => {
-    const raw = `${buildUserBlockMarkdown({
-      name: "Ada",
-      whatToCall: "A",
-      pronouns: "she/her",
-      timezone: "UTC",
-      notes: "n",
-      context: "only this",
-    })}`;
+    const raw = `## Context
+
+only this
+
+---
+
+The more you know, the better you can help.`;
     expect(parsePackUserMd(raw).context).toBe("only this");
-    expect(parsePackUserMd(raw).context).not.toMatch(/The more you know/);
   });
 
-  it("round-trips buildUserBlockMarkdown fields", () => {
-    const md = buildUserBlockMarkdown({
-      name: "N",
-      whatToCall: "W",
-      pronouns: "they",
+  it("round-trips default template after placeholder replace", () => {
+    const md = applyUserMdPlaceholders(DEFAULT_USER_MD_TEMPLATE, {
+      userHandle: "N",
+      packHandle: "ph",
+      packSlug: "ps",
       timezone: "X",
-      notes: "Y",
-      context: "Z",
+      pronouns: "they",
     });
     expect(parsePackUserMd(md)).toMatchObject({
       name: "N",
-      whatToCall: "W",
+      whatToCall: "N",
       pronouns: "they",
       timezone: "X",
-      notes: "Y",
-      context: "Z",
     });
   });
 
