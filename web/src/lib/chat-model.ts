@@ -1,11 +1,35 @@
-import { createOpenAI } from "@ai-sdk/openai";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOllama } from "ai-sdk-ollama";
 
+const DEFAULT_MINIMAX_ANTHROPIC_BASE_URL =
+  "https://api.minimaxi.com/anthropic/v1";
+
+function createMinimaxModel() {
+  const apiKey = process.env.MINIMAX_TOKEN_PLAN_API_KEY?.trim();
+  if (!apiKey) {
+    return null;
+  }
+  const baseURL =
+    process.env.MINIMAX_ANTHROPIC_BASE_URL?.trim() ??
+    DEFAULT_MINIMAX_ANTHROPIC_BASE_URL;
+  const provider = createAnthropic({
+    apiKey,
+    baseURL,
+    name: "minimax.messages",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  });
+  const modelId =
+    process.env.MINIMAX_CHAT_MODEL?.trim() ?? "MiniMax-M2.7";
+  return provider(modelId);
+}
+
 /**
- * Resolves the language model for pack chat.
- * - If `OLLAMA_BASE_URL` is set → local/cloud Ollama (`OLLAMA_MODEL`, default `qwen2:7b-instruct`).
- * - Else if `OPENAI_API_KEY` is set → OpenAI-compatible (`OPENAI_CHAT_MODEL`, default `gpt-4o-mini`).
- * - Otherwise returns `null` (caller should 503).
+ * Pack chat 所用语言模型。
+ * - `OLLAMA_BASE_URL` → Ollama（`OLLAMA_MODEL`，默认 `qwen2:7b-instruct`）
+ * - `MINIMAX_TOKEN_PLAN_API_KEY` → MiniMax（Anthropic 兼容；可选 `MINIMAX_ANTHROPIC_BASE_URL` 须为完整 Messages base，默认国内 `…/anthropic/v1`；可选 `MINIMAX_CHAT_MODEL`）
+ * - 否则 `null`（503）
  */
 export function resolvePackChatModel() {
   const ollamaBase = process.env.OLLAMA_BASE_URL?.trim();
@@ -16,12 +40,5 @@ export function resolvePackChatModel() {
     return ollama(modelId);
   }
 
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
-  if (!apiKey) {
-    return null;
-  }
-
-  const openai = createOpenAI({ apiKey });
-  const modelId = process.env.OPENAI_CHAT_MODEL ?? "gpt-4o-mini";
-  return openai(modelId);
+  return createMinimaxModel();
 }

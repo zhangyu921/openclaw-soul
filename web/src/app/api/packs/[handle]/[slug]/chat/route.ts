@@ -78,7 +78,7 @@ export async function POST(req: Request, { params }: Params) {
     return NextResponse.json(
       {
         error:
-          "chat unavailable: set OLLAMA_BASE_URL (and optional OLLAMA_MODEL) for Ollama, or OPENAI_API_KEY for OpenAI",
+          "chat unavailable: set OLLAMA_BASE_URL for Ollama or MINIMAX_TOKEN_PLAN_API_KEY for MiniMax",
       },
       { status: 503 }
     );

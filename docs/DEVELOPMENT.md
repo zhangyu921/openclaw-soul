@@ -28,12 +28,12 @@ Web：**Prisma ORM 7** + **PostgreSQL**（`docker-compose.yml` 将容器 `5432` 
 
 ### Pack 即时 chat（详情页）
 
-「与 pack 对话」使用 **Vercel AI SDK**。在 **`web/.env`** 中**任选其一**：
+「与 pack 对话」使用 **Vercel AI SDK**。在 **`web/.env`** 中**任选其一**（见 `web/.env.example`）：
 
-- **本地 Ollama**：设置 **`OLLAMA_BASE_URL`**（例如 `http://127.0.0.1:11434`，无尾斜杠亦可）；可选 **`OLLAMA_MODEL`**（默认 **`qwen2:7b-instruct`**）。无需 **`OPENAI_API_KEY`**。
-- **OpenAI 兼容 API**：设置 **`OPENAI_API_KEY`**；可选 **`OPENAI_CHAT_MODEL`**（默认 `gpt-4o-mini`）。
+- **本地 Ollama**：设置 **`OLLAMA_BASE_URL`**（例如 `http://127.0.0.1:11434`，无尾斜杠亦可）；可选 **`OLLAMA_MODEL`**（默认 **`qwen2:7b-instruct`**）。
+- **MiniMax Token Plan**：设置 **`MINIMAX_TOKEN_PLAN_API_KEY`**（控制台「Token Plan Key」）；可选 **`MINIMAX_ANTHROPIC_BASE_URL`**（默认国内 **`https://api.minimaxi.com/anthropic/v1`**）、**`MINIMAX_CHAT_MODEL`**（默认 **`MiniMax-M2.7`**）。走 MiniMax [Compatible Anthropic API](https://platform.minimax.io/docs/api-reference/text-anthropic-api)（`@ai-sdk/anthropic` + `Authorization: Bearer`）。Token Plan 专用 Key 与按量付费 Key 不通用。
 
-若 **`OLLAMA_BASE_URL`** 已设置，优先走 Ollama。均未配置时 **`POST /api/packs/.../chat`** 返回 **503**。示例见 `web/.env.example`。
+若 **`OLLAMA_BASE_URL`** 已设置则优先 Ollama；否则若配置了 **`MINIMAX_TOKEN_PLAN_API_KEY`** 则走 MiniMax。均未配置时 **`POST /api/packs/.../chat`** 返回 **503**。
 
 ### 推荐：浏览器登录（类 OAuth device flow）
 
