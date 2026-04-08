@@ -31,3 +31,7 @@
 ## P2
 
 **验证与复盘**（外人路径、门面叙事等）：**后置**，不与 P1 混排；**维护者择期**再考虑；需要时可有心理支持或疏导。不设「第几周必须完成」的硬指标。做到再单独 plan。
+
+| 完成  | 段        | 定位 | 内容（简） |
+| --- | -------- | --- | --- |
+| ⬜   | **P2-Web-i18n** | Web 多语言 | `/[locale]`（`en`/`zh`）、`Accept-Language` + **cookie 记住**、兜底 `en`；`next-intl` + 仓库 `messages/*.json`；登录后路径与创建 pack 相关 UI 优先中文；设计见 [`docs/superpowers/specs/2026-04-08-web-i18n-design.md`](superpowers/specs/2026-04-08-web-i18n-design.md)；**实现默认 subagent 并行拆分**。 |
