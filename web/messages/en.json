@@ -13,7 +13,7 @@
     "introWhoBody": " Anyone already using OpenClaw who wants a different conversation vibe or to mirror someone else's workspace—both character-driven and tool-only packs can be listed.",
     "introHowLabel": "How to get one:",
     "introHowBody": " Use the command below to apply on your machine.",
-    "applyCommandLine": "npx @openclaw-soul/cli apply <handle>/<slug>",
+    "applyCommandLine": "npx @openclaw-soul/cli apply [handle]/[slug]",
     "emptyTitle": "The gallery is empty",
     "emptyDescription": "If you're an author: publish your first pack so browsing and apply have something to show—personas or tools, both work.",
     "emptyFromWorkspace": "Publish from your local workspace:",

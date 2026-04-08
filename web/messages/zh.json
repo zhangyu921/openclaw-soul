@@ -13,7 +13,7 @@
     "introWhoBody": "已经在用 OpenClaw、想换对话气质或复刻他人工作区的人——情感向人设与纯功能向 pack 都能上架。",
     "introHowLabel": "同款怎么来：",
     "introHowBody": "下面一条命令 apply 到本机。",
-    "applyCommandLine": "npx @openclaw-soul/cli apply <handle>/<slug>",
+    "applyCommandLine": "npx @openclaw-soul/cli apply [handle]/[slug]",
     "emptyTitle": "画廊还是空的",
     "emptyDescription": "你是作者的话：先 publish 第一个 pack，逛选与 apply 才有东西可看——人设向或工具向都行。",
     "emptyFromWorkspace": "从本机 workspace 上架：",
