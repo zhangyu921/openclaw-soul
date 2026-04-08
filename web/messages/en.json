@@ -1,5 +1,24 @@
 {
   "common": {
     "siteName": "OpenClaw Soul"
+  },
+  "home": {
+    "metaTitle": "OpenClaw Soul",
+    "metaDescription": "Browse community workspace packs for OpenClaw and install them with one command.",
+    "badge": "OpenClaw Soul · personas & workspaces",
+    "heroTitle": "Browse packs in the gallery—install to your OpenClaw in one command",
+    "introWhatLabel": "What this is:",
+    "introWhatBody": " Installable workspace packs published by the community (persona, prompts, and files bundled together).",
+    "introWhoLabel": "Who it's for:",
+    "introWhoBody": " Anyone already using OpenClaw who wants a different conversation vibe or to mirror someone else's workspace—both character-driven and tool-only packs can be listed.",
+    "introHowLabel": "How to get one:",
+    "introHowBody": " Use the command below to apply on your machine.",
+    "applyCommandLine": "npx @openclaw-soul/cli apply <handle>/<slug>",
+    "emptyTitle": "The gallery is empty",
+    "emptyDescription": "If you're an author: publish your first pack so browsing and apply have something to show—personas or tools, both work.",
+    "emptyFromWorkspace": "Publish from your local workspace:",
+    "publishCommandLine": "npx @openclaw-soul/cli publish",
+    "noAvatar": "No avatar",
+    "noSummary": "No summary yet"
   }
 }

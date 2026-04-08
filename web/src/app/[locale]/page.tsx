@@ -1,6 +1,8 @@
-import { Link } from "@/i18n/navigation";
+import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Sparkles } from "lucide-react";
 
+import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PackVisibility } from "@/generated/prisma/client";
@@ -8,7 +10,24 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
+type Props = {
+  params: Promise<{ locale: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "home" });
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+  };
+}
+
+export default async function Home({ params }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("home");
+
   const packs = await prisma.pack.findMany({
     where: { visibility: PackVisibility.LISTED, author: { handle: { not: null } } },
     orderBy: { createdAt: "desc" },
@@ -27,22 +46,22 @@ export default async function Home() {
       <div className="mb-10 text-center sm:mb-12">
         <Badge variant="secondary" className="mb-4 gap-1 px-3 py-1 text-xs font-medium">
           <Sparkles className="size-3.5" aria-hidden />
-          OpenClaw Soul · personas &amp; workspaces
+          {t("badge")}
         </Badge>
         <h1 className="font-heading text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-          画廊里逛 pack，一键装进你的 OpenClaw
+          {t("heroTitle")}
         </h1>
         <p className="mx-auto mt-3 max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg">
-          <strong className="font-medium text-foreground">这是什么：</strong>
-          社区发布的可安装 workspace pack（人设、提示与文件一起打包）。
-          <strong className="ms-1 font-medium text-foreground">为谁：</strong>
-          已经在用 OpenClaw、想换对话气质或复刻他人工作区的人——情感向人设与纯功能向 pack 都能上架。
-          <strong className="ms-1 font-medium text-foreground">同款怎么来：</strong>
-          下面一条命令 apply 到本机。
+          <strong className="font-medium text-foreground">{t("introWhatLabel")}</strong>
+          {t("introWhatBody")}
+          <strong className="ms-1 font-medium text-foreground">{t("introWhoLabel")}</strong>
+          {t("introWhoBody")}
+          <strong className="ms-1 font-medium text-foreground">{t("introHowLabel")}</strong>
+          {t("introHowBody")}
         </p>
         <p className="mt-4 text-sm text-muted-foreground">
           <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-xs">
-            npx @openclaw-soul/cli apply &lt;handle&gt;/&lt;slug&gt;
+            {t("applyCommandLine")}
           </code>
         </p>
       </div>
@@ -50,18 +69,14 @@ export default async function Home() {
       {packs.length === 0 ? (
         <Card className="mx-auto max-w-md border-dashed text-center shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg">画廊还是空的</CardTitle>
-            <CardDescription>
-              你是作者的话：先 publish 第一个 pack，逛选与 apply 才有东西可看——人设向或工具向都行。
-            </CardDescription>
+            <CardTitle className="text-lg">{t("emptyTitle")}</CardTitle>
+            <CardDescription>{t("emptyDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              从本机 workspace 上架：
-            </p>
+            <p className="text-sm text-muted-foreground">{t("emptyFromWorkspace")}</p>
             <p className="mt-2">
               <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-xs">
-                npx @openclaw-soul/cli publish
+                {t("publishCommandLine")}
               </code>
             </p>
           </CardContent>
@@ -89,7 +104,7 @@ export default async function Home() {
                       />
                     ) : (
                       <div className="flex size-full items-center justify-center bg-gradient-to-br from-accent/40 to-secondary text-sm text-muted-foreground">
-                        No avatar
+                        {t("noAvatar")}
                       </div>
                     )}
                   </div>
@@ -107,7 +122,7 @@ export default async function Home() {
                           : "line-clamp-2 text-sm italic text-muted-foreground/80"
                       }
                     >
-                      {p.summary?.trim() ? p.summary.trim() : "暂无简介"}
+                      {p.summary?.trim() ? p.summary.trim() : t("noSummary")}
                     </p>
                   </CardContent>
                 </Card>
