@@ -147,6 +147,7 @@ export default async function PackDetailPage({ params }: Props) {
         slug={pack.slug}
         userId={userId}
         packTitle={pack.title}
+        sourceEmpty={sourceEmpty}
       />
 
       {showSourceFilesSection ? (

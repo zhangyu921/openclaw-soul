@@ -13,6 +13,7 @@ import {
   buildPackChatSystemPrompt,
   loadPackMarkdownLayers,
 } from "@/lib/pack-chat-context";
+import { packIsSourceEmpty } from "@/lib/pack-source-empty";
 import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
 
@@ -38,6 +39,16 @@ export async function POST(req: Request, { params }: Params) {
   });
   if (!pack || !canViewPack(userId, pack)) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
+  }
+
+  if (await packIsSourceEmpty(prisma, pack.id)) {
+    return NextResponse.json(
+      {
+        error:
+          "pack has no source files; add at least one file in「包内文件」before chatting",
+      },
+      { status: 400 }
+    );
   }
 
   let body: ChatPostBody;

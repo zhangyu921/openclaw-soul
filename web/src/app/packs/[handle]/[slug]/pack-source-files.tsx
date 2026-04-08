@@ -198,56 +198,8 @@ export default function PackSourceFiles({
     }
   };
 
-  if (sorted.length === 0) {
-    if (!isAuthor) {
-      return null;
-    }
-    return (
-      <Card className="border-0 shadow-md ring-1 ring-border/80">
-        <CardHeader>
-          <CardTitle className="text-base">包内文件</CardTitle>
-          <CardDescription>
-            尚无文件。先新建 Markdown（路径以 .md 结尾，例如 SOUL.md）；二进制文件请通过本机 CLI
-            上传 zip 更新。
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <Input
-              value={newPath}
-              onChange={(e) => setNewPath(e.target.value)}
-              placeholder="SOUL.md"
-              className="font-mono text-sm"
-              spellCheck={false}
-              aria-label="新建 Markdown 相对路径"
-              disabled={creating}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") void createMarkdownFile();
-              }}
-            />
-            <Button
-              type="button"
-              size="sm"
-              className="shrink-0 gap-1 sm:w-auto"
-              disabled={creating}
-              onClick={() => void createMarkdownFile()}
-            >
-              {creating ? (
-                <Loader2 className="size-4 animate-spin" aria-hidden />
-              ) : (
-                <FilePlus className="size-4" aria-hidden />
-              )}
-              创建
-            </Button>
-          </div>
-          {createError ? (
-            <p className="text-sm text-destructive" role="alert">
-              {createError}
-            </p>
-          ) : null}
-        </CardContent>
-      </Card>
-    );
+  if (sorted.length === 0 && !isAuthor) {
+    return null;
   }
 
   const mdPayload =
@@ -260,10 +212,57 @@ export default function PackSourceFiles({
       <CardHeader>
         <CardTitle className="text-base">包内文件</CardTitle>
         <CardDescription>
-          Markdown 可预览；作者可在线编辑。二进制条目仅显示路径，不提供预览。
+          Markdown 可预览；作者可在线编辑。二进制条目仅显示路径，不提供预览。作者可通过上方表单持续新建
+          Markdown 文件。
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {isAuthor ? (
+          <div className="space-y-2 rounded-xl border border-dashed border-border/80 bg-muted/20 p-3">
+            <p className="text-xs text-muted-foreground">
+              新建 Markdown（相对路径以 .md 结尾，如 SOUL.md）；二进制请通过本机 CLI 上传 zip。
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Input
+                value={newPath}
+                onChange={(e) => setNewPath(e.target.value)}
+                placeholder="another-file.md"
+                className="font-mono text-sm"
+                spellCheck={false}
+                aria-label="新建 Markdown 相对路径"
+                disabled={creating}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void createMarkdownFile();
+                }}
+              />
+              <Button
+                type="button"
+                size="sm"
+                className="shrink-0 gap-1 sm:w-auto"
+                disabled={creating}
+                onClick={() => void createMarkdownFile()}
+              >
+                {creating ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                ) : (
+                  <FilePlus className="size-4" aria-hidden />
+                )}
+                创建
+              </Button>
+            </div>
+            {createError ? (
+              <p className="text-sm text-destructive" role="alert">
+                {createError}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {sorted.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            尚未添加任何文件；请使用上方表单创建第一个 Markdown 文件。
+          </p>
+        ) : (
         <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
           <nav
             className="lg:w-56 lg:shrink-0"
@@ -420,6 +419,7 @@ export default function PackSourceFiles({
             )}
           </div>
         </div>
+        )}
       </CardContent>
     </Card>
   );

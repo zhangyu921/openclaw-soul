@@ -35,9 +35,17 @@ type Props = {
   userId: string | null;
   /** Display title for CTA (e.g. Pack.title). */
   packTitle: string;
+  /** No md/bin rows — chat API and UI are disabled. */
+  sourceEmpty: boolean;
 };
 
-export default function PackChat({ handle, slug, userId, packTitle }: Props) {
+export default function PackChat({
+  handle,
+  slug,
+  userId,
+  packTitle,
+  sourceEmpty,
+}: Props) {
   const pathname = usePathname();
   const loginHref = `/login?next=${encodeURIComponent(pathname)}`;
 
@@ -178,6 +186,25 @@ export default function PackChat({ handle, slug, userId, packTitle }: Props) {
 
   const displayName = packTitle.trim() || `${handle}/${slug}`;
   const ctaLabel = `开始与【${displayName}】对话`;
+
+  if (sourceEmpty) {
+    return (
+      <Card className="mt-8 border-0 shadow-md ring-1 ring-border/80">
+        <CardHeader>
+          <CardTitle className="text-base">与 pack 对话</CardTitle>
+          <CardDescription>
+            对话需要可注入的 pack 上下文。当前尚无包内文件（Markdown
+            或二进制），无法开始对话。
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            请先在上方「包内文件」中至少添加一个文件后再试。
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (!userId) {
     return (
