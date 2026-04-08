@@ -66,7 +66,9 @@ export default async function PackDetailPage({ params }: Props) {
       kind: "binary" as const,
     })),
   ].sort((a, b) => a.path.localeCompare(b.path));
-  const showPreview = sourceFiles.length > 0 && (isAuthor || isListed);
+  const sourceEmpty = sourceFiles.length === 0;
+  const showSourceFilesSection =
+    isAuthor || (isListed && sourceFiles.length > 0);
   const showcaseRefs = normalizeShowcaseImageRefs(pack.showcaseImageRefs);
   const showcaseImageCount = showcaseRefs.length;
   const showcaseImageAspects: (number | null)[] = showcaseRefs.map((r) =>
@@ -147,7 +149,7 @@ export default async function PackDetailPage({ params }: Props) {
         packTitle={pack.title}
       />
 
-      {showPreview ? (
+      {showSourceFilesSection ? (
         <div className="mt-8 space-y-6">
           <PackSourceFiles
             handle={pack.author.handle}
@@ -165,7 +167,11 @@ export default async function PackDetailPage({ params }: Props) {
               当前 pack <strong className="text-foreground">未在画廊公开</strong>
               ，访客无法打开此链接。上架到画廊后可被浏览与 apply。
             </p>
-            <PackPublishButton handle={pack.author.handle} slug={pack.slug} />
+            <PackPublishButton
+              handle={pack.author.handle}
+              slug={pack.slug}
+              disableWhenEmpty={sourceEmpty}
+            />
             <p className="text-xs">
               说明见{" "}
               <Link href="/privacy#revoke" className={privacyLinkClassName}>
@@ -207,9 +213,20 @@ export default async function PackDetailPage({ params }: Props) {
           </pre>
           <div>
             <p className="mb-2 text-sm font-medium text-muted-foreground">Raw zip</p>
-            <Button variant="outline" size="sm" render={<a href={downloadUrl} />}>
-              Download {pack.slug}.zip
-            </Button>
+            {sourceEmpty ? (
+              <div className="space-y-2">
+                <Button type="button" variant="outline" size="sm" disabled>
+                  Download {pack.slug}.zip
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  至少添加一个包内文件后可下载 zip。
+                </p>
+              </div>
+            ) : (
+              <Button variant="outline" size="sm" render={<a href={downloadUrl} />}>
+                Download {pack.slug}.zip
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

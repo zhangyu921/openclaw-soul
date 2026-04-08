@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import DashboardCreatePackEntry from "@/app/dashboard/create-pack-dialog";
 import { CopyPublishCommand } from "@/app/dashboard/copy-publish-command";
 import { PackVisibility } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -146,6 +147,8 @@ export default async function DashboardPage() {
             );
           })
         )}
+
+        <DashboardCreatePackEntry hasHandle={Boolean(handle)} />
 
         <li>
           <div className={rowStatic}>

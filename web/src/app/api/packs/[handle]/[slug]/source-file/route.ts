@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { normalizeZipEntryPath } from "@/lib/pack-paths";
+import { isMarkdownPath, normalizeZipEntryPath } from "@/lib/pack-paths";
 import { canViewPack } from "@/lib/pack-access";
 import { prisma } from "@/lib/prisma";
 import { syncPackDerivedAfterSourceChange } from "@/lib/pack-source-sync";
@@ -150,6 +150,102 @@ export async function PATCH(req: Request, { params }: Params) {
     } catch (revertErr) {
       console.error(revertErr);
     }
+    return NextResponse.json({ error: "failed to save pack source" }, { status: 500 });
+  }
+
+  const row = await prisma.packMarkdownFile.findUnique({
+    where: { packId_path: { packId: pack.id, path: normalized } },
+    select: { updatedAt: true },
+  });
+
+  return NextResponse.json({
+    ok: true as const,
+    path: normalized,
+    updatedAt: row?.updatedAt.toISOString() ?? new Date().toISOString(),
+  });
+}
+
+export async function POST(req: Request, { params }: Params) {
+  const sessionUserId = await readSessionUserId();
+  if (!sessionUserId) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const { handle, slug } = await params;
+  const pack = await prisma.pack.findFirst({
+    where: { slug, author: { handle } },
+    select: { id: true, authorId: true },
+  });
+  if (!pack) {
+    return NextResponse.json({ error: "not found" }, { status: 404 });
+  }
+  if (pack.authorId !== sessionUserId) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "invalid JSON" }, { status: 400 });
+  }
+  if (typeof body !== "object" || body === null) {
+    return NextResponse.json({ error: "invalid body" }, { status: 400 });
+  }
+  const b = body as Record<string, unknown>;
+  const rawPath = b.path;
+  const rawContent = b.content;
+  if (typeof rawPath !== "string") {
+    return NextResponse.json({ error: "path must be a string" }, { status: 400 });
+  }
+  const content = typeof rawContent === "string" ? rawContent : "";
+
+  const normalized = normalizeZipEntryPath(rawPath);
+  if (!normalized) {
+    return NextResponse.json({ error: "invalid path" }, { status: 400 });
+  }
+  if (!isMarkdownPath(normalized)) {
+    return NextResponse.json(
+      { error: "only markdown paths can be created on the web" },
+      { status: 400 }
+    );
+  }
+
+  const bytes = utf8ByteLength(content);
+  if (bytes > MAX_PACK_MARKDOWN_UTF8_BYTES) {
+    return NextResponse.json(
+      {
+        error: `content too large (max ${MAX_PACK_MARKDOWN_UTF8_BYTES} UTF-8 bytes)`,
+      },
+      { status: 400 }
+    );
+  }
+
+  const [existingMd, existingBin] = await Promise.all([
+    prisma.packMarkdownFile.findUnique({
+      where: { packId_path: { packId: pack.id, path: normalized } },
+      select: { path: true },
+    }),
+    prisma.packBinaryFile.findUnique({
+      where: { packId_path: { packId: pack.id, path: normalized } },
+      select: { path: true },
+    }),
+  ]);
+  if (existingMd || existingBin) {
+    return NextResponse.json({ error: "path already exists" }, { status: 409 });
+  }
+
+  try {
+    await prisma.packMarkdownFile.create({
+      data: {
+        packId: pack.id,
+        path: normalized,
+        content,
+      },
+    });
+    await syncPackDerivedAfterSourceChange(prisma, pack.id);
+  } catch (e) {
+    console.error(e);
     return NextResponse.json({ error: "failed to save pack source" }, { status: 500 });
   }
 

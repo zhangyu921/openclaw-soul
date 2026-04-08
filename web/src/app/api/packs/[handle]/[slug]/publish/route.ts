@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { PackVisibility } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { findPackByHandleAndSlug } from "@/lib/pack-lookup";
+import { packIsSourceEmpty } from "@/lib/pack-source-empty";
 import { readSessionUserId } from "@/lib/session";
 
 type Params = { params: Promise<{ handle: string; slug: string }> };
@@ -23,6 +24,15 @@ export async function POST(_req: Request, { params }: Params) {
   }
   if (pack.visibility === PackVisibility.LISTED) {
     return NextResponse.json({ ok: true, visibility: PackVisibility.LISTED });
+  }
+
+  if (await packIsSourceEmpty(prisma, pack.id)) {
+    return NextResponse.json(
+      {
+        error: "在 pack 内至少添加一个文件后再上架。",
+      },
+      { status: 400 }
+    );
   }
 
   await prisma.pack.update({

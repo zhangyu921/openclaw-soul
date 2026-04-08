@@ -77,6 +77,12 @@ export async function buildZipBufferFromPackDb(
   return out;
 }
 
+/** Minimal valid zip with no file entries (empty pack bootstrap). */
+export function buildEmptyZipBuffer(): Promise<Buffer> {
+  const zip = new yazl.ZipFile();
+  return zipFileToBuffer(zip);
+}
+
 /** Build zip from DB and write to storage; updates `Pack.zipRelPath`. */
 export async function buildAndStoreZipFromPackDb(
   db: PrismaClient,

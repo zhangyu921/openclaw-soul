@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -12,7 +13,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { MAX_PACK_MARKDOWN_UTF8_BYTES } from "@/lib/upload-limits";
 import { cn } from "@/lib/utils";
-import { FileText, Loader2, Pencil, Save, X } from "lucide-react";
+import { FilePlus, FileText, Loader2, Pencil, Save, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -85,6 +86,9 @@ export default function PackSourceFiles({
   const [draftContent, setDraftContent] = useState("");
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [newPath, setNewPath] = useState("");
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     if (sorted.length === 0) {
@@ -164,8 +168,86 @@ export default function PackSourceFiles({
     }
   };
 
+  const createMarkdownFile = async () => {
+    if (!isAuthor) return;
+    const raw = newPath.trim();
+    if (!raw) {
+      setCreateError("请填写相对路径（如 SOUL.md）");
+      return;
+    }
+    setCreateError(null);
+    setCreating(true);
+    try {
+      const res = await fetch(baseUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: raw, content: "" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setCreateError(typeof data.error === "string" ? data.error : "创建失败");
+        return;
+      }
+      const created =
+        typeof data.path === "string" ? data.path : raw;
+      setNewPath("");
+      router.refresh();
+      setSelectedPath(created);
+    } finally {
+      setCreating(false);
+    }
+  };
+
   if (sorted.length === 0) {
-    return null;
+    if (!isAuthor) {
+      return null;
+    }
+    return (
+      <Card className="border-0 shadow-md ring-1 ring-border/80">
+        <CardHeader>
+          <CardTitle className="text-base">包内文件</CardTitle>
+          <CardDescription>
+            尚无文件。先新建 Markdown（路径以 .md 结尾，例如 SOUL.md）；二进制文件请通过本机 CLI
+            上传 zip 更新。
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Input
+              value={newPath}
+              onChange={(e) => setNewPath(e.target.value)}
+              placeholder="SOUL.md"
+              className="font-mono text-sm"
+              spellCheck={false}
+              aria-label="新建 Markdown 相对路径"
+              disabled={creating}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void createMarkdownFile();
+              }}
+            />
+            <Button
+              type="button"
+              size="sm"
+              className="shrink-0 gap-1 sm:w-auto"
+              disabled={creating}
+              onClick={() => void createMarkdownFile()}
+            >
+              {creating ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+              ) : (
+                <FilePlus className="size-4" aria-hidden />
+              )}
+              创建
+            </Button>
+          </div>
+          {createError ? (
+            <p className="text-sm text-destructive" role="alert">
+              {createError}
+            </p>
+          ) : null}
+        </CardContent>
+      </Card>
+    );
   }
 
   const mdPayload =

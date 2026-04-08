@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PackVisibility } from "@/generated/prisma/client";
 import { findPackByHandleAndSlug } from "@/lib/pack-lookup";
+import { packIsSourceEmpty } from "@/lib/pack-source-empty";
 import { prisma } from "@/lib/prisma";
 import { buildAndStoreZipFromPackDb } from "@/lib/pack-source-zip";
 import { findUserIdByApiToken } from "@/lib/token-api";
@@ -28,6 +29,13 @@ export async function GET(req: Request, { params }: Params) {
     if (!userId || userId !== pack.authorId) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
+  }
+
+  if (await packIsSourceEmpty(prisma, pack.id)) {
+    return NextResponse.json(
+      { error: "pack has no source files" },
+      { status: 400 }
+    );
   }
 
   try {
