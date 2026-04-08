@@ -44,7 +44,7 @@ function parseBulletLine(raw: string, label: string): string | undefined {
 export function parseContextSection(raw: string): string | undefined {
   const startIdx = raw.search(/##\s*Context\b/im);
   if (startIdx < 0) return undefined;
-  let after = raw.slice(startIdx).replace(/^##\s*Context\s*/i, "");
+  const after = raw.slice(startIdx).replace(/^##\s*Context\s*/i, "");
   const lines = after.split(/\r?\n/);
   const buf: string[] = [];
   for (const line of lines) {
@@ -53,7 +53,7 @@ export function parseContextSection(raw: string): string | undefined {
     if (/^##\s+\S/.test(t)) break;
     buf.push(line);
   }
-  let ctx = buf.join("\n").trim();
+  const ctx = buf.join("\n").trim();
   if (!ctx) return undefined;
   // Drop the default italic placeholder line if present (template / empty context)
   if (
