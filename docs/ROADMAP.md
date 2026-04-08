@@ -34,4 +34,4 @@
 
 | 完成  | 段        | 定位 | 内容（简） |
 | --- | -------- | --- | --- |
-| ⬜   | **P2-Web-i18n** | Web 多语言 | `/[locale]`（`en`/`zh`）、`Accept-Language` + **cookie 记住**、兜底 `en`；`next-intl` + 仓库 `messages/*.json`；登录后路径与创建 pack 相关 UI 优先中文；设计见 [`docs/superpowers/specs/2026-04-08-web-i18n-design.md`](superpowers/specs/2026-04-08-web-i18n-design.md)；**实现默认 subagent 并行拆分**。 |
+| ✅   | **P2-Web-i18n** | Web 多语言 | `/[locale]`（`en`/`zh`）、`NEXT_LOCALE` + `Accept-Language`、兜底 `en`；`next-intl` + `messages/*.json`（`zh` 缺 key 回退 `en`）；站内 `Link`/`redirect`/`router` 已 locale-aware；**UI 文案分期迁入 `messages`**（见 [`web/AGENTS.md`](../web/AGENTS.md)）；设计 [`docs/superpowers/specs/2026-04-08-web-i18n-design.md`](superpowers/specs/2026-04-08-web-i18n-design.md)。 |

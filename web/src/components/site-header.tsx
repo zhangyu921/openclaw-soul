@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ModeToggle } from "@/components/mode-toggle";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +54,7 @@ export function SiteHeader({ initialUser }: { initialUser: HeaderUser | null }) 
               </Link>
             </>
           )}
+          <LocaleSwitcher />
           <ModeToggle />
         </nav>
       </div>
