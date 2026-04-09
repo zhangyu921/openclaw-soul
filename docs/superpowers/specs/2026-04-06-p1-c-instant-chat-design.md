@@ -18,7 +18,7 @@
 - **鉴权**：**真正发消息 / 多轮对话须登录**；未登录时**引导登录**（沿用站点现有登录流）。
 - **上下文**：
   - 实现**可扩展的「按路径注入 pack 内 Markdown」**能力；**拼装顺序**遵循 OpenClaw「灵魂先于工具」的层级（见 §4.0）。
-  - **默认从 pack 注入**：**`SOUL.md`**、**`IDENTITY.md`**、**`AGENTS.md`**（均存在则全文；缺失则明确说明缺失，不伪造）。**`AGENTS.md`** 为**程序层**（工作流 / SOP）；仓库内参考模板见 [`docs/pack-context/AGENTS.md`](../../pack-context/AGENTS.md)（与根目录 [`AGENTS.md`](../../../AGENTS.md) 协作指引区分）。
+  - **默认从 pack 注入**：**`SOUL.md`**、**`IDENTITY.md`**、**`AGENTS.md`**（均存在则全文；缺失则明确说明缺失，不伪造）。**`AGENTS.md`** 为**程序层**（工作流 / SOP）；仓库内参考模板见 [`docs/pack-context/DEFAULT_PACK_AGENTS.md`](../../pack-context/DEFAULT_PACK_AGENTS.md)（与根目录 [`AGENTS.md`](../../../AGENTS.md) 协作指引区分）。
   - 若 pack 内存在 **`USER.md`**（路径与 zip 根相对路径一致，见 §4.2），**优先解析其内容**，用于 **USER 弹窗**的**默认填值**；用户仍可编辑；**注入到模型侧的用户层正文**以**用户最终确认或缓存**为准（pack 内 `USER.md`**不**替代该确认块）。解析失败见 §4.2。
   - **USER 块**的展示结构须 **refer** 固定模板（见 §4.3）；服务端拼装进 system 侧上下文。
 - **USER 弹窗与本地缓存**（见 §5）：
@@ -149,7 +149,7 @@ The more you know, the better you can help. But remember — you're learning abo
 
 ## 7. OpenClaw 上下文对齐
 
-- **已对齐（本 spec）**：四层顺序 **SOUL → IDENTITY →（用户确认的）USER → AGENTS**；与「灵魂先于工具」一致；**`AGENTS.md`** 参考模板见 [`docs/pack-context/AGENTS.md`](../../pack-context/AGENTS.md)。
+- **已对齐（本 spec）**：四层顺序 **SOUL → IDENTITY →（用户确认的）USER → AGENTS**；与「灵魂先于工具」一致；**`AGENTS.md`** 参考模板见 [`docs/pack-context/DEFAULT_PACK_AGENTS.md`](../../pack-context/DEFAULT_PACK_AGENTS.md)。
 - **刻意不在 P1-C 站点 chat 模拟**：本机 workspace 下的 **`memory/`、`MEMORY.md`、heartbeat、BOOTSTRAP** 等文件依赖与运行时钩子；若未来要做「更贴近 OpenClaw」，再单独立项扩展注入列表与 UX。
 
 ---
@@ -182,4 +182,4 @@ The more you know, the better you can help. But remember — you're learning abo
 ## 10. 修订记录
 
 - **2026-04-06**：初稿，含 USER.md 优先、`localStorage` 按 pack、重新设定流、滥用中间层。
-- **2026-04-06**：对齐 OpenClaw 四层注入顺序；默认增加 **`AGENTS.md`**；**USER.md** 解析失败则留空由用户填写；参考模板迁至 [`docs/pack-context/AGENTS.md`](../../pack-context/AGENTS.md)。
+- **2026-04-06**：对齐 OpenClaw 四层注入顺序；默认增加 **`AGENTS.md`**；**USER.md** 解析失败则留空由用户填写；参考模板迁至 [`docs/pack-context/DEFAULT_PACK_AGENTS.md`](../../pack-context/DEFAULT_PACK_AGENTS.md)。

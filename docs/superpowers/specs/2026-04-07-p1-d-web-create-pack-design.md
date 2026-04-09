@@ -81,4 +81,4 @@
 ## 7. 与相关文档
 
 - 全仓协作入口：[`AGENTS.md`](../../../AGENTS.md)
-- Pack 语境参考（命名与层级）：[`docs/pack-context/AGENTS.md`](../../pack-context/AGENTS.md)
+- Pack 语境参考（命名与层级）：[`docs/pack-context/DEFAULT_PACK_AGENTS.md`](../../pack-context/DEFAULT_PACK_AGENTS.md)

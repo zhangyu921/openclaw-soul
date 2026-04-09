@@ -1,22 +1,44 @@
 import { describe, expect, it } from "vitest";
 
+import { DEFAULT_PACK_AGENTS_MD } from "./default-pack-agents-md";
 import { buildPackChatSystemPrompt } from "./pack-chat-context";
 
 describe("buildPackChatSystemPrompt", () => {
-  it("orders SOUL then IDENTITY then USER then AGENTS", () => {
+  it("injects platform AGENTS, optional USER-UPLOAD-AGENTS, then SOUL, IDENTITY, USER", () => {
     const text = buildPackChatSystemPrompt({
-      soul: "<<SOUL_BODY>>",
-      identity: "<<ID_BODY>>",
-      userBlock: "<<USER_BODY>>",
-      agents: "<<AG_BODY>>",
+      soul: "<<S>>",
+      identity: "<<I>>",
+      userBlock: "<<U>>",
+      agentsUserUpload: "<<UP>>",
     });
-    const iSoul = text.indexOf("<<SOUL_BODY>>");
-    const iId = text.indexOf("<<ID_BODY>>");
-    const iUser = text.indexOf("<<USER_BODY>>");
-    const iAgents = text.indexOf("<<AG_BODY>>");
-    expect(iSoul).toBeGreaterThanOrEqual(0);
-    expect(iId).toBeGreaterThan(iSoul);
-    expect(iUser).toBeGreaterThan(iId);
-    expect(iAgents).toBeGreaterThan(iUser);
+    expect(text).toContain("## AGENTS.md（OpenClaw Soul）");
+    expect(text).toContain("## USER-UPLOAD-AGENTS.md");
+    const iUp = text.indexOf("<<UP>>");
+    const iS = text.indexOf("<<S>>");
+    const iI = text.indexOf("<<I>>");
+    const iUser = text.indexOf("<<U>>");
+    expect(iUp).toBeGreaterThanOrEqual(0);
+    expect(iS).toBeGreaterThan(iUp);
+    expect(iI).toBeGreaterThan(iS);
+    expect(iUser).toBeGreaterThan(iI);
+  });
+
+  it("omits USER-UPLOAD-AGENTS when authors did not upload AGENTS.md", () => {
+    const text = buildPackChatSystemPrompt({
+      soul: "<<S>>",
+      identity: "<<I>>",
+      userBlock: "<<U>>",
+      agentsUserUpload: null,
+    });
+    expect(text).not.toContain("## USER-UPLOAD-AGENTS.md");
+    expect(text.indexOf("<<S>>")).toBeGreaterThan(0);
+  });
+});
+
+describe("DEFAULT_PACK_AGENTS_MD", () => {
+  it("loads from default-pack-agents.md and documents Soul-global rules", () => {
+    expect(DEFAULT_PACK_AGENTS_MD.startsWith("# AGENTS.md")).toBe(true);
+    expect(DEFAULT_PACK_AGENTS_MD).toContain("OpenClaw Soul");
+    expect(DEFAULT_PACK_AGENTS_MD).toContain("USER-UPLOAD-AGENTS");
   });
 });
