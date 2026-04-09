@@ -375,11 +375,11 @@ export default function PackChat({
             </p>
           ) : null}
           <PromptInput
-            className="relative w-full"
+            className="relative w-full [&_[data-slot=input-group]]:items-stretch"
             onSubmit={handlePromptSubmit}
           >
             <PromptInputTextarea
-              className="min-h-[44px] pr-12"
+              className="min-h-[48px] py-3 pr-12 leading-6 placeholder:leading-6"
               disabled={busy}
               onChange={(e) => setInput(e.currentTarget.value)}
               placeholder={t("inputPlaceholder")}
@@ -387,7 +387,7 @@ export default function PackChat({
             />
             <PromptInputSubmit
               aria-label={busy ? t("stop") : t("submit")}
-              className="absolute right-1 bottom-1"
+              className="absolute right-2 bottom-2"
               disabled={busy || !input.trim()}
               onStop={stop}
               status={status}
