@@ -2,6 +2,11 @@
   "common": {
     "siteName": "OpenClaw Soul"
   },
+  "packChat": {
+    "emptyTitle": "发送第一条消息开始",
+    "emptyDescription": "在下方输入，使用当前 pack 的上下文多轮对话。",
+    "inputPlaceholder": "输入消息…"
+  },
   "home": {
     "metaTitle": "OpenClaw Soul",
     "metaDescription": "找到你想聊的 Soul。浏览社区上架内容，一条命令装到本机 OpenClaw。",

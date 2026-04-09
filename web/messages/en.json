@@ -2,6 +2,11 @@
   "common": {
     "siteName": "OpenClaw Soul"
   },
+  "packChat": {
+    "emptyTitle": "Start the conversation",
+    "emptyDescription": "Send a message below to chat with this pack's context.",
+    "inputPlaceholder": "Type a message…"
+  },
   "home": {
     "metaTitle": "OpenClaw Soul",
     "metaDescription": "Find a soul you want to talk with. Browse Souls from the community for OpenClaw—install with one command.",

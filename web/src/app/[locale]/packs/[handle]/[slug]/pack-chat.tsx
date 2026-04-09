@@ -2,9 +2,29 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import { MessageSquare } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import {
+  Conversation,
+  ConversationContent,
+  ConversationDownload,
+  ConversationEmptyState,
+  ConversationScrollButton,
+} from "@/components/ai-elements/conversation";
+import {
+  Message,
+  MessageContent,
+  MessageResponse,
+} from "@/components/ai-elements/message";
+import {
+  PromptInput,
+  type PromptInputMessage,
+  PromptInputSubmit,
+  PromptInputTextarea,
+} from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,8 +33,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { textFromMessage } from "@/lib/pack-chat-message-text";
 import { packChatUserBlockStorageKey } from "@/lib/pack-chat-storage";
 import {
   applyUserMdPlaceholders,
@@ -39,6 +57,7 @@ export default function PackChat({
   packTitle,
   sourceEmpty,
 }: Props) {
+  const t = useTranslations("packChat");
   const pathname = usePathname();
   const loginHref = `/login?next=${encodeURIComponent(pathname)}`;
 
@@ -83,10 +102,20 @@ export default function PackChat({
 
   const chatId = useMemo(() => `pack-chat-${handle}-${slug}`, [handle, slug]);
 
-  const { messages, sendMessage, status, setMessages, error } = useChat({
+  const { messages, sendMessage, status, setMessages, error, stop } = useChat({
     id: chatId,
     transport,
   });
+
+  const handlePromptSubmit = useCallback(
+    async (message: PromptInputMessage) => {
+      const text = message.text.trim();
+      if (!text) return;
+      setInput("");
+      await sendMessage({ text });
+    },
+    [sendMessage]
+  );
 
   /** Pack `USER.md` if present; otherwise default template with `${…}` replaced. */
   const loadUserMdInitial = useCallback(async (): Promise<string> => {
@@ -292,60 +321,65 @@ export default function PackChat({
               重新设定
             </button>
           </p>
-          <div
-            className="max-h-[min(50vh,420px)] space-y-3 overflow-y-auto rounded-xl border border-border/80 bg-muted/20 p-3 text-sm"
-            role="log"
-            aria-live="polite"
-          >
-            {messages.length === 0 ? (
-              <p className="text-muted-foreground">发送第一条消息开始。</p>
-            ) : (
-              messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={
-                    m.role === "user"
-                      ? "ml-8 rounded-lg bg-background px-3 py-2 shadow-sm"
-                      : "mr-8 rounded-lg bg-muted/60 px-3 py-2"
-                  }
-                >
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {m.role === "user" ? "You" : "Assistant"}
-                  </p>
-                  <p className="whitespace-pre-wrap break-words">
-                    {textFromMessage(m)}
-                  </p>
-                </div>
-              ))
-            )}
+          <div className="flex h-[min(50vh,420px)] min-h-[200px] w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-muted/20">
+            <Conversation className="min-h-0 flex-1">
+              <ConversationContent>
+                {messages.length === 0 ? (
+                  <ConversationEmptyState
+                    description={t("emptyDescription")}
+                    icon={
+                      <MessageSquare className="size-10 text-muted-foreground" />
+                    }
+                    title={t("emptyTitle")}
+                  />
+                ) : (
+                  messages.map((message) => (
+                    <Message from={message.role} key={message.id}>
+                      <MessageContent>
+                        {message.parts.map((part, i) => {
+                          if (part.type !== "text") {
+                            return null;
+                          }
+                          return (
+                            <MessageResponse key={`${message.id}-${i}`}>
+                              {part.text}
+                            </MessageResponse>
+                          );
+                        })}
+                      </MessageContent>
+                    </Message>
+                  ))
+                )}
+              </ConversationContent>
+              {messages.length > 0 ? (
+                <ConversationDownload messages={messages} />
+              ) : null}
+              <ConversationScrollButton />
+            </Conversation>
           </div>
           {error ? (
             <p className="text-sm text-destructive" role="alert">
               {error.message}
             </p>
           ) : null}
-          <form
-            className="flex flex-col gap-2 sm:flex-row sm:items-end"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const t = input.trim();
-              if (!t || busy) return;
-              setInput("");
-              await sendMessage({ text: t });
-            }}
+          <PromptInput
+            className="relative w-full"
+            onSubmit={handlePromptSubmit}
           >
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="输入消息…"
-              rows={2}
-              className="min-h-[44px] flex-1"
+            <PromptInputTextarea
+              className="min-h-[44px] pr-12"
               disabled={busy}
+              onChange={(e) => setInput(e.currentTarget.value)}
+              placeholder={t("inputPlaceholder")}
+              value={input}
             />
-            <Button type="submit" disabled={busy || !input.trim()}>
-              {busy ? "…" : "发送"}
-            </Button>
-          </form>
+            <PromptInputSubmit
+              className="absolute right-1 bottom-1"
+              disabled={busy || !input.trim()}
+              onStop={stop}
+              status={status}
+            />
+          </PromptInput>
         </CardContent>
       </Card>
       )}
