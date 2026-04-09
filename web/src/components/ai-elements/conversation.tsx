@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { textFromMessage } from "@/lib/pack-chat-message-text";
 import type { UIMessage } from "ai";
 import { ArrowDownIcon, DownloadIcon } from "lucide-react";
 import type { ComponentProps } from "react";
@@ -100,12 +101,6 @@ export const ConversationScrollButton = ({
   );
 };
 
-const getMessageText = (message: UIMessage): string =>
-  message.parts
-    .filter((part) => part.type === "text")
-    .map((part) => part.text)
-    .join("");
-
 export type ConversationDownloadProps = Omit<
   ComponentProps<typeof Button>,
   "onClick"
@@ -118,7 +113,7 @@ export type ConversationDownloadProps = Omit<
 const defaultFormatMessage = (message: UIMessage): string => {
   const roleLabel =
     message.role.charAt(0).toUpperCase() + message.role.slice(1);
-  return `**${roleLabel}:** ${getMessageText(message)}`;
+  return `**${roleLabel}:** ${textFromMessage(message)}`;
 };
 
 export const messagesToMarkdown = (

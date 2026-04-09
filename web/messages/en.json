@@ -5,7 +5,9 @@
   "packChat": {
     "emptyTitle": "Start the conversation",
     "emptyDescription": "Send a message below to chat with this pack's context.",
-    "inputPlaceholder": "Type a message…"
+    "inputPlaceholder": "Type a message…",
+    "submit": "Send",
+    "stop": "Stop"
   },
   "home": {
     "metaTitle": "OpenClaw Soul",

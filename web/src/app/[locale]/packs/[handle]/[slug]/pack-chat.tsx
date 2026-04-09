@@ -107,14 +107,17 @@ export default function PackChat({
     transport,
   });
 
+  const busy = status === "streaming" || status === "submitted";
+
   const handlePromptSubmit = useCallback(
     async (message: PromptInputMessage) => {
+      if (busy) return;
       const text = message.text.trim();
       if (!text) return;
       setInput("");
       await sendMessage({ text });
     },
-    [sendMessage]
+    [busy, sendMessage]
   );
 
   /** Pack `USER.md` if present; otherwise default template with `${…}` replaced. */
@@ -267,8 +270,6 @@ export default function PackChat({
     );
   }
 
-  const busy = status === "streaming" || status === "submitted";
-
   return (
     <>
       <PackChatUserDialog
@@ -340,8 +341,19 @@ export default function PackChat({
                           if (part.type !== "text") {
                             return null;
                           }
+                          const partKey = `${message.id}-${i}`;
+                          if (message.role === "user") {
+                            return (
+                              <span
+                                key={partKey}
+                                className="whitespace-pre-wrap break-words"
+                              >
+                                {part.text}
+                              </span>
+                            );
+                          }
                           return (
-                            <MessageResponse key={`${message.id}-${i}`}>
+                            <MessageResponse key={partKey}>
                               {part.text}
                             </MessageResponse>
                           );
@@ -374,6 +386,7 @@ export default function PackChat({
               value={input}
             />
             <PromptInputSubmit
+              aria-label={busy ? t("stop") : t("submit")}
               className="absolute right-1 bottom-1"
               disabled={busy || !input.trim()}
               onStop={stop}

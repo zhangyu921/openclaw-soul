@@ -5,7 +5,9 @@
   "packChat": {
     "emptyTitle": "发送第一条消息开始",
     "emptyDescription": "在下方输入，使用当前 pack 的上下文多轮对话。",
-    "inputPlaceholder": "输入消息…"
+    "inputPlaceholder": "输入消息…",
+    "submit": "发送",
+    "stop": "停止"
   },
   "home": {
     "metaTitle": "OpenClaw Soul",
