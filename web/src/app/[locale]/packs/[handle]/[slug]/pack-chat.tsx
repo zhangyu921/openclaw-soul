@@ -1,7 +1,7 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, type UIMessage } from "ai";
+import { DefaultChatTransport } from "ai";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -14,19 +14,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { textFromMessage } from "@/lib/pack-chat-message-text";
 import { packChatUserBlockStorageKey } from "@/lib/pack-chat-storage";
 import {
   applyUserMdPlaceholders,
   DEFAULT_USER_MD_TEMPLATE,
 } from "@/lib/user-md-template";
 import PackChatUserDialog from "./pack-chat-user-dialog";
-
-function textFromMessage(m: UIMessage): string {
-  return m.parts
-    .filter((p): p is { type: "text"; text: string } => p.type === "text")
-    .map((p) => p.text)
-    .join("");
-}
 
 type Props = {
   handle: string;
