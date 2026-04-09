@@ -7,7 +7,8 @@
     "emptyDescription": "在下方输入，使用当前 pack 的上下文多轮对话。",
     "inputPlaceholder": "输入消息…",
     "submit": "发送",
-    "stop": "停止"
+    "stop": "停止",
+    "downloadMarkdown": "下载对话为 Markdown"
   },
   "home": {
     "metaTitle": "OpenClaw Soul",

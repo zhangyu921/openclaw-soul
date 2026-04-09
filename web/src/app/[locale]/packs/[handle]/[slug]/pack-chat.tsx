@@ -312,16 +312,25 @@ export default function PackChat({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            {usingCached ? "已使用之前的设定开始对话。" : null}{" "}
-            <button
-              type="button"
-              className="font-medium text-primary underline-offset-4 hover:underline"
-              onClick={openDialogForReset}
-            >
-              重新设定
-            </button>
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="min-w-0 flex-1 text-sm text-muted-foreground">
+              {usingCached ? "已使用之前的设定开始对话。" : null}{" "}
+              <button
+                type="button"
+                className="font-medium text-primary underline-offset-4 hover:underline"
+                onClick={openDialogForReset}
+              >
+                重新设定
+              </button>
+            </p>
+            {messages.length > 0 ? (
+              <ConversationDownload
+                aria-label={t("downloadMarkdown")}
+                className="static top-auto right-auto shrink-0"
+                messages={messages}
+              />
+            ) : null}
+          </div>
           <div className="flex h-[min(50vh,420px)] min-h-[200px] w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-muted/20">
             <Conversation className="min-h-0 flex-1">
               <ConversationContent>
@@ -363,9 +372,6 @@ export default function PackChat({
                   ))
                 )}
               </ConversationContent>
-              {messages.length > 0 ? (
-                <ConversationDownload messages={messages} />
-              ) : null}
               <ConversationScrollButton />
             </Conversation>
           </div>
