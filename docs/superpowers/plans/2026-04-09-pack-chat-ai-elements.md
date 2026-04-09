@@ -207,6 +207,7 @@ const { messages, sendMessage, status, setMessages, error, stop } = useChat({
 - **`PromptInputSubmit`**：`disabled={busy || !input.trim()}`；`status` prop：当 `status === "streaming"` 时传 **`"streaming"`**，否则 **`"ready"`**（若 UI 在 `submitted` 阶段也需转圈，可改为 `(status === "streaming" || status === "submitted") ? "streaming" : "ready"`，以视觉为准）。
 - 保留 **`error`** 的 `<p role="alert" className="text-sm text-destructive">` 在 **`Conversation` 与 `PromptInput` 之间或 CardContent 底部**，不删除。
 - 删除不再使用的 **`Textarea`**、**`Button`** 对发送的 import（若 Card 其他分支仍用 `Button`，保留 `Button` import）。
+- 若已不再使用 **`textFromMessage`**（改用 `parts` + `MessageResponse`），删除 **`import { textFromMessage } from "@/lib/pack-chat-message-text"`**；**`web/src/lib/pack-chat-message-text.ts` 与测试保留**，供导出与其它工具复用。
 
 - [ ] **Step 3: 调整容器高度 class**
 
