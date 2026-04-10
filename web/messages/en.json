@@ -1,6 +1,17 @@
 {
   "common": {
-    "siteName": "OpenClaw Soul"
+    "siteName": "OpenClaw Soul",
+    "defaultMetaDescription": "Find a Soul from the community for OpenClaw—browse, chat on the site, then apply with one command.",
+    "footerTagline": "OpenClaw Soul — share and discover Souls from the community",
+    "footerPrivacy": "Privacy & uploads"
+  },
+  "nav": {
+    "login": "Log in",
+    "register": "Sign up",
+    "dashboard": "Dashboard",
+    "themeLight": "Switch to light mode",
+    "themeDark": "Switch to dark mode",
+    "themePending": "Theme"
   },
   "packChat": {
     "emptyTitle": "Start the conversation",

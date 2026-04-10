@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { Link } from "@/i18n/navigation";
 
 import { LocaleSwitcher } from "@/components/locale-switcher";
@@ -20,6 +22,9 @@ function displayName(u: HeaderUser): string {
 }
 
 export function SiteHeader({ initialUser }: { initialUser: HeaderUser | null }) {
+  const tNav = useTranslations("nav");
+  const tCommon = useTranslations("common");
+
   return (
     <header
       className="sticky top-0 z-[var(--z-sticky)] border-b border-border/60 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/70"
@@ -30,7 +35,7 @@ export function SiteHeader({ initialUser }: { initialUser: HeaderUser | null }) 
           href="/"
           className="font-heading text-lg font-semibold tracking-tight text-foreground transition-colors hover:text-primary"
         >
-          OpenClaw Soul
+          {tCommon("siteName")}
         </Link>
         <nav className="flex min-w-0 flex-wrap items-center justify-end gap-0.5 sm:gap-1">
           {initialUser ? (
@@ -47,10 +52,10 @@ export function SiteHeader({ initialUser }: { initialUser: HeaderUser | null }) 
           ) : (
             <>
               <Link href="/login" className={navClass}>
-                Login
+                {tNav("login")}
               </Link>
               <Link href="/register" className={navClass}>
-                Register
+                {tNav("register")}
               </Link>
             </>
           )}

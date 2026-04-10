@@ -1,6 +1,17 @@
 {
   "common": {
-    "siteName": "OpenClaw Soul"
+    "siteName": "OpenClaw Soul",
+    "defaultMetaDescription": "为 OpenClaw 发现社区 Soul：先浏览、在站内开聊，再一条命令 apply 到本机。",
+    "footerTagline": "OpenClaw Soul — 分享与发现来自社区的 Soul",
+    "footerPrivacy": "隐私与上传说明"
+  },
+  "nav": {
+    "login": "登录",
+    "register": "注册",
+    "dashboard": "控制台",
+    "themeLight": "切换到浅色模式",
+    "themeDark": "切换到深色模式",
+    "themePending": "主题"
   },
   "packChat": {
     "emptyTitle": "发送第一条消息开始",

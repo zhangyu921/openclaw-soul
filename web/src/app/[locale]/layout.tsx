@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getMessages, setRequestLocale } from "next-intl/server";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 
 import { SiteHeader } from "@/components/site-header";
@@ -32,10 +32,11 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
-  await params;
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "common" });
   return {
-    title: "OpenClaw Soul",
-    description: "OpenClaw workspace pack registry",
+    title: t("siteName"),
+    description: t("defaultMetaDescription"),
   };
 }
 
@@ -46,6 +47,8 @@ export default async function LocaleLayout({ children, params }: Props) {
   }
 
   setRequestLocale(locale);
+
+  const t = await getTranslations({ locale, namespace: "common" });
 
   const userId = await readSessionUserId();
   const headerUser =
@@ -71,13 +74,13 @@ export default async function LocaleLayout({ children, params }: Props) {
             <div className="flex-1">{children}</div>
             <footer className="border-border/60 border-t py-8 text-center text-sm text-muted-foreground">
               <p>
-                OpenClaw Soul — share and discover workspace packs
+                {t("footerTagline")}
                 <span className="text-muted-foreground/40" aria-hidden>
                   {" "}
                   ·{" "}
                 </span>
                 <Link href="/privacy" className={privacyLinkClassName}>
-                  Privacy &amp; uploads
+                  {t("footerPrivacy")}
                 </Link>
               </p>
             </footer>

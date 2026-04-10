@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 import { useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -20,10 +21,11 @@ export function ModeToggle() {
   const isClient = useIsClient();
   const { setTheme, resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+  const t = useTranslations("nav");
 
   if (!isClient) {
     return (
-      <Button variant="ghost" size="icon-sm" aria-label="Theme" disabled className="size-8" />
+      <Button variant="ghost" size="icon-sm" aria-label={t("themePending")} disabled className="size-8" />
     );
   }
 
@@ -32,7 +34,7 @@ export function ModeToggle() {
       type="button"
       variant="ghost"
       size="icon-sm"
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={isDark ? t("themeLight") : t("themeDark")}
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
       {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
