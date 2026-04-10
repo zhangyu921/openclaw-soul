@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ function PackChatUserDialogForm({
   onConfirm,
   onOpenChange,
 }: FormProps) {
+  const t = useTranslations("packChat");
   const [markdown, setMarkdown] = useState(initialMarkdown);
 
   function handleSubmit(e: React.FormEvent) {
@@ -44,7 +46,7 @@ function PackChatUserDialogForm({
       </DialogHeader>
       <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
         <div className="space-y-2">
-          <Label htmlFor="pack-chat-user-md">USER.md（Markdown）</Label>
+          <Label htmlFor="pack-chat-user-md">{t("userDialogLabel")}</Label>
           <Textarea
             id="pack-chat-user-md"
             value={markdown}
@@ -54,8 +56,7 @@ function PackChatUserDialogForm({
             autoComplete="off"
           />
           <p className="text-xs text-muted-foreground">
-            若 pack 内已有 <code className="font-mono">USER.md</code>{" "}
-            会载入为原文；否则使用默认模板。可直接编辑全文。
+            {t("userDialogHint")}
           </p>
         </div>
       </div>
@@ -65,10 +66,10 @@ function PackChatUserDialogForm({
           variant="outline"
           onClick={() => onOpenChange(false)}
         >
-          Cancel
+          {t("userDialogCancel")}
         </Button>
         <Button type="submit" disabled={!markdown.trim()}>
-          确认并开始
+          {t("userDialogConfirm")}
         </Button>
       </DialogFooter>
     </form>
@@ -78,7 +79,6 @@ function PackChatUserDialogForm({
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Full markdown when the dialog opens (or updates while open). */
   initialMarkdown: string;
   title: string;
   onConfirm: (userBlockMarkdown: string) => void;

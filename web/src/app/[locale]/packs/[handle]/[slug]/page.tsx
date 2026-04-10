@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -26,10 +28,30 @@ import PackChat from "./pack-chat";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ handle: string; slug: string }> };
+type Props = { params: Promise<{ locale: string; handle: string; slug: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale, handle, slug } = await params;
+  const pack = await prisma.pack.findFirst({
+    where: { slug, author: { handle } },
+    select: { title: true },
+  });
+  if (!pack) {
+    return { title: "OpenClaw Soul" };
+  }
+  const t = await getTranslations({ locale, namespace: "packDetail" });
+  const title = pack.title.trim() || `${handle}/${slug}`;
+  return {
+    title: `${title} · OpenClaw Soul`,
+    description: t("pageMetaDescription", { title }),
+  };
+}
 
 export default async function PackDetailPage({ params }: Props) {
-  const { handle, slug } = await params;
+  const { locale, handle, slug } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "packDetail" });
+
   const userId = await readSessionUserId();
   const pack = await prisma.pack.findFirst({
     where: { slug, author: { handle } },
@@ -79,7 +101,7 @@ export default async function PackDetailPage({ params }: Props) {
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
       <Button variant="ghost" size="sm" className="mb-6 gap-1 text-muted-foreground" render={<Link href="/" />}>
         <ArrowLeft className="size-4" aria-hidden />
-        Back to gallery
+        {t("backToGallery")}
       </Button>
 
       <Card className="overflow-hidden border-0 shadow-lg ring-1 ring-border/80">
@@ -95,7 +117,7 @@ export default async function PackDetailPage({ params }: Props) {
                 />
               ) : (
                 <div className="flex size-full items-center justify-center bg-gradient-to-br from-accent/50 to-secondary text-xs text-muted-foreground">
-                  No avatar
+                  {t("noAvatar")}
                 </div>
               )}
             </div>
@@ -164,21 +186,18 @@ export default async function PackDetailPage({ params }: Props) {
       {isAuthor && !isListed ? (
         <Card className="mt-6 border-dashed bg-muted/30">
           <CardContent className="space-y-3 pt-6 text-sm text-muted-foreground">
-            <p>
-              当前 pack <strong className="text-foreground">未在画廊公开</strong>
-              ，访客无法打开此链接。上架到画廊后可被浏览与 apply。
-            </p>
+            <p>{t("unlistedBody")}</p>
             <PackPublishButton
               handle={pack.author.handle}
               slug={pack.slug}
               disableWhenEmpty={sourceEmpty}
             />
             <p className="text-xs">
-              说明见{" "}
+              {t("unlistedPrivacy")}{" "}
               <Link href="/privacy#revoke" className={privacyLinkClassName}>
-                隐私说明
+                {t("unlistedPrivacyLink")}
               </Link>
-              。
+              {locale === "zh" ? "。" : "."}
             </p>
           </CardContent>
         </Card>
@@ -190,22 +209,21 @@ export default async function PackDetailPage({ params }: Props) {
 
       <Card className="mt-8 border-0 shadow-md ring-1 ring-border/80">
         <CardHeader>
-          <CardTitle className="text-base">CLI</CardTitle>
-          <CardDescription>
-            逛到对味的 pack 后，一条命令装进本机 OpenClaw：会写入{" "}
-            <code className="font-mono text-xs">openclaw.json</code> 中的{" "}
-            <code className="font-mono text-xs">agents.defaults.workspace</code>，并解压到{" "}
-            <code className="font-mono text-xs">~/.openclaw/workspace-{pack.slug}</code>
-            。路径与含义见{" "}
-            <a
-              className="font-medium text-primary underline-offset-4 hover:underline"
-              href="https://docs.openclaw.ai/concepts/agent-workspace"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              OpenClaw 文档（agent workspace）
-            </a>
-            。
+          <CardTitle className="text-base">{t("cliCardTitle")}</CardTitle>
+          <CardDescription className="space-y-2">
+            <p className="text-pretty">
+              {t("cliCardDesc", { slug: pack.slug })}
+            </p>
+            <p>
+              <a
+                className="font-medium text-primary underline-offset-4 hover:underline"
+                href="https://docs.openclaw.ai/concepts/agent-workspace"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                {t("cliCardDoc")}
+              </a>
+            </p>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -213,19 +231,17 @@ export default async function PackDetailPage({ params }: Props) {
             {`npx @openclaw-soul/cli apply ${pack.author.handle}/${pack.slug}`}
           </pre>
           <div>
-            <p className="mb-2 text-sm font-medium text-muted-foreground">Raw zip</p>
+            <p className="mb-2 text-sm font-medium text-muted-foreground">{t("rawZip")}</p>
             {sourceEmpty ? (
               <div className="space-y-2">
                 <Button type="button" variant="outline" size="sm" disabled>
-                  Download {pack.slug}.zip
+                  {t("downloadZip", { slug: pack.slug })}
                 </Button>
-                <p className="text-xs text-muted-foreground">
-                  至少添加一个包内文件后可下载 zip。
-                </p>
+                <p className="text-xs text-muted-foreground">{t("downloadDisabledHint")}</p>
               </div>
             ) : (
               <Button variant="outline" size="sm" render={<a href={downloadUrl} />}>
-                Download {pack.slug}.zip
+                {t("downloadZip", { slug: pack.slug })}
               </Button>
             )}
           </div>

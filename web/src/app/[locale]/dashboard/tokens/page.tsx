@@ -1,4 +1,5 @@
-import { getLocale } from "next-intl/server";
+import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { redirect } from "@/i18n/navigation";
 import { prisma } from "@/lib/prisma";
@@ -7,10 +8,23 @@ import TokenPanel from "./token-panel";
 
 export const dynamic = "force-dynamic";
 
-export default async function TokensPage() {
+type Props = { params: Promise<{ locale: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "tokens" });
+  return {
+    title: t("pageTitle"),
+    description: t("metaDescription"),
+  };
+}
+
+export default async function TokensPage({ params }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   const userId = await readSessionUserId();
   if (!userId) {
-    const locale = await getLocale();
     return redirect({
       href: { pathname: "/login", query: { next: "/dashboard/tokens" } },
       locale,

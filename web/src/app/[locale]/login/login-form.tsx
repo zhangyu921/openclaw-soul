@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import { Link, useRouter } from "@/i18n/navigation";
 import { useState } from "react";
@@ -19,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function LoginForm() {
+  const t = useTranslations("auth");
   const router = useRouter();
   const search = useSearchParams();
   const next = search.get("next") || "/dashboard";
@@ -39,7 +41,7 @@ export default function LoginForm() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(typeof data.error === "string" ? data.error : "Login failed");
+        setError(typeof data.error === "string" ? data.error : t("loginFailed"));
         return;
       }
       router.push(next);
@@ -52,13 +54,13 @@ export default function LoginForm() {
   return (
     <Card className="w-full max-w-md border-0 shadow-lg ring-1 ring-border/80">
       <CardHeader className="space-y-1 text-center">
-        <CardTitle className="font-heading text-2xl">Welcome back</CardTitle>
-        <CardDescription>登录以管理 API token 与 pack</CardDescription>
+        <CardTitle className="font-heading text-2xl">{t("loginTitle")}</CardTitle>
+        <CardDescription>{t("loginSubtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <div className="space-y-2">
-            <Label htmlFor="login-email">Email</Label>
+            <Label htmlFor="login-email">{t("loginEmail")}</Label>
             <Input
               id="login-email"
               type="email"
@@ -70,7 +72,7 @@ export default function LoginForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="login-password">Password</Label>
+            <Label htmlFor="login-password">{t("loginPassword")}</Label>
             <Input
               id="login-password"
               type="password"
@@ -87,30 +89,30 @@ export default function LoginForm() {
             </p>
           ) : null}
           <Button type="submit" size="lg" className="w-full" disabled={loading}>
-            {loading ? "…" : "Login"}
+            {loading ? t("loginSubmitting") : t("loginSubmit")}
           </Button>
         </form>
       </CardContent>
       <CardFooter className="flex flex-col gap-3 text-center text-sm text-muted-foreground">
         <p>
-          No account?{" "}
+          {t("noAccount")}{" "}
           <Link
             href={`/register?next=${encodeURIComponent(next)}`}
             className="font-medium text-primary underline-offset-4 hover:underline"
           >
-            Register
+            {t("registerLink")}
           </Link>
         </p>
         <p>
           <Link href="/privacy" className={privacyLinkClassName}>
-            Privacy &amp; uploads
+            {t("registerPrivacyLink")}
           </Link>
           <span className="text-muted-foreground/40" aria-hidden>
             {" "}
             ·{" "}
           </span>
           <Link href="/" className={privacyLinkClassName}>
-            Home
+            {t("homeLink")}
           </Link>
         </p>
       </CardFooter>

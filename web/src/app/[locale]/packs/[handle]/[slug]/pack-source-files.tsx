@@ -15,6 +15,7 @@ import { MAX_PACK_MARKDOWN_UTF8_BYTES } from "@/lib/upload-limits";
 import { cn } from "@/lib/utils";
 import { FilePlus, FileText, Loader2, Pencil, Save, X } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -68,6 +69,7 @@ export default function PackSourceFiles({
   files: SourceFileEntry[];
   isAuthor: boolean;
 }) {
+  const t = useTranslations("packFiles");
   const router = useRouter();
   const encH = encodeURIComponent(handle);
   const encS = encodeURIComponent(slug);
@@ -111,7 +113,7 @@ export default function PackSourceFiles({
       const res = await fetch(u.toString());
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const msg = typeof data.error === "string" ? data.error : "加载失败";
+        const msg = typeof data.error === "string" ? data.error : t("loadFailedGeneric");
         setFetchState({ status: "error", message: msg });
         return;
       }
@@ -125,9 +127,9 @@ export default function PackSourceFiles({
         setDraftContent("");
         return;
       }
-      setFetchState({ status: "error", message: "未知响应" });
+      setFetchState({ status: "error", message: t("unknownResponse") });
     },
-    [baseUrl]
+    [baseUrl, t]
   );
 
   useEffect(() => {
@@ -142,9 +144,7 @@ export default function PackSourceFiles({
     const path = fetchState.data.path;
     const bytes = utf8ByteLength(draftContent);
     if (bytes > MAX_PACK_MARKDOWN_UTF8_BYTES) {
-      setSaveError(
-        `内容超过上限（${MAX_PACK_MARKDOWN_UTF8_BYTES} UTF-8 字节）`
-      );
+      setSaveError(t("saveOverLimit", { max: MAX_PACK_MARKDOWN_UTF8_BYTES }));
       return;
     }
     setSaveError(null);
@@ -157,7 +157,7 @@ export default function PackSourceFiles({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setSaveError(typeof data.error === "string" ? data.error : "保存失败");
+        setSaveError(typeof data.error === "string" ? data.error : t("saveFailed"));
         return;
       }
       setEditMode(false);
@@ -172,7 +172,7 @@ export default function PackSourceFiles({
     if (!isAuthor) return;
     const raw = newPath.trim();
     if (!raw) {
-      setCreateError("请填写相对路径（如 SOUL.md）");
+      setCreateError(t("pathRequired"));
       return;
     }
     setCreateError(null);
@@ -185,7 +185,7 @@ export default function PackSourceFiles({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setCreateError(typeof data.error === "string" ? data.error : "创建失败");
+        setCreateError(typeof data.error === "string" ? data.error : t("createFailed"));
         return;
       }
       const created =
@@ -210,18 +210,13 @@ export default function PackSourceFiles({
   return (
     <Card className="border-0 shadow-md ring-1 ring-border/80">
       <CardHeader>
-        <CardTitle className="text-base">包内文件</CardTitle>
-        <CardDescription>
-          Markdown 可预览；作者可在线编辑。二进制条目仅显示路径，不提供预览。作者可通过上方表单持续新建
-          Markdown 文件。
-        </CardDescription>
+        <CardTitle className="text-base">{t("cardTitle")}</CardTitle>
+        <CardDescription>{t("cardBody")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {isAuthor ? (
           <div className="space-y-2 rounded-xl border border-dashed border-border/80 bg-muted/20 p-3">
-            <p className="text-xs text-muted-foreground">
-              新建 Markdown（相对路径以 .md 结尾，如 SOUL.md）；二进制请通过本机 CLI 上传 zip。
-            </p>
+            <p className="text-xs text-muted-foreground">{t("newHint")}</p>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Input
                 value={newPath}
@@ -229,7 +224,7 @@ export default function PackSourceFiles({
                 placeholder="another-file.md"
                 className="font-mono text-sm"
                 spellCheck={false}
-                aria-label="新建 Markdown 相对路径"
+                aria-label={t("newAria")}
                 disabled={creating}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") void createMarkdownFile();
@@ -247,7 +242,7 @@ export default function PackSourceFiles({
                 ) : (
                   <FilePlus className="size-4" aria-hidden />
                 )}
-                创建
+                {t("create")}
               </Button>
             </div>
             {createError ? (
@@ -259,14 +254,12 @@ export default function PackSourceFiles({
         ) : null}
 
         {sorted.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            尚未添加任何文件；请使用上方表单创建第一个 Markdown 文件。
-          </p>
+          <p className="text-sm text-muted-foreground">{t("emptyAuthor")}</p>
         ) : (
         <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
           <nav
             className="lg:w-56 lg:shrink-0"
-            aria-label="包内文件列表"
+            aria-label={t("listAria")}
           >
             <ul className="max-h-64 space-y-1 overflow-y-auto rounded-xl border border-border/80 bg-muted/40 p-2 lg:max-h-[min(70vh,28rem)]">
               {sorted.map((f) => {
@@ -311,7 +304,7 @@ export default function PackSourceFiles({
             {fetchState.status === "loading" || fetchState.status === "idle" ? (
               <div className="flex h-40 items-center justify-center gap-2 text-muted-foreground">
                 <Loader2 className="size-5 animate-spin" aria-hidden />
-                <span className="text-sm">加载中…</span>
+                <span className="text-sm">{t("loading")}</span>
               </div>
             ) : fetchState.status === "error" ? (
               <p className="text-sm text-destructive" role="alert">
@@ -319,15 +312,13 @@ export default function PackSourceFiles({
               </p>
             ) : fetchState.data.kind === "binary" ? (
               <div className="space-y-2 rounded-xl border border-dashed border-border/80 bg-muted/30 p-4">
-                <p className="text-sm text-muted-foreground">
-                  非 Markdown 文件，仅展示路径（不提供预览或下载链接）。
-                </p>
+                <p className="text-sm text-muted-foreground">{t("binaryLead")}</p>
                 <pre className="break-all font-mono text-sm leading-relaxed text-foreground">
                   {fetchState.data.path}
                 </pre>
                 {fetchState.data.byteSize != null ? (
                   <p className="text-xs text-muted-foreground">
-                    大小约 {fetchState.data.byteSize.toLocaleString()} 字节（完整内容请使用 Download zip）。
+                    {t("byteSize", { size: fetchState.data.byteSize.toLocaleString() })}
                   </p>
                 ) : null}
               </div>
@@ -349,7 +340,7 @@ export default function PackSourceFiles({
                           }}
                         >
                           <X className="size-4" aria-hidden />
-                          取消
+                          {t("cancel")}
                         </Button>
                         <Button
                           type="button"
@@ -362,7 +353,7 @@ export default function PackSourceFiles({
                           ) : (
                             <Save className="size-4" aria-hidden />
                           )}
-                          保存
+                          {t("save")}
                         </Button>
                       </>
                     ) : (
@@ -378,13 +369,15 @@ export default function PackSourceFiles({
                         }}
                       >
                         <Pencil className="size-4" aria-hidden />
-                        编辑
+                        {t("edit")}
                       </Button>
                     )
                   ) : null}
                   <span className="text-xs text-muted-foreground">
                     {mdPayload
-                      ? `更新 ${new Date(mdPayload.updatedAt).toLocaleString()}`
+                      ? t("updated", {
+                          time: new Date(mdPayload.updatedAt).toLocaleString(),
+                        })
                       : null}
                   </span>
                 </div>
@@ -401,11 +394,13 @@ export default function PackSourceFiles({
                       rows={18}
                       className="min-h-[14rem] resize-y font-mono text-sm"
                       spellCheck={false}
-                      aria-label="Markdown 源码"
+                      aria-label={t("mdAria")}
                     />
                     <p className="text-right text-xs text-muted-foreground">
-                      {utf8ByteLength(draftContent).toLocaleString()} /{" "}
-                      {MAX_PACK_MARKDOWN_UTF8_BYTES.toLocaleString()} UTF-8 字节
+                      {t("byteCounter", {
+                        current: utf8ByteLength(draftContent).toLocaleString(),
+                        max: MAX_PACK_MARKDOWN_UTF8_BYTES.toLocaleString(),
+                      })}
                     </p>
                   </>
                 ) : mdPayload ? (

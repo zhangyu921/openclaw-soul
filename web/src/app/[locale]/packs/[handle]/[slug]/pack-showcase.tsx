@@ -35,6 +35,7 @@ import {
   Trash2,
   ZoomIn,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -120,6 +121,7 @@ function DisplayShowcaseTile({
   aspectByServerIndex,
   onMeasured,
 }: DisplayTileProps) {
+  const t = useTranslations("packShowcase");
   const ar = aspectByServerIndex[serverIndex];
   const wPx = boxWidthPx(ar);
 
@@ -140,7 +142,7 @@ function DisplayShowcaseTile({
             type="button"
             className="relative flex max-h-full max-w-full cursor-zoom-in items-center justify-center outline-none transition hover:ring-2 hover:ring-primary/40 focus-visible:ring-2 focus-visible:ring-primary"
             onClick={() => onOpenLightbox(serverIndex)}
-            aria-label="查看大图"
+            aria-label={t("viewLarge")}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -275,6 +277,7 @@ function EditGridTile({
   onRemove: () => void;
   onOpenLightbox: () => void;
 }) {
+  const t = useTranslations("packShowcase");
   const id = tokenSortableId(token);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
@@ -304,7 +307,7 @@ function EditGridTile({
           type="button"
           className="relative size-full cursor-zoom-in outline-none"
           onClick={onOpenLightbox}
-          aria-label="查看大图"
+          aria-label={t("viewLarge")}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -323,7 +326,7 @@ function EditGridTile({
             "touch-none absolute left-1 top-1 flex size-7 cursor-grab items-center justify-center rounded-md border border-border/60 bg-background/90 text-muted-foreground shadow-sm backdrop-blur-sm active:cursor-grabbing",
             "opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100"
           )}
-          aria-label="拖拽排序"
+          aria-label={t("dragSort")}
           {...attributes}
           {...listeners}
         >
@@ -334,7 +337,7 @@ function EditGridTile({
           size="icon-sm"
           variant="destructive"
           className="absolute right-1 top-1 size-7 shadow"
-          aria-label="移除"
+          aria-label={t("remove")}
           onClick={(e) => {
             e.stopPropagation();
             onRemove();
@@ -366,6 +369,7 @@ function EditShowcaseGrid({
   onRemoveToken: (t: DraftToken) => void;
   onOpenLightbox: (t: DraftToken) => void;
 }) {
+  const t = useTranslations("packShowcase");
   const [activeId, setActiveId] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -421,7 +425,7 @@ function EditShowcaseGrid({
         {activeId ? (
           <div className="pointer-events-none aspect-square w-28 overflow-hidden rounded-xl bg-muted ring-2 ring-primary/40">
             <div className="flex h-8 items-center justify-center border-b border-border/60 text-[10px] text-muted-foreground">
-              排序中…
+              {t("dragOverlay")}
             </div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -461,6 +465,7 @@ export default function PackShowcase({
   isAuthor: boolean;
   isListed: boolean;
 }) {
+  const t = useTranslations("packShowcase");
   const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [lightbox, setLightbox] = useState<LightboxState>(null);
@@ -571,7 +576,7 @@ export default function PackShowcase({
     try {
       const remaining = MAX_SHOWCASE_IMAGES - draftTokens.length;
       if (remaining <= 0) {
-        setUploadStatus(`最多 ${MAX_SHOWCASE_IMAGES} 张`);
+        setUploadStatus(t("maxImages", { max: MAX_SHOWCASE_IMAGES }));
         return;
       }
       const toAdd = Array.from(files).slice(0, remaining);
@@ -617,7 +622,7 @@ export default function PackShowcase({
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setMdError(typeof data.error === "string" ? data.error : "Save failed");
+        setMdError(typeof data.error === "string" ? data.error : t("saveFailed"));
         return;
       }
       setMdOpen(false);
@@ -639,24 +644,20 @@ export default function PackShowcase({
       <Card className="mt-8 border-0 shadow-md ring-1 ring-border/80">
         <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3 space-y-0">
           <div>
-            <CardTitle className="text-base">Showcase</CardTitle>
-            <CardDescription>
-              展示对话截图与补充说明（Markdown）。未上架时仅本人可见；上架后随详情页公开。
-            </CardDescription>
+            <CardTitle className="text-base">{t("title")}</CardTitle>
+            <CardDescription>{t("subtitle")}</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="space-y-8">
           {authorSeesEmpty ? (
-            <p className="text-sm text-muted-foreground">
-              尚无展示内容。编写正文或上传对话截图，让读者了解这个 pack 的细节能力。
-            </p>
+            <p className="text-sm text-muted-foreground">{t("authorEmpty")}</p>
           ) : null}
 
           {hasGallery || isAuthor ? (
             <div className="space-y-3">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-                  <p className="shrink-0 text-sm font-medium text-muted-foreground">对话截图</p>
+                  <p className="shrink-0 text-sm font-medium text-muted-foreground">{t("shotsLabel")}</p>
                   {isAuthor && !showcaseEditMode ? (
                     <Button
                       type="button"
@@ -665,7 +666,7 @@ export default function PackShowcase({
                       className="shrink-0"
                       onClick={() => enterShowcaseEditMode()}
                     >
-                      编辑截图
+                      {t("editShots")}
                     </Button>
                   ) : null}
                   {isAuthor && showcaseEditMode ? (
@@ -677,10 +678,10 @@ export default function PackShowcase({
                         disabled={uploading}
                         onClick={() => cancelShowcaseEditMode()}
                       >
-                        取消
+                        {t("cancel")}
                       </Button>
                       <Button type="button" size="sm" disabled={uploading} onClick={() => saveShowcaseEdits()}>
-                        {uploading ? "…" : "保存截图"}
+                        {uploading ? t("saveShotsUploading") : t("saveShots")}
                       </Button>
                       <div className="relative">
                         <input
@@ -689,8 +690,8 @@ export default function PackShowcase({
                           accept="image/png,image/jpeg,image/gif,image/webp"
                           className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
                           disabled={uploading || draftTokens.length >= MAX_SHOWCASE_IMAGES}
-                          aria-label="添加展示图"
-                          title="添加展示图"
+                          aria-label={t("addImageAria")}
+                          title={t("addImageTitle")}
                           onChange={onPickShowcaseImages}
                         />
                         <Button
@@ -701,7 +702,7 @@ export default function PackShowcase({
                           disabled={uploading || draftTokens.length >= MAX_SHOWCASE_IMAGES}
                         >
                           <ImagePlus className="size-4" aria-hidden />
-                          添加图片
+                          {t("addImage")}
                           {draftTokens.length > 0 ? ` (${draftTokens.length}/${MAX_SHOWCASE_IMAGES})` : ""}
                         </Button>
                       </div>
@@ -715,7 +716,7 @@ export default function PackShowcase({
                       variant="ghost"
                       size="icon-sm"
                       className="shrink-0"
-                      aria-label="向左滚动"
+                      aria-label={t("scrollLeft")}
                       onClick={() => scrollGallery(-1)}
                     >
                       <ChevronLeft className="size-4" />
@@ -725,7 +726,7 @@ export default function PackShowcase({
                       variant="ghost"
                       size="icon-sm"
                       className="shrink-0"
-                      aria-label="向右滚动"
+                      aria-label={t("scrollRight")}
                       onClick={() => scrollGallery(1)}
                     >
                       <ChevronRight className="size-4" />
@@ -749,9 +750,7 @@ export default function PackShowcase({
                         onOpenLightbox={openLightboxFromToken}
                       />
                     ) : (
-                      <p className="text-sm text-muted-foreground">
-                        在上方「添加图片」上传截图（单张最大约 2 MiB）。
-                      </p>
+                      <p className="text-sm text-muted-foreground">{t("uploadHint")}</p>
                     )
                   ) : hasGallery ? (
                     <VisitorGallery
@@ -766,12 +765,12 @@ export default function PackShowcase({
                   ) : null}
                 </div>
               ) : isAuthor && !showcaseEditMode ? (
-                <p className="text-sm italic text-muted-foreground">尚未上传截图。点「编辑截图」添加。</p>
+                <p className="text-sm italic text-muted-foreground">{t("noShots")}</p>
               ) : null}
 
               {uploadStatus ? (
                 <p
-                  className={`text-sm ${uploadStatus.includes("成功") || uploadStatus.startsWith("已") ? "text-muted-foreground" : "text-destructive"}`}
+                  className="text-sm text-destructive"
                   role="status"
                 >
                   {uploadStatus}
@@ -784,7 +783,7 @@ export default function PackShowcase({
             <div className="space-y-3">
               {isAuthor ? (
                 <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-                  <p className="shrink-0 text-sm font-medium text-muted-foreground">展示正文</p>
+                  <p className="shrink-0 text-sm font-medium text-muted-foreground">{t("bodyLabel")}</p>
                   <Button
                     type="button"
                     variant="secondary"
@@ -796,7 +795,7 @@ export default function PackShowcase({
                     }}
                   >
                     <Pencil className="size-4" aria-hidden />
-                    编辑正文
+                    {t("editBody")}
                   </Button>
                 </div>
               ) : null}
@@ -815,7 +814,7 @@ export default function PackShowcase({
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{mdTrimmed}</ReactMarkdown>
                 </div>
               ) : isAuthor ? (
-                <p className="text-sm italic text-muted-foreground">尚未编写展示正文。</p>
+                <p className="text-sm italic text-muted-foreground">{t("noBody")}</p>
               ) : null}
             </div>
           ) : null}
@@ -834,15 +833,13 @@ export default function PackShowcase({
       >
         <DialogContent className="max-h-[min(90vh,40rem)] gap-4 overflow-y-auto sm:max-w-2xl" showCloseButton>
           <DialogHeader>
-            <DialogTitle>编辑展示正文</DialogTitle>
-            <DialogDescription>
-              支持 Markdown（含 GFM）。最多 {MAX_SHOWCASE_MD_CHARS} 字。留空则不在详情页展示正文区块。
-            </DialogDescription>
+            <DialogTitle>{t("editMdTitle")}</DialogTitle>
+            <DialogDescription>{t("editMdBody", { max: MAX_SHOWCASE_MD_CHARS })}</DialogDescription>
           </DialogHeader>
           <Textarea
             value={mdValue}
             onChange={(e) => setMdValue(e.target.value.slice(0, MAX_SHOWCASE_MD_CHARS))}
-            placeholder="例如：列出典型对话场景、工具调用亮点…"
+            placeholder={t("editMdPlaceholder")}
             rows={14}
             className="min-h-[12rem] resize-y font-mono text-sm"
             aria-invalid={mdValue.length >= MAX_SHOWCASE_MD_CHARS}
@@ -857,10 +854,10 @@ export default function PackShowcase({
           ) : null}
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={() => setMdOpen(false)} disabled={mdSaving}>
-              取消
+              {t("cancel")}
             </Button>
             <Button type="button" onClick={() => saveShowcaseMd()} disabled={mdSaving}>
-              {mdSaving ? "…" : "保存"}
+              {mdSaving ? t("saving") : t("save")}
             </Button>
           </div>
         </DialogContent>

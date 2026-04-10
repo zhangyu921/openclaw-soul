@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import { Link, useRouter } from "@/i18n/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -18,6 +19,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function DeviceClient() {
+  const t = useTranslations("cliDevice");
+  const tNav = useTranslations("nav");
+  const tAuth = useTranslations("auth");
   const router = useRouter();
   const search = useSearchParams();
   const fromQuery = search.get("user_code")?.trim() || "";
@@ -56,7 +60,7 @@ export default function DeviceClient() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(typeof data.error === "string" ? data.error : "Approve failed");
+        setError(typeof data.error === "string" ? data.error : t("approveFailed"));
         return;
       }
       setDone(true);
@@ -69,12 +73,12 @@ export default function DeviceClient() {
     return (
       <Card className="w-full max-w-md border-0 shadow-lg ring-1 ring-border/80">
         <CardHeader>
-          <CardTitle className="font-heading text-xl">CLI authorized</CardTitle>
-          <CardDescription>You can close this tab and return to the terminal.</CardDescription>
+          <CardTitle className="font-heading text-xl">{t("doneTitle")}</CardTitle>
+          <CardDescription>{t("doneBody")}</CardDescription>
         </CardHeader>
         <CardFooter>
           <Button variant="link" className="px-0" render={<Link href="/" />}>
-            ← Home
+            {t("homeLink")}
           </Button>
         </CardFooter>
       </Card>
@@ -84,7 +88,7 @@ export default function DeviceClient() {
   if (me === undefined) {
     return (
       <p className="text-center text-sm text-muted-foreground" aria-live="polite">
-        Checking session…
+        {t("checking")}
       </p>
     );
   }
@@ -93,20 +97,20 @@ export default function DeviceClient() {
     return (
       <Card className="w-full max-w-md border-0 shadow-lg ring-1 ring-border/80">
         <CardHeader>
-          <CardTitle className="font-heading text-xl">Authorize CLI</CardTitle>
-          <CardDescription>Log in to approve access for your OpenClaw Soul CLI.</CardDescription>
+          <CardTitle className="font-heading text-xl">{t("needLoginTitle")}</CardTitle>
+          <CardDescription>{t("needLoginBody")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Button className="w-full" render={<Link href={`/login?next=${encodeURIComponent(loginNext)}`} />}>
-            Log in
+            {tNav("login")}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
-            No account?{" "}
+            {tAuth("noAccount")}{" "}
             <Link
               href={`/register?next=${encodeURIComponent(loginNext)}`}
               className="font-medium text-primary underline-offset-4 hover:underline"
             >
-              Register
+              {tNav("register")}
             </Link>
           </p>
         </CardContent>
@@ -117,14 +121,14 @@ export default function DeviceClient() {
   return (
     <Card className="w-full max-w-md border-0 shadow-lg ring-1 ring-border/80">
       <CardHeader>
-        <CardTitle className="font-heading text-xl">Authorize CLI</CardTitle>
+        <CardTitle className="font-heading text-xl">{t("signedInTitle")}</CardTitle>
         <CardDescription>
-          Signed in as <span className="font-medium text-foreground">{me.email}</span>
+          {t("signedInBody")} <span className="font-medium text-foreground">{me.email}</span>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="device-user-code">User code</Label>
+          <Label htmlFor="device-user-code">{t("userCodeLabel")}</Label>
           <Input
             id="device-user-code"
             value={userCode}
@@ -139,7 +143,7 @@ export default function DeviceClient() {
           </p>
         ) : null}
         <Button type="button" className="w-full" disabled={busy || !userCode.trim()} onClick={() => approve()}>
-          {busy ? "…" : "Approve CLI access"}
+          {busy ? t("busy") : t("approveCta")}
         </Button>
         <Button
           type="button"
@@ -152,12 +156,12 @@ export default function DeviceClient() {
             router.refresh();
           }}
         >
-          Use a different account
+          {t("switchAccount")}
         </Button>
       </CardContent>
       <CardFooter>
         <Button variant="link" className="px-0" render={<Link href="/" />}>
-          ← Home
+          {t("homeLink")}
         </Button>
       </CardFooter>
     </Card>

@@ -1,6 +1,7 @@
 "use client";
 
 import { Pencil } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useEffect, useState } from "react";
 
@@ -27,6 +28,7 @@ export default function PackTitleEdit({
   initialTitle: string;
   isAuthor: boolean;
 }) {
+  const t = useTranslations("packDetail");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(initialTitle);
@@ -51,7 +53,7 @@ export default function PackTitleEdit({
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(typeof data.error === "string" ? data.error : "Save failed");
+        setError(typeof data.error === "string" ? data.error : t("saveFailed"));
         return;
       }
       setOpen(false);
@@ -79,8 +81,8 @@ export default function PackTitleEdit({
         variant="ghost"
         size="icon-sm"
         className="shrink-0 text-muted-foreground"
-        aria-label="编辑展示标题"
-        title="编辑展示标题"
+        aria-label={t("titleEditAria")}
+        title={t("titleEditAria")}
         onClick={() => {
           setError(null);
           setValue(initialTitle);
@@ -101,15 +103,13 @@ export default function PackTitleEdit({
       >
         <DialogContent className="sm:max-w-lg" showCloseButton>
           <DialogHeader>
-            <DialogTitle>编辑展示标题</DialogTitle>
-            <DialogDescription>
-              显示在画廊与详情页；最多 {MAX_LEN} 字。与 slug 独立。
-            </DialogDescription>
+            <DialogTitle>{t("titleEditTitle")}</DialogTitle>
+            <DialogDescription>{t("titleEditBody", { max: MAX_LEN })}</DialogDescription>
           </DialogHeader>
           <Input
             value={value}
             onChange={(e) => setValue(e.target.value.slice(0, MAX_LEN))}
-            placeholder="展示名称"
+            placeholder={t("titlePlaceholder")}
             aria-invalid={value.length >= MAX_LEN}
           />
           <p className="text-right text-xs text-muted-foreground">
@@ -122,10 +122,10 @@ export default function PackTitleEdit({
           ) : null}
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={saving}>
-              取消
+              {t("cancel")}
             </Button>
             <Button type="button" onClick={() => save()} disabled={saving}>
-              {saving ? "…" : "保存"}
+              {saving ? t("saving") : t("save")}
             </Button>
           </div>
         </DialogContent>

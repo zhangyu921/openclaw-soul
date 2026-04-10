@@ -1,6 +1,7 @@
 "use client";
 
 import { Pencil } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useEffect, useState } from "react";
 
@@ -28,6 +29,7 @@ export default function PackSummaryEdit({
   initialSummary: string | null;
   isAuthor: boolean;
 }) {
+  const t = useTranslations("packDetail");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(initialSummary ?? "");
@@ -54,7 +56,7 @@ export default function PackSummaryEdit({
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(typeof data.error === "string" ? data.error : "Save failed");
+        setError(typeof data.error === "string" ? data.error : t("saveFailed"));
         return;
       }
       setOpen(false);
@@ -73,7 +75,7 @@ export default function PackSummaryEdit({
             !display && "text-muted-foreground/80 italic"
           )}
         >
-          {display ?? "暂无简介"}
+          {display ?? t("summaryEmpty")}
         </p>
         {isAuthor ? (
           <>
@@ -82,8 +84,8 @@ export default function PackSummaryEdit({
               variant="ghost"
               size="icon-sm"
               className="shrink-0 text-muted-foreground"
-              aria-label="编辑介绍"
-              title="编辑介绍"
+              aria-label={t("summaryEditAria")}
+              title={t("summaryEditAria")}
               onClick={() => {
                 setError(null);
                 setOpen(true);
@@ -103,15 +105,13 @@ export default function PackSummaryEdit({
             >
               <DialogContent className="sm:max-w-lg" showCloseButton>
                 <DialogHeader>
-                  <DialogTitle>编辑介绍</DialogTitle>
-                  <DialogDescription>
-                    显示在画廊卡片与详情页；最多 {MAX_LEN} 字。留空则显示「暂无简介」。
-                  </DialogDescription>
+                  <DialogTitle>{t("summaryEditTitle")}</DialogTitle>
+                  <DialogDescription>{t("summaryEditBody", { max: MAX_LEN })}</DialogDescription>
                 </DialogHeader>
                 <Textarea
                   value={value}
                   onChange={(e) => setValue(e.target.value.slice(0, MAX_LEN))}
-                  placeholder="一句话介绍这个人设或 workspace…"
+                  placeholder={t("summaryPlaceholder")}
                   rows={5}
                   className="min-h-28 resize-y"
                   aria-invalid={value.length >= MAX_LEN}
@@ -126,10 +126,10 @@ export default function PackSummaryEdit({
                 ) : null}
                 <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                   <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={saving}>
-                    取消
+                    {t("cancel")}
                   </Button>
                   <Button type="button" onClick={() => save()} disabled={saving}>
-                    {saving ? "…" : "保存"}
+                    {saving ? t("saving") : t("save")}
                   </Button>
                 </div>
               </DialogContent>

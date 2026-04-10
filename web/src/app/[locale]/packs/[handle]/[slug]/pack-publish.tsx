@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useState } from "react";
 
@@ -12,9 +13,9 @@ export default function PackPublishButton({
 }: {
   handle: string;
   slug: string;
-  /** No pack source files (md/bin) — cannot list on gallery per product rules. */
   disableWhenEmpty?: boolean;
 }) {
+  const t = useTranslations("packPublish");
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +24,7 @@ export default function PackPublishButton({
     if (disableWhenEmpty) {
       return;
     }
-    if (!window.confirm("确定将本 pack 上架到画廊？上架后访客可浏览并下载。")) {
+    if (!window.confirm(t("confirm"))) {
       return;
     }
     setError(null);
@@ -36,7 +37,7 @@ export default function PackPublishButton({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(typeof data.error === "string" ? data.error : "Publish failed");
+        setError(typeof data.error === "string" ? data.error : t("failed"));
         return;
       }
       router.refresh();
@@ -50,15 +51,13 @@ export default function PackPublishButton({
       <Button
         type="button"
         disabled={loading || disableWhenEmpty}
-        title={
-          disableWhenEmpty ? "请先在「包内文件」中添加至少一个文件后再上架" : undefined
-        }
+        title={disableWhenEmpty ? t("disabledTitle") : undefined}
         onClick={() => publish()}
       >
-        {loading ? "…" : "上架到画廊"}
+        {loading ? t("buttonWorking") : t("button")}
       </Button>
       {disableWhenEmpty ? (
-        <p className="text-xs text-muted-foreground">空 pack 无法上架；请先添加包内文件。</p>
+        <p className="text-xs text-muted-foreground">{t("emptyHint")}</p>
       ) : null}
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </div>

@@ -2,6 +2,7 @@
 
 import { compressAvatarForUpload } from "@/lib/compress-avatar-client";
 import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { ImagePlus } from "lucide-react";
 
@@ -23,6 +24,7 @@ export default function AvatarUpload({
   handle: string;
   slug: string;
 }) {
+  const t = useTranslations("packDetail");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
@@ -51,10 +53,10 @@ export default function AvatarUpload({
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setStatus(typeof data.error === "string" ? data.error : "Upload failed");
+        setStatus(typeof data.error === "string" ? data.error : t("saveFailed"));
         return;
       }
-      setStatus("已保存。");
+      setStatus(t("avatarSaved"));
       setOpen(false);
       router.refresh();
     } finally {
@@ -70,8 +72,8 @@ export default function AvatarUpload({
         variant="outline"
         size="icon-sm"
         className="size-8 shrink-0 rounded-full border-border/80 bg-background/95 shadow-md ring-2 ring-background backdrop-blur-sm"
-        aria-label="更换头像"
-        title="更换头像"
+        aria-label={t("avatarChangeAria")}
+        title={t("avatarChangeAria")}
         onClick={() => {
           setStatus(null);
           setOpen(true);
@@ -89,13 +91,11 @@ export default function AvatarUpload({
       >
         <DialogContent className="sm:max-w-md" showCloseButton>
           <DialogHeader>
-            <DialogTitle>更换头像</DialogTitle>
-            <DialogDescription>
-              支持 PNG / JPEG / GIF / WebP。会在你的浏览器里先压缩再上传（服务端上限 512 KiB）。
-            </DialogDescription>
+            <DialogTitle>{t("avatarTitle")}</DialogTitle>
+            <DialogDescription>{t("avatarBody")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="pack-avatar-dialog">选择图片</Label>
+            <Label htmlFor="pack-avatar-dialog">{t("avatarPick")}</Label>
             <Input
               id="pack-avatar-dialog"
               type="file"
@@ -106,7 +106,7 @@ export default function AvatarUpload({
             />
             {status ? (
               <p
-                className={`text-sm ${status.startsWith("已保存") ? "text-muted-foreground" : "text-destructive"}`}
+                className={`text-sm ${status === t("avatarSaved") ? "text-muted-foreground" : "text-destructive"}`}
                 role="status"
               >
                 {status}

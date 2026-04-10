@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useState } from "react";
 
@@ -14,16 +15,14 @@ export default function PackRevokeButton({
   handle: string;
   slug: string;
 }) {
+  const t = useTranslations("packRevoke");
+  const locale = useLocale();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function revoke() {
-    if (
-      !window.confirm(
-        "确定从画廊下架此 pack？他人将无法浏览或下载。你仍可在本站重新上架，或使用 CLI 上传。"
-      )
-    ) {
+    if (!window.confirm(t("confirm"))) {
       return;
     }
     setError(null);
@@ -36,7 +35,7 @@ export default function PackRevokeButton({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(typeof data.error === "string" ? data.error : "Revoke failed");
+        setError(typeof data.error === "string" ? data.error : t("failed"));
         return;
       }
       router.refresh();
@@ -48,19 +47,17 @@ export default function PackRevokeButton({
   return (
     <Card className="mt-6 border-border/80 bg-muted/20 shadow-sm">
       <CardContent className="space-y-3 pt-6">
-        <p className="text-sm text-muted-foreground">
-          下架后访客无法查看或下载。若要再次公开，请使用本页「上架到画廊」或 CLI（同 slug 覆盖上传）。
-        </p>
+        <p className="text-sm text-muted-foreground">{t("body")}</p>
         <p className="text-xs text-muted-foreground">
-          服务端如何处理数据见{" "}
+          {t("privacy")}{" "}
           <Link href="/privacy#revoke" className={privacyLinkClassName}>
-            隐私说明 · 撤销展示
+            {t("privacyLink")}
           </Link>
-          。
+          {locale === "zh" ? "。" : "."}
         </p>
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
         <Button type="button" variant="outline" disabled={loading} onClick={() => revoke()}>
-          {loading ? "…" : "从画廊下架"}
+          {loading ? t("working") : t("button")}
         </Button>
       </CardContent>
     </Card>
