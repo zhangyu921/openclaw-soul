@@ -13,6 +13,14 @@
     "themeDark": "切换到深色模式",
     "themePending": "主题"
   },
+  "dashboard": {
+    "metaTitle": "控制台",
+    "metaDescription": "管理你的 Soul 与 API token。",
+    "navMySouls": "我的 Soul",
+    "navApiTokens": "API tokens",
+    "navAriaLabel": "控制台导航",
+    "backToGallery": "← 返回画廊"
+  },
   "packChat": {
     "emptyTitle": "发送第一条消息开始",
     "emptyDescription": "在下方输入，使用当前 pack 的上下文多轮对话。",

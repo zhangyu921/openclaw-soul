@@ -13,6 +13,14 @@
     "themeDark": "Switch to dark mode",
     "themePending": "Theme"
   },
+  "dashboard": {
+    "metaTitle": "Dashboard",
+    "metaDescription": "Manage your Souls and API tokens.",
+    "navMySouls": "Your Souls",
+    "navApiTokens": "API tokens",
+    "navAriaLabel": "Dashboard",
+    "backToGallery": "← Back to gallery"
+  },
   "packChat": {
     "emptyTitle": "Start the conversation",
     "emptyDescription": "Send a message below to chat with this pack's context.",
