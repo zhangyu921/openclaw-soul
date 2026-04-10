@@ -1,6 +1,7 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useState } from "react";
 
@@ -18,10 +19,11 @@ const rowInteractive =
   "flex w-full gap-4 rounded-xl border border-border/80 bg-card p-3 text-left shadow-sm ring-1 ring-border/40 transition-colors hover:bg-muted/30 hover:ring-primary/20";
 
 /**
- * Dashboard row + dialog: create an empty pack from the web (P1-D).
+ * Dashboard row + dialog: create an empty Soul from the web (P1-D).
  */
 export default function DashboardCreatePackEntry({ hasHandle }: { hasHandle: boolean }) {
   const router = useRouter();
+  const t = useTranslations("dashboard");
   const [open, setOpen] = useState(false);
   const [slug, setSlug] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +37,7 @@ export default function DashboardCreatePackEntry({ hasHandle }: { hasHandle: boo
     setError(null);
     const s = slug.trim();
     if (!s) {
-      setError("请填写 slug");
+      setError(t("createErrorEmpty"));
       return;
     }
     setLoading(true);
@@ -51,7 +53,7 @@ export default function DashboardCreatePackEntry({ hasHandle }: { hasHandle: boo
         viewPath?: string;
       };
       if (!res.ok) {
-        setError(typeof data.error === "string" ? data.error : "创建失败");
+        setError(typeof data.error === "string" ? data.error : t("createErrorFailed"));
         return;
       }
       if (typeof data.viewPath === "string" && data.viewPath) {
@@ -60,7 +62,7 @@ export default function DashboardCreatePackEntry({ hasHandle }: { hasHandle: boo
         router.push(data.viewPath);
         return;
       }
-      setError("响应无效");
+      setError(t("createErrorInvalidResponse"));
     } finally {
       setLoading(false);
     }
@@ -75,9 +77,9 @@ export default function DashboardCreatePackEntry({ hasHandle }: { hasHandle: boo
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="line-clamp-1 font-medium text-foreground">从零构建你的 SOUL</span>
+              <span className="line-clamp-1 font-medium text-foreground">{t("createRowTitle")}</span>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">在网页新建空 pack，再在详情页添加 Markdown 文件。</p>
+            <p className="mt-2 text-xs text-muted-foreground">{t("createRowDescription")}</p>
           </div>
         </button>
       </li>
@@ -93,20 +95,17 @@ export default function DashboardCreatePackEntry({ hasHandle }: { hasHandle: boo
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>从零构建你的 SOUL</DialogTitle>
-            <DialogDescription>
-              填写 pack 的 slug（小写字母、数字与连字符）。创建后可在详情页「包内文件」中添加
-              Markdown。
-            </DialogDescription>
+            <DialogTitle>{t("createDialogTitle")}</DialogTitle>
+            <DialogDescription>{t("createDialogDescription")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <Input
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
-              placeholder="my-soul-pack"
+              placeholder={t("createSlugPlaceholder")}
               className="font-mono text-sm"
               spellCheck={false}
-              aria-label="Pack slug"
+              aria-label={t("createAriaSlug")}
               disabled={loading}
               onKeyDown={(e) => {
                 if (e.key === "Enter") void submit();
@@ -124,10 +123,10 @@ export default function DashboardCreatePackEntry({ hasHandle }: { hasHandle: boo
                 disabled={loading}
                 onClick={() => setOpen(false)}
               >
-                取消
+                {t("createCancel")}
               </Button>
               <Button type="button" disabled={loading} onClick={() => void submit()}>
-                {loading ? "…" : "创建并打开"}
+                {loading ? t("createLoading") : t("createSubmit")}
               </Button>
             </div>
           </div>

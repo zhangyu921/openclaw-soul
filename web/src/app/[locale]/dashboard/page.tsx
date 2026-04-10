@@ -1,4 +1,4 @@
-import { getLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Package, Terminal } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -26,10 +26,17 @@ const rowStatic =
 const rowMuted =
   "flex gap-4 rounded-xl border border-dashed border-border/60 bg-muted/15 p-3";
 
-export default async function DashboardPage() {
+type Props = {
+  params: Promise<{ locale: string }>;
+};
+
+export default async function DashboardPage({ params }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "dashboard" });
+
   const userId = await readSessionUserId();
   if (!userId) {
-    const locale = await getLocale();
     return redirect({
       href: { pathname: "/login", query: { next: "/dashboard" } },
       locale,
@@ -58,20 +65,18 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto max-w-lg pb-10">
       <div className="mb-12 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="font-heading text-2xl font-bold tracking-tight">我的 pack</h1>
+        <h1 className="font-heading text-2xl font-bold tracking-tight">{t("pageTitle")}</h1>
       </div>
 
       {!handle ? (
         <Card className="mb-8 border-amber-500/25 bg-amber-500/5 shadow-sm dark:border-amber-400/20 dark:bg-amber-400/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">需要 public handle</CardTitle>
-            <CardDescription>
-              为 pack 详情链接与发布流程设置唯一 handle（与注册时相同规则）。
-            </CardDescription>
+            <CardTitle className="text-base">{t("handleCardTitle")}</CardTitle>
+            <CardDescription>{t("handleCardDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Button variant="outline" size="sm" render={<Link href="/dashboard/tokens" />}>
-              前往 API tokens 设置
+              {t("handleCardCta")}
             </Button>
           </CardContent>
         </Card>
@@ -86,14 +91,14 @@ export default async function DashboardPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="line-clamp-1 font-medium text-muted-foreground">暂无 pack</span>
+                  <span className="line-clamp-1 font-medium text-muted-foreground">
+                    {t("emptyStateTitle")}
+                  </span>
                   <Badge variant="secondary" className="shrink-0 text-xs">
-                    空
+                    {t("emptyStateBadge")}
                   </Badge>
                 </div>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  使用下方命令发布后，条目会出现在上方。
-                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{t("emptyStateHint")}</p>
               </div>
             </div>
           </li>
@@ -126,7 +131,7 @@ export default async function DashboardPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="line-clamp-1 font-medium text-foreground">{p.title}</span>
                     <Badge variant={listed ? "outline" : "secondary"} className="shrink-0 text-xs">
-                      {listed ? "公开中" : "未公开"}
+                      {listed ? t("badgeListed") : t("badgeUnlisted")}
                     </Badge>
                   </div>
                   <p className="mt-2 font-mono text-xs text-muted-foreground">
@@ -135,7 +140,7 @@ export default async function DashboardPage() {
                 </div>
                 {canLink ? (
                   <span className="hidden shrink-0 self-center text-sm text-primary sm:inline">
-                    详情
+                    {t("rowDetail")}
                   </span>
                 ) : null}
               </>
@@ -163,11 +168,13 @@ export default async function DashboardPage() {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="line-clamp-1 font-medium text-foreground">在本机 workspace 发布</span>
+                <span className="line-clamp-1 font-medium text-foreground">
+                  {t("publishWorkspaceTitle")}
+                </span>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
                 <CopyPublishCommand />
-                <span className="ms-1.5 align-middle">上传或更新 pack</span>
+                <span className="ms-1.5 align-middle">{t("publishWorkspaceHint")}</span>
               </p>
             </div>
           </div>
