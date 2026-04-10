@@ -103,7 +103,7 @@ export async function POST(req: Request, { params }: Params) {
     const uiMessages = body.messages as UIMessage[];
     modelMessages = await convertToModelMessages(
       uiMessages.map((m) => {
-        const { id: _id, ...rest } = m;
+        const { id, ...rest } = m;
         return rest;
       })
     );

@@ -46,6 +46,7 @@ Monorepo（`web/` Next.js registry + `packages/cli`）让用户把 OpenClaw **wo
 
 ## 仓库习惯
 
+- **工具与意图**：预设、脚手架和「一键启用」往往只暴露**最小开关**；若工具行为与你的合理需求不一致，**优先**在上游文档里确认：是否已经提供**官方支持的配置或扩展点**（不必是默认打开的）。确认没有或确实不适用时，再在业务代码里写绕法。避免先改大量实现或堆叠技巧，最后才发现一行配置就够。
 - **包管理**：pnpm workspace；开发 CLI 用根目录 **`pnpm run ocs -- …`**（见根 `package.json` `ocs` 脚本）。
 - **CLI 发版**：不要手改 `packages/cli` 的 `package.json` version 与 `CHANGELOG.md`，只用 **Changesets**（`pnpm changeset` / `.changeset/*.md`），流程见 [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) 里的「发布 `@openclaw-soul/cli`」一节。
 - **Git**：一个功能点做完、准备开新功能前，可提醒是否先 **`git commit`**，避免混进无关改动。
