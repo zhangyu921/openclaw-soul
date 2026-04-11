@@ -54,13 +54,17 @@ export default async function Home({ params }: Props) {
         </h1>
       </div>
 
-      <HomeIntroStack
-        items={[
-          { title: t("introWhatLabel"), body: t("introWhatBody") },
-          { title: t("introWhoLabel"), body: t("introWhoBody") },
-          { title: t("introHowLabel"), body: t("introHowBody") },
-        ]}
-      />
+
+      <div className="-mx-4 sm:-mx-6 overflow-x-clip">
+        <HomeIntroStack
+          items={[
+            { title: t("introWhatLabel"), body: t("introWhatBody") },
+            { title: t("introWhoLabel"), body: t("introWhoBody") },
+            { title: t("introHowLabel"), body: t("introHowBody") },
+          ]}
+        />
+      </div>
+
 
       {packs.length === 0 ? (
         <Card className="mx-auto max-w-md border-dashed text-center shadow-sm">

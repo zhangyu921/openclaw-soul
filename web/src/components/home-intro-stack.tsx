@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useReducer, useState, useSyncExternalStore } from "react";
 import { motion } from "motion/react";
 
 import { Card, CardDescription, CardHeader } from "@/components/ui/card";
@@ -41,20 +41,70 @@ const ROT: Record<"tight" | "medium" | "wide", number> = {
 const SCALE_MID = 0.97;
 const SCALE_BACK = 0.94;
 
-/** Spring feel for reordering. Higher stiffness = snappier; higher damping = less bounce. */
-const SPRING = {
+/**
+ * Spring presets: when `active` changes, the **new front card** should read as the hero motion;
+ * the **former front** and the **other** card use stiffer / faster springs so they don’t steal focus.
+ */
+const SPRING_PROMOTE = {
   type: "spring" as const,
-  stiffness: 380,
-  damping: 46,
-  mass: 0.95,
+  stiffness: 320,
+  damping: 34,
+  mass: 1.05,
 };
+const SPRING_DEMOTE = {
+  type: "spring" as const,
+  stiffness: 620,
+  damping: 48,
+  mass: 0.42,
+};
+const SPRING_SHIFT = {
+  type: "spring" as const,
+  stiffness: 500,
+  damping: 44,
+  mass: 0.62,
+};
+/** Idle / first paint when `springFrom === active` */
+const SPRING_BASE = SPRING_SHIFT;
+
+function springForCard(cardIndex: number, active: number, springFrom: number) {
+  if (springFrom === active) return SPRING_BASE;
+  const isNewFront = cardIndex === active;
+  const wasOldFront = cardIndex === springFrom;
+  if (isNewFront) return SPRING_PROMOTE;
+  if (wasOldFront) return SPRING_DEMOTE;
+  return SPRING_SHIFT;
+}
+
+type StackState = { active: number; /** Front index before the last navigation; equals `active` when idle. */ springFrom: number };
+
+type StackAction =
+  | { type: "go"; to: number }
+  | { type: "tick" }
+  | { type: "clearSpring" };
+
+function stackReducer(s: StackState, a: StackAction): StackState {
+  switch (a.type) {
+    case "go":
+      return { springFrom: s.active, active: a.to };
+    case "tick":
+      return { springFrom: s.active, active: (s.active + 1) % 3 };
+    case "clearSpring":
+      if (s.springFrom === s.active) return s;
+      return { ...s, springFrom: s.active };
+    default:
+      return s;
+  }
+}
 
 /** Min height + max width of the stack area (Tailwind classes). Widen/taller if cards clip. */
 const CONTAINER: Record<"tight" | "medium" | "wide", string> = {
-  tight: "h-[200px] max-w-[min(100%,320px)]",
+  tight: "h-[200px] max-w-100%",
   medium: "h-[200px] max-w-[min(100%,520px)]",
   wide: "h-[220px] max-w-[min(100%,800px)]",
 };
+
+/** How long to keep promote/demote spring curves after a swap; then all cards use `SPRING_BASE`. Match your longest motion (~spring settle). */
+const SPRING_ROLE_MS = 680;
 // ---------------------------------------------------------------------------------
 
 function subscribeReducedMotion(cb: () => void) {
@@ -140,7 +190,7 @@ function roleToMotion(
 }
 
 export function HomeIntroStack({ items }: { items: [HomeIntroItem, HomeIntroItem, HomeIntroItem] }) {
-  const [active, setActive] = useState(0);
+  const [{ active, springFrom }, dispatch] = useReducer(stackReducer, { active: 0, springFrom: 0 });
   /** True while pointer is over the stack — pauses auto-advance. */
   const [pointerOverStack, setPointerOverStack] = useState(false);
   /** Bump on card click to restart the ROTATE_MS countdown from zero. */
@@ -157,9 +207,14 @@ export function HomeIntroStack({ items }: { items: [HomeIntroItem, HomeIntroItem
   );
 
   useEffect(() => {
+    const t = window.setTimeout(() => dispatch({ type: "clearSpring" }), SPRING_ROLE_MS);
+    return () => window.clearTimeout(t);
+  }, [active]);
+
+  useEffect(() => {
     if (reducedMotion || pointerOverStack) return;
     const id = window.setInterval(() => {
-      setActive((i) => (i + 1) % 3);
+      dispatch({ type: "tick" });
     }, ROTATE_MS);
     return () => window.clearInterval(id);
   }, [reducedMotion, pointerOverStack, autoRotateEpoch]);
@@ -185,9 +240,16 @@ export function HomeIntroStack({ items }: { items: [HomeIntroItem, HomeIntroItem
   }
 
   return (
-    <div className="mb-8 flex w-full flex-col items-center">
+    <div className="mb-8 w-full min-w-0">
+      {/*
+        Transforms on absolute cards extend past this box; clip here so the page does not gain a horizontal scrollbar.
+        Do not use negative horizontal margin to “bleed” — that misaligns with `main` padding and looks shifted on narrow viewports.
+      */}
       <div
-        className={cn("relative mx-auto w-full", CONTAINER[layoutSpread])}
+        className={cn(
+          "relative mx-auto w-full min-w-0",
+          CONTAINER[layoutSpread],
+        )}
         aria-roledescription="carousel"
         aria-label={items.map((x) => x.title).join(" · ")}
         onPointerEnter={() => setPointerOverStack(true)}
@@ -196,10 +258,17 @@ export function HomeIntroStack({ items }: { items: [HomeIntroItem, HomeIntroItem
         {items.map((item, cardIndex) => {
           const role = ((((cardIndex - active) % 3) + 3) % 3) as 0 | 1 | 2;
           const v = roleToMotion(role, layoutSpread);
+          const transitionSpring = springForCard(cardIndex, active, springFrom);
+          /** Only `tight` (viewport <640px): tap front card to advance. Wider: front tap/keyboard does nothing; side cards still bring to front. */
+          const frontTapCycles = layoutSpread === "tight";
+          const frontClickNoOp = cardIndex === active && !frontTapCycles;
           return (
             <motion.div
               key={cardIndex}
-              className="absolute top-0 w-[min(100%,280px)] origin-top cursor-pointer sm:w-[290px]"
+              className={cn(
+                "absolute top-0 w-[min(100%,280px)] origin-top sm:w-[290px]",
+                frontClickNoOp ? "cursor-default" : "cursor-pointer",
+              )}
               style={{ left: "50%" }}
               initial={false}
               animate={{
@@ -210,28 +279,24 @@ export function HomeIntroStack({ items }: { items: [HomeIntroItem, HomeIntroItem
                 opacity: v.opacity,
                 zIndex: v.zIndex,
               }}
-              transition={SPRING}
+              transition={transitionSpring}
               onClick={() => {
-                if (cardIndex === active) {
-                  setActive((i) => (i + 1) % 3);
-                } else {
-                  setActive(cardIndex);
-                }
+                if (frontClickNoOp) return;
+                const to = cardIndex === active ? (active + 1) % 3 : cardIndex;
+                dispatch({ type: "go", to });
                 setAutoRotateEpoch((n) => n + 1);
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
-                  if (cardIndex === active) {
-                    setActive((i) => (i + 1) % 3);
-                  } else {
-                    setActive(cardIndex);
-                  }
+                  if (frontClickNoOp) return;
+                  const to = cardIndex === active ? (active + 1) % 3 : cardIndex;
+                  dispatch({ type: "go", to });
                   setAutoRotateEpoch((n) => n + 1);
                 }
               }}
               role="button"
-              tabIndex={0}
+              tabIndex={frontClickNoOp ? -1 : 0}
               aria-label={`${item.title}${role === 0 ? " (front)" : ""}`}
               aria-pressed={role === 0}
             >
