@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Sparkles } from "lucide-react";
 
+import { HomeIntroStack } from "@/components/home-intro-stack";
 import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,20 +52,15 @@ export default async function Home({ params }: Props) {
         <h1 className="font-heading text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
           {t("heroTitle")}
         </h1>
-        <p className="mx-auto mt-3 max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg">
-          <strong className="font-medium text-foreground">{t("introWhatLabel")}</strong>
-          {t("introWhatBody")}
-          <strong className="ms-1 font-medium text-foreground">{t("introWhoLabel")}</strong>
-          {t("introWhoBody")}
-          <strong className="ms-1 font-medium text-foreground">{t("introHowLabel")}</strong>
-          {t("introHowBody")}
-        </p>
-        <p className="mt-4 text-sm text-muted-foreground">
-          <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-xs">
-            {t("applyCommandLine")}
-          </code>
-        </p>
       </div>
+
+      <HomeIntroStack
+        items={[
+          { title: t("introWhatLabel"), body: t("introWhatBody") },
+          { title: t("introWhoLabel"), body: t("introWhoBody") },
+          { title: t("introHowLabel"), body: t("introHowBody") },
+        ]}
+      />
 
       {packs.length === 0 ? (
         <Card className="mx-auto max-w-md border-dashed text-center shadow-sm">
