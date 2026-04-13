@@ -37,6 +37,7 @@
 - **实际改动文件**：
   - `web/src/app/api/auth/github/start/route.ts`
   - `web/src/app/api/auth/github/callback/route.ts`
+  - `web/src/app/api/auth/github/callback/route.test.ts`
   - `web/src/lib/auth-redirect.ts`
   - `web/src/lib/auth-redirect.test.ts`
   - `web/src/app/[locale]/login/login-form.tsx`
@@ -51,6 +52,7 @@
   - `package.json`
   - `.github/workflows/ci.yml`
   - `docs/DEPLOY.md`
+  - `docs/GITHUB-OAUTH-SANDBOX-CHECKLIST.md`
 - **关键实现说明（为什么这样做）**：
   - 保持现有 session 体系不变，只在登录入口增加 GitHub OAuth 分支，避免引入大规模认证重构。
   - 新增 `auth-redirect` helper 统一处理 locale 与 `next` 路径安全，避免 open redirect 与跳转到 API 路径。
@@ -64,15 +66,15 @@
 ## D. 验收证据（Verification Evidence）
 
 - **测试命令与结论**：
-  - `cd web && pnpm test`：通过（13 files passed, 40 tests passed, 1 skipped）
+  - `cd web && pnpm test`：通过（14 files passed, 42 tests passed, 1 skipped）
   - `cd web && pnpm lint`：通过
   - `cd web && pnpm typecheck`：通过
-  - `cd web && pnpm e2e:smoke`：通过（Playwright smoke 1 passed）
+  - `cd web && pnpm e2e:smoke`：通过（Playwright smoke 4 passed）
 - **子系统验证（按改动选择）**：
   - Web：登录页已接入 GitHub 登录按钮；OAuth start/callback 路由已实现；登录成功后写入现有 session 并跳转 `next`。
-  - Web：已新增最小 Playwright smoke，覆盖「登录入口可见 + OAuth start 路由重定向」关键链路。
-  - 手工联调前置：需在环境中配置 `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`。
-- **结果摘要**：代码实现、类型检查与 smoke 自动化通过；CI 已接入 `typecheck + e2e:smoke`。外部 OAuth 回跳仍需真实 GitHub app 完成最终联调。
+  - Web：Playwright smoke 覆盖「登录入口可见 + OAuth start 重定向 + state 失败回跳 + mock callback 成功写 session」。
+  - Web：Vitest route 分支测试补齐 callback 失败分支（token 交换失败、邮箱不可解析）且不依赖人工授权流程。
+- **结果摘要**：代码实现、类型检查与自动化验证通过；OAuth 核心成功/失败链路可在本地与 CI 自动验证，无需人工联调作为日常阻塞项。
 
 ---
 
@@ -83,7 +85,7 @@
   1. GitHub OAuth app 回调 URL 与环境不一致
   2. 认证密钥或 session 配置不完整
   3. 中间件对登录后路由放行逻辑缺失
-- **下一轮最小任务（<=0.5 天）**：补充真实 GitHub sandbox 联调清单（含回调域名、权限、失败分支截图）
+- **下一轮最小任务（<=0.5 天）**：补充真实 GitHub sandbox 联调清单（含回调域名、权限、失败分支截图）✅ 已产出并更新为自动化优先：`docs/GITHUB-OAUTH-SANDBOX-CHECKLIST.md`
 - **需要新增的测试/CI 守门**：已补 callback 失败分支、未登录跳转、callback 成功设置 session 与重定向断言
 
 ---

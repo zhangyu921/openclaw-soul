@@ -43,6 +43,8 @@ cd .. && pnpm run dev
 
 生产若不用 Blob，须保证运行环境有**持久可写盘**（多数 Serverless 无持久盘，请用 Blob / S3 等）。
 
+GitHub OAuth 真实联调步骤与失败分支验收，可直接按 `docs/GITHUB-OAUTH-SANDBOX-CHECKLIST.md` 执行。
+
 **上传体积**：pack zip 上限 **2 MiB**、头像 **512 KiB** 由 API 最终校验；头像在**用户浏览器**与 **CLI `npx @openclaw-soul/cli publish` 本机**会先压缩再上传，部署侧**不必**装 `sharp` 等图像库。
 
 ## 更换域名（二级域 → 主域等）
