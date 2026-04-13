@@ -26,4 +26,13 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: AGENTS.md line budget (max 100)
+        run: |
+          lines=$(wc -l < AGENTS.md | tr -d ' ')
+          if [ "$lines" -gt 100 ]; then
+            echo "::error::AGENTS.md has ${lines} lines; maximum is 100. Move detail to docs/REPOSITORY-CONTEXT.md or docs/DEVELOPMENT.md."
+            exit 1
+          fi
+          echo "AGENTS.md: ${lines} lines (ok)"
+
       - run: pnpm test

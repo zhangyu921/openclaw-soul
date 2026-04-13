@@ -1,52 +1,57 @@
-# OpenClaw Soul — 协作者 / AI 指引
+# AGENTS.md
 
-本文件是仓库内 **AI 与人类的单一入口**：领域模型、约束、习惯与文档导航均在此
+**主要读者**：在本仓库里持续开发、集成与修缺陷的 **coding agent**（人类协作者也可读）。  
+**本文目的**：让你在改代码、接 API、写文案时，始终对准**项目的使命与边界**，而不是只做局部最优。
+
+根目录本文 **≤100 行**（CI 校验）。**领域名词、CLI 行为细节、仓库习惯全文**见 [`docs/REPOSITORY-CONTEXT.md`](docs/REPOSITORY-CONTEXT.md)。
 
 ---
 
-## 导航（先读哪）
+## 使命（终极目标）
 
-| 场景 | 文档 |
+**「找到你真正想聊的那一个 Soul。」**
+
+我们要帮助用户 **发现、体验、分享、安装与部署** 以 **Soul**（OpenClaw workspace / persona **pack**）为基础的 **人格化对话**，让用户得到连贯、可信、可复用的体验；情绪向与功能向 pack 都包含在内。
+
+本仓库是达成上述体验的基础设施：**registry**（Next.js `web/`）+ **`ocs` CLI**（`packages/cli` / `@openclaw-soul/cli`）——把本机 workspace 上架为 zip、从站点按 `handle/slug` 装回 workspace。分期与动机见 [`docs/ROADMAP.md`](docs/ROADMAP.md)。
+
+---
+
+## 开发时如何对齐使命
+
+- 新功能、重构、接口与文案：优先问——是否让用户**更接近**「发现 → 体验 → 分享 → 安装/部署」中的一环，是否**提升**与 Soul 对话的质量或可信度。
+- OpenClaw 侧概念以 **[Agent Workspace](https://docs.openclaw.ai/concepts/agent-workspace)** 为准；本仓库如何把 workspace 接到 registry、路径与配置约定见 REPOSITORY-CONTEXT。
+
+---
+
+## 硬约束（不可打破）
+
+- **`apply` 与写配置**：只 **rename 或 copy** 备份用户数据目录，**禁止对用户目录 `rm -rf`**。
+- **隐私**：`MEMORY.md` 等可能进入 zip；不做自动脱敏；界面与文案**不得**暗示「已脱敏」。
+
+---
+
+## 文档索引（按需深读）
+
+| 需要 | 打开 |
 |------|------|
-| 终端用户、npm CLI | [`README.md`](README.md) |
-| 克隆仓库、本地 Web/CLI、环境变量、发版 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) |
+| 终端用户说明、CLI 概览 | [`README.md`](README.md) |
+| 本地跑通、环境变量、`publish` / `apply`、发版 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) |
+| Pack/Workspace 模型、安全条文、CLI 锚点、开发习惯 | [`docs/REPOSITORY-CONTEXT.md`](docs/REPOSITORY-CONTEXT.md) |
 | 部署 | [`docs/DEPLOY.md`](docs/DEPLOY.md) |
-| 产品与路线图 | [`docs/ROADMAP.md`](docs/ROADMAP.md) |
+| 设计与执行计划草稿 | [`docs/superpowers/specs/`](docs/superpowers/specs/) · [`docs/superpowers/plans/`](docs/superpowers/plans/) |
 | 仅改 `web/`（Next.js） | [`web/AGENTS.md`](web/AGENTS.md) |
 
 ---
 
-## 项目一句话
+## 常用命令
 
-Monorepo（`web/` Next.js registry + `packages/cli`）让用户把 OpenClaw **workspace** 打成 zip 上架（**打包范围可选**：非交互默认根目录子集为 `SOUL.md` 与存在的 `IDENTITY.md`、`--full` 整目录、`--include` 追加根文件如 `MEMORY.md`），下载后由 CLI **一键 apply** 到本机 `openclaw.json` 指向的目录。命令细则不重复写，见 `README` / `docs/DEVELOPMENT.md`。
-
----
-
-## 领域模型（改代码前心里要有）
-
-- **Pack**：作者 **handle** + **slug** 唯一；站点路径 `/packs/<handle>/<slug>`；用户侧 `apply <handle>/<slug>`。
-- **Workspace**：OpenClaw 文档中的 [Agent Workspace](https://docs.openclaw.ai/concepts/agent-workspace)；实际路径以本机 `~/.openclaw/openclaw.json` 为准，代码里以 **`agents.defaults.workspace`** 为准（兼容读旧版 `agent.workspace`）。
-- **配置写回**：可读 JSON5；写回可能丢注释——若动 CLI 写配置逻辑，在帮助或注释里保持这一预期。
+- **依赖 / 开发 / 测**：`pnpm install` · `pnpm run dev` · `pnpm run ocs -- <subcommand>` · `pnpm test`
+- **CLI 发版**：只用 **Changesets**，勿手改 `packages/cli` 的 version 与 `CHANGELOG`（见 DEVELOPMENT）。
 
 ---
 
-## 不可违背的安全 / 产品约束
+## 与 harness 工程对齐
 
-- **`apply` / 改配置前**：用 **rename 或 copy** 做备份，**不要用 `rm -rf`** 销毁用户目录。
-- **MVP 隐私**：默认 publish 子集、全量 zip 都可能含 **`MEMORY.md`**；不做自动脱敏。改 UX 时延续「风险提示 + 自觉打码」，别偷偷承诺已脱敏。
-
----
-
-## CLI 行为锚点（易忘点）
-
-- **`publish`**：默认打包范围、`--full` / `--include`、上架成功用 API 返回的 **`viewUrl`**（对齐 `OPENCLAW_SOUL_SITE_URL` / 主域，避免只配了 `*.vercel.app` 时链错）——细则见 [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md)。
-- **存储**：若涉及 Vercel Blob，同 slug 覆盖可能留下历史对象（如 `addRandomSuffix`）；与成本/私有库相关的约定见实现与 [`docs/DEPLOY.md`](docs/DEPLOY.md)。
-
----
-
-## 仓库习惯
-
-- **工具与意图**：预设、脚手架和「一键启用」往往只暴露**最小开关**；若工具行为与你的合理需求不一致，**优先**在上游文档里确认：是否已经提供**官方支持的配置或扩展点**（不必是默认打开的）。确认没有或确实不适用时，再在业务代码里写绕法。避免先改大量实现或堆叠技巧，最后才发现一行配置就够。
-- **包管理**：pnpm workspace；开发 CLI 用根目录 **`pnpm run ocs -- …`**（见根 `package.json` `ocs` 脚本）。
-- **CLI 发版**：不要手改 `packages/cli` 的 `package.json` version 与 `CHANGELOG.md`，只用 **Changesets**（`pnpm changeset` / `.changeset/*.md`），流程见 [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) 里的「发布 `@openclaw-soul/cli`」一节。
-- **Git**：一个功能点做完、准备开新功能前，可提醒是否先 **`git commit`**，避免混进无关改动。
+- **根目录篇幅**：`AGENTS.md` 由 CI 限制 **≤100 行**，细节在 `docs/`；避免单文件叙事过长、挤占任务上下文。
+- **合并前**：跑 **`pnpm test`**；与用户目录安全、`apply` 行为相关的逻辑，优先用测试或 CI 守门，而不是只写在文档里。
