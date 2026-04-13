@@ -36,3 +36,6 @@ jobs:
           echo "AGENTS.md: ${lines} lines (ok)"
 
       - run: pnpm test
+      - run: pnpm typecheck
+      - run: pnpm --filter @openclaw-soul/web exec playwright install --with-deps chromium
+      - run: pnpm e2e:smoke

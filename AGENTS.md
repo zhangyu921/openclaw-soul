@@ -1,7 +1,6 @@
 # AGENTS.md
 
-**主要读者**：在本仓库里持续开发、集成与修缺陷的 **coding agent**（人类协作者也可读）。  
-**本文目的**：让你在改代码、接 API、写文案时，始终对准**项目的使命与边界**，而不是只做局部最优。
+本文件定义本仓库开发与协作的执行约束：改代码、接 API、写文案时，始终对准**项目使命与边界**，避免局部最优。
 
 根目录本文 **≤100 行**（CI 校验）。**领域名词、CLI 行为细节、仓库习惯全文**见 [`docs/REPOSITORY-CONTEXT.md`](docs/REPOSITORY-CONTEXT.md)。
 
@@ -24,6 +23,23 @@
 
 ---
 
+## 协作原则（第一性原理）
+
+- **先澄清目标再执行**：若用户动机、目标或成功标准不清晰，先提问澄清，不做“猜测式实现”。
+- **默认寻找最短路径**：目标明确时，优先选择最短可验证路径，而非沿用惯例/模板流程。
+- **发现更优路径要暂停**：若可显著降低时间、风险或改动面（经验阈值：约 >=30%），必须先暂停并提出替代方案，待用户确认后再继续。
+- **追根因，不打补丁**：遇到问题先定位根因；临时修补仅在用户明确接受 trade-off 时采用，并记录原因。
+- **只说改变决策的信息**：输出聚焦结论、取舍、证据与下一步，删除不影响决策的冗余信息。
+
+### 路径优化触发后的固定输出（必须遵循）
+
+1. 当前路径的问题（1 句）
+2. 更优路径（1 句）
+3. 预期收益（时间/风险/复杂度）
+4. 需要用户决策的选项与推荐项
+
+---
+
 ## 硬约束（不可打破）
 
 - **`apply` 与写配置**：只 **rename 或 copy** 备份用户数据目录，**禁止对用户目录 `rm -rf`**。
@@ -39,6 +55,8 @@
 | 本地跑通、环境变量、`publish` / `apply`、发版 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) |
 | Pack/Workspace 模型、安全条文、CLI 锚点、开发习惯 | [`docs/REPOSITORY-CONTEXT.md`](docs/REPOSITORY-CONTEXT.md) |
 | 部署 | [`docs/DEPLOY.md`](docs/DEPLOY.md) |
+| Harness 执行闭环（MVP） | [`docs/HARNESS-WORKFLOW.md`](docs/HARNESS-WORKFLOW.md) |
+| Harness 任务模板 | [`docs/HARNESS-TASK-TEMPLATE.md`](docs/HARNESS-TASK-TEMPLATE.md) |
 | 设计与执行计划草稿 | [`docs/superpowers/specs/`](docs/superpowers/specs/) · [`docs/superpowers/plans/`](docs/superpowers/plans/) |
 | 仅改 `web/`（Next.js） | [`web/AGENTS.md`](web/AGENTS.md) |
 

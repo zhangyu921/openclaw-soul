@@ -33,6 +33,8 @@ cd .. && pnpm run dev
 |------|------|
 | `DATABASE_URL` | Postgres 连接串（必填） |
 | `AUTH_SECRET` | 至少 16 字符，用于 session JWT |
+| `GITHUB_CLIENT_ID` | 可选；Web 端 GitHub OAuth 登录（与 `GITHUB_CLIENT_SECRET` 配套） |
+| `GITHUB_CLIENT_SECRET` | 可选；Web 端 GitHub OAuth 登录密钥 |
 | `BLOB_READ_WRITE_TOKEN` | 可选；若设置则 zip/头像走 [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) |
 | `BLOB_ACCESS` | 可选；Blob 控制台为 **私有** 时设为 `private`（与默认 `public` 冲突会 500）；与 `web/.env.example` 一致 |
 | `STORAGE_DRIVER` | 可选；设为 `vercel-blob` 与设 token 等价，显式启用 Blob |
@@ -59,7 +61,7 @@ cd .. && pnpm run dev
 
 1. [Vercel](https://vercel.com) → New Project → 导入本 Git 仓库。
 2. **Root Directory**：填 `web`。
-3. **Settings → Environment Variables**（Production / Preview 按需）：至少 `DATABASE_URL`、`AUTH_SECRET`；上传 pack 需再加 `BLOB_READ_WRITE_TOKEN`（Vercel 项目 → Storage → Blob → 创建并复制 token）。
+3. **Settings → Environment Variables**（Production / Preview 按需）：至少 `DATABASE_URL`、`AUTH_SECRET`；启用 GitHub 登录需加 `GITHUB_CLIENT_ID` + `GITHUB_CLIENT_SECRET`；上传 pack 需再加 `BLOB_READ_WRITE_TOKEN`（Vercel 项目 → Storage → Blob → 创建并复制 token）。
 4. **首次部署前**必须在 Vercel 里配好 `DATABASE_URL`，否则 build 阶段迁移会失败。
 5. （可选）在 **Settings → General** 打开 **Include files outside of the Root Directory in the Build Step**，若将来有从 `web` 引用仓库根目录文件的构建脚本，可避免缺文件。
 

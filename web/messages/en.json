@@ -125,7 +125,11 @@
     "registerSubmitting": "Creating…",
     "registerFailed": "Registration failed",
     "registerHandlePlaceholder": "your-handle",
-    "registerPrivacyEnd": "."
+    "registerPrivacyEnd": ".",
+    "githubLogin": "Continue with GitHub",
+    "githubLoginSubmitting": "Redirecting…",
+    "githubLoginFailed": "GitHub sign-in failed",
+    "oauthDivider": "or continue with email"
   },
   "cliDevice": {
     "loading": "Loading…",

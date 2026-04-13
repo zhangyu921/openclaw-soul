@@ -125,7 +125,11 @@
     "registerSubmitting": "创建中…",
     "registerFailed": "注册失败",
     "registerHandlePlaceholder": "your-handle",
-    "registerPrivacyEnd": "。"
+    "registerPrivacyEnd": "。",
+    "githubLogin": "使用 GitHub 登录",
+    "githubLoginSubmitting": "跳转中…",
+    "githubLoginFailed": "GitHub 登录失败",
+    "oauthDivider": "或使用邮箱继续"
   },
   "cliDevice": {
     "loading": "加载中…",

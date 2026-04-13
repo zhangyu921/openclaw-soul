@@ -4,6 +4,8 @@
   "packageManager": "pnpm@9.15.9",
   "scripts": {
     "test": "pnpm --filter @openclaw-soul/cli test && pnpm --filter @openclaw-soul/web test",
+    "typecheck": "pnpm --filter @openclaw-soul/web typecheck",
+    "e2e:smoke": "pnpm --filter @openclaw-soul/web e2e:smoke",
     "dev": "pnpm --filter @openclaw-soul/web dev",
     "build": "pnpm --filter @openclaw-soul/cli build && pnpm --filter @openclaw-soul/web build",
     "db:migrate": "pnpm --filter @openclaw-soul/web db:migrate",

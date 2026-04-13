@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Link, useRouter } from "@/i18n/navigation";
 import { useState } from "react";
@@ -21,13 +21,16 @@ import { Label } from "@/components/ui/label";
 
 export default function LoginForm() {
   const t = useTranslations("auth");
+  const locale = useLocale();
   const router = useRouter();
   const search = useSearchParams();
   const next = search.get("next") || "/dashboard";
+  const githubError = search.get("error") === "github_oauth";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -51,6 +54,12 @@ export default function LoginForm() {
     }
   }
 
+  function onGithubLogin() {
+    setOauthLoading(true);
+    const href = `/api/auth/github/start?next=${encodeURIComponent(next)}&locale=${encodeURIComponent(locale)}`;
+    window.location.assign(href);
+  }
+
   return (
     <Card className="w-full max-w-md border-0 shadow-lg ring-1 ring-border/80">
       <CardHeader className="space-y-1 text-center">
@@ -58,6 +67,17 @@ export default function LoginForm() {
         <CardDescription>{t("loginSubtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
+        <Button
+          type="button"
+          size="lg"
+          variant="outline"
+          className="mb-4 w-full"
+          disabled={oauthLoading || loading}
+          onClick={onGithubLogin}
+        >
+          {oauthLoading ? t("githubLoginSubmitting") : t("githubLogin")}
+        </Button>
+        <p className="mb-4 text-center text-xs text-muted-foreground">{t("oauthDivider")}</p>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <div className="space-y-2">
             <Label htmlFor="login-email">{t("loginEmail")}</Label>
@@ -83,9 +103,9 @@ export default function LoginForm() {
               className="h-10"
             />
           </div>
-          {error ? (
+          {error || githubError ? (
             <p className="text-sm font-medium text-destructive" role="alert">
-              {error}
+              {error || t("githubLoginFailed")}
             </p>
           ) : null}
           <Button type="submit" size="lg" className="w-full" disabled={loading}>
