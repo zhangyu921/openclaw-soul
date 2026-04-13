@@ -15,7 +15,7 @@ export default defineConfig({
   },
   webServer: {
     command:
-      "DATABASE_URL=postgresql://playwright:playwright@127.0.0.1:5432/playwright AUTH_SECRET=playwright-auth-secret-1234 GITHUB_CLIENT_ID=playwright-client-id NEXT_TELEMETRY_DISABLED=1 pnpm exec next dev --port 3100",
+      "AUTH_SECRET=playwright-auth-secret-1234 GITHUB_CLIENT_ID=playwright-client-id GITHUB_CLIENT_SECRET=playwright-client-secret GITHUB_OAUTH_MOCK_USER_ID=playwright-user-id NEXT_TELEMETRY_DISABLED=1 pnpm exec next dev --port 3100",
     url: "http://localhost:3100/zh/login",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

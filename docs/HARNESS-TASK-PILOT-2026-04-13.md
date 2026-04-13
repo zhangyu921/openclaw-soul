@@ -83,8 +83,8 @@
   1. GitHub OAuth app 回调 URL 与环境不一致
   2. 认证密钥或 session 配置不完整
   3. 中间件对登录后路由放行逻辑缺失
-- **下一轮最小任务（<=0.5 天）**：扩展第二条 smoke（OAuth callback 成功后登录态可访问 `/dashboard`，可用 callback mock）
-- **需要新增的测试/CI 守门**：在现有 smoke 基础上增加 callback 成功/失败分支断言
+- **下一轮最小任务（<=0.5 天）**：补充真实 GitHub sandbox 联调清单（含回调域名、权限、失败分支截图）
+- **需要新增的测试/CI 守门**：已补 callback 失败分支、未登录跳转、callback 成功设置 session 与重定向断言
 
 ---
 

@@ -76,6 +76,7 @@ async function fetchPrimaryEmail(accessToken: string): Promise<string | null> {
 export async function GET(req: NextRequest) {
   const clientId = process.env.GITHUB_CLIENT_ID?.trim();
   const clientSecret = process.env.GITHUB_CLIENT_SECRET?.trim();
+  const mockUserId = process.env.GITHUB_OAUTH_MOCK_USER_ID?.trim();
 
   const nextFromCookie = req.cookies.get(NEXT_COOKIE)?.value;
   const locale = normalizeLocale(req.cookies.get("NEXT_LOCALE")?.value);
@@ -99,6 +100,14 @@ export async function GET(req: NextRequest) {
   const stateCookie = req.cookies.get(STATE_COOKIE)?.value;
   if (!code || !state || !stateCookie || state !== stateCookie) {
     return redirectToLogin();
+  }
+
+  if (mockUserId && process.env.NODE_ENV !== "production") {
+    const token = await createSessionToken(mockUserId);
+    await setSessionCookie(token);
+    const res = NextResponse.redirect(new URL(nextPath, req.nextUrl.origin));
+    clearOauthCookies(res);
+    return res;
   }
 
   const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
