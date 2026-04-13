@@ -35,6 +35,9 @@ cd .. && pnpm run dev
 | `AUTH_SECRET` | 至少 16 字符，用于 session JWT |
 | `GITHUB_CLIENT_ID` | 可选；Web 端 GitHub OAuth 登录（与 `GITHUB_CLIENT_SECRET` 配套） |
 | `GITHUB_CLIENT_SECRET` | 可选；Web 端 GitHub OAuth 登录密钥 |
+| `RESEND_API_KEY` | 可选；邮箱验证码登录直接使用 Resend 发送（推荐） |
+| `AUTH_EMAIL_FROM` | 可选；验证码邮件发件人（如 `OpenClaw Soul <no-reply@your-domain>`） |
+| `AUTH_EMAIL_CODE_WEBHOOK_URL` | 可选；自建验证码投递 webhook（POST `email/code/ttlSeconds`）；当未配置 Resend 时可使用 |
 | `BLOB_READ_WRITE_TOKEN` | 可选；若设置则 zip/头像走 [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) |
 | `BLOB_ACCESS` | 可选；Blob 控制台为 **私有** 时设为 `private`（与默认 `public` 冲突会 500）；与 `web/.env.example` 一致 |
 | `STORAGE_DRIVER` | 可选；设为 `vercel-blob` 与设 token 等价，显式启用 Blob |

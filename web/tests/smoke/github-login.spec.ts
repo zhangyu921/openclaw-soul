@@ -75,3 +75,20 @@ test("oauth callback success sets session and redirects to next", async ({ reque
   expect(callbackRes.headers().location).toContain("/zh/dashboard");
   expect(readCookieValueFromHeaders(callbackRes, "ocs_session")).toBeTruthy();
 });
+
+test("email code login flow works without manual steps", async ({ request }) => {
+  const email = "email-code-smoke@example.com";
+
+  const requestCodeRes = await request.post("/api/auth/email/request", {
+    data: { email },
+  });
+  expect(requestCodeRes.status()).toBe(200);
+  const requestCodeData = (await requestCodeRes.json()) as { devCode?: string };
+  expect(requestCodeData.devCode).toBeTruthy();
+
+  const verifyRes = await request.post("/api/auth/email/verify", {
+    data: { email, code: requestCodeData.devCode },
+  });
+  expect(verifyRes.status()).toBe(200);
+  expect(readCookieValueFromHeaders(verifyRes, "ocs_session")).toBeTruthy();
+});

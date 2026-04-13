@@ -23,9 +23,38 @@ function RegisterForm() {
   const [email, setEmail] = useState("");
   const [handle, setHandle] = useState("");
   const [password, setPassword] = useState("");
+  const [emailCode, setEmailCode] = useState("");
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [codeHint, setCodeHint] = useState<string | null>(null);
+  const [codeError, setCodeError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [codeSending, setCodeSending] = useState(false);
+
+  async function onRequestCode() {
+    setCodeError(null);
+    setCodeHint(null);
+    setCodeSending(true);
+    try {
+      const res = await fetch("/api/auth/email/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, intent: "register" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setCodeError(typeof data.error === "string" ? data.error : t("emailCodeRequestFailed"));
+        return;
+      }
+      if (typeof data.devCode === "string") {
+        setCodeHint(t("emailCodeDevHint", { code: data.devCode }));
+      } else {
+        setCodeHint(t("registerEmailCodeSent"));
+      }
+    } finally {
+      setCodeSending(false);
+    }
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,6 +66,7 @@ function RegisterForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
+          emailCode,
           password,
           handle: handle.trim().toLowerCase(),
           acceptPrivacy,
@@ -102,6 +132,35 @@ function RegisterForm() {
               autoComplete="new-password"
               className="h-10"
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reg-code">{t("registerEmailCodeLabel")}</Label>
+            <div className="flex gap-2">
+              <Input
+                id="reg-code"
+                type="text"
+                required
+                value={emailCode}
+                onChange={(e) => setEmailCode(e.target.value)}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                className="h-10"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onRequestCode}
+                disabled={codeSending || loading || !email.trim()}
+              >
+                {codeSending ? t("emailCodeSending") : t("registerEmailCodeSend")}
+              </Button>
+            </div>
+            {codeHint ? <p className="text-xs text-muted-foreground">{codeHint}</p> : null}
+            {codeError ? (
+              <p className="text-xs font-medium text-destructive" role="alert">
+                {codeError}
+              </p>
+            ) : null}
           </div>
           <div className="flex items-start gap-3 rounded-lg border border-border/80 bg-muted/30 p-3">
             <Checkbox

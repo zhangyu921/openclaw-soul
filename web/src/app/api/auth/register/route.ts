@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
+import { hashEmailLoginCode } from "@/lib/email-login";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
 import { assertValidHandle } from "@/lib/storage";
 
 export async function POST(req: Request) {
-  let body: { email?: string; password?: string; handle?: string; acceptPrivacy?: boolean };
+  let body: {
+    email?: string;
+    password?: string;
+    handle?: string;
+    emailCode?: string;
+    acceptPrivacy?: boolean;
+  };
   try {
     body = await req.json();
   } catch {
@@ -13,9 +20,10 @@ export async function POST(req: Request) {
   const email = body.email?.trim().toLowerCase();
   const password = body.password;
   const handle = body.handle?.trim().toLowerCase();
-  if (!email || !password || !handle) {
+  const emailCode = body.emailCode?.trim();
+  if (!email || !password || !handle || !emailCode) {
     return NextResponse.json(
-      { error: "email, password, and public handle required" },
+      { error: "email, email code, password, and public handle required" },
       { status: 400 }
     );
   }
@@ -47,6 +55,28 @@ export async function POST(req: Request) {
   if (existsHandle) {
     return NextResponse.json({ error: "handle already taken" }, { status: 409 });
   }
+
+  const now = new Date();
+  const codeHash = hashEmailLoginCode(email, emailCode);
+  const codeRecord = await prisma.emailLoginCode.findFirst({
+    where: {
+      email,
+      codeHash,
+      usedAt: null,
+      expiresAt: { gt: now },
+    },
+    orderBy: { createdAt: "desc" },
+    select: { id: true },
+  });
+  if (!codeRecord) {
+    return NextResponse.json({ error: "invalid or expired email code" }, { status: 401 });
+  }
+
+  await prisma.emailLoginCode.update({
+    where: { id: codeRecord.id },
+    data: { usedAt: now },
+  });
+
   const passwordHash = await hashPassword(password);
   await prisma.user.create({ data: { email, passwordHash, handle } });
   return NextResponse.json({ ok: true });

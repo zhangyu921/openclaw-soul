@@ -92,3 +92,15 @@ model DeviceLogin {
   accessTokenPlain String?
   createdAt        DateTime @default(now())
 }
+
+model EmailLoginCode {
+  id        String    @id @default(cuid())
+  email     String
+  codeHash  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email, createdAt(sort: Desc)])
+  @@index([expiresAt])
+}

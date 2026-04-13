@@ -29,8 +29,14 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [codeEmail, setCodeEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [codeSentHint, setCodeSentHint] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
+  const [codeSending, setCodeSending] = useState(false);
+  const [codeVerifying, setCodeVerifying] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,6 +64,54 @@ export default function LoginForm() {
     setOauthLoading(true);
     const href = `/api/auth/github/start?next=${encodeURIComponent(next)}&locale=${encodeURIComponent(locale)}`;
     window.location.assign(href);
+  }
+
+  async function onRequestCode(e: React.FormEvent) {
+    e.preventDefault();
+    setCodeError(null);
+    setCodeSentHint(null);
+    setCodeSending(true);
+    try {
+      const res = await fetch("/api/auth/email/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: codeEmail }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setCodeError(typeof data.error === "string" ? data.error : t("emailCodeRequestFailed"));
+        return;
+      }
+      if (typeof data.devCode === "string") {
+        setCodeSentHint(t("emailCodeDevHint", { code: data.devCode }));
+      } else {
+        setCodeSentHint(t("emailCodeSent"));
+      }
+    } finally {
+      setCodeSending(false);
+    }
+  }
+
+  async function onVerifyCode(e: React.FormEvent) {
+    e.preventDefault();
+    setCodeError(null);
+    setCodeVerifying(true);
+    try {
+      const res = await fetch("/api/auth/email/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: codeEmail, code }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setCodeError(typeof data.error === "string" ? data.error : t("emailCodeVerifyFailed"));
+        return;
+      }
+      router.push(next);
+      router.refresh();
+    } finally {
+      setCodeVerifying(false);
+    }
   }
 
   return (
@@ -110,6 +164,60 @@ export default function LoginForm() {
           ) : null}
           <Button type="submit" size="lg" className="w-full" disabled={loading}>
             {loading ? t("loginSubmitting") : t("loginSubmit")}
+          </Button>
+        </form>
+        <div className="my-5 border-t border-border/70" />
+        <form onSubmit={onRequestCode} className="flex flex-col gap-3">
+          <p className="text-sm font-medium text-foreground">{t("emailCodeTitle")}</p>
+          <p className="text-xs text-muted-foreground">{t("emailCodeHint")}</p>
+          <div className="space-y-2">
+            <Label htmlFor="login-code-email">{t("loginEmail")}</Label>
+            <Input
+              id="login-code-email"
+              type="email"
+              required
+              value={codeEmail}
+              onChange={(e) => setCodeEmail(e.target.value)}
+              autoComplete="email"
+              className="h-10"
+            />
+          </div>
+          <Button
+            type="submit"
+            size="sm"
+            variant="outline"
+            className="w-full"
+            disabled={codeSending || codeVerifying}
+          >
+            {codeSending ? t("emailCodeSending") : t("emailCodeSend")}
+          </Button>
+        </form>
+        <form onSubmit={onVerifyCode} className="mt-3 flex flex-col gap-3">
+          <div className="space-y-2">
+            <Label htmlFor="login-code-input">{t("emailCodeLabel")}</Label>
+            <Input
+              id="login-code-input"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              required
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="h-10"
+            />
+          </div>
+          {codeSentHint ? (
+            <p className="text-xs text-muted-foreground" role="status">
+              {codeSentHint}
+            </p>
+          ) : null}
+          {codeError ? (
+            <p className="text-sm font-medium text-destructive" role="alert">
+              {codeError}
+            </p>
+          ) : null}
+          <Button type="submit" size="sm" className="w-full" disabled={codeVerifying || codeSending}>
+            {codeVerifying ? t("emailCodeVerifying") : t("emailCodeSubmit")}
           </Button>
         </form>
       </CardContent>

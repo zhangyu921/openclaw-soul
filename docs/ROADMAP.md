@@ -37,7 +37,7 @@
 | ✅   | P2-A | Web 多语言 | `/[locale]`（`en`/`zh`），`next-intl` + `messages/*.json`；站内路由 locale-aware；UI 文案分期迁入 `messages`（[`web/AGENTS.md`](../web/AGENTS.md)、设计 [`docs/superpowers/specs/2026-04-08-web-i18n-design.md`](superpowers/specs/2026-04-08-web-i18n-design.md)）。 |
 | ✅   | P2-B | 首页信息结构 | 三段话用清晰的声明/分块呈现，避免堆成一段；设计优先帮助用户一眼理解价值。实现见 [`docs/superpowers/specs/2026-04-11-p2b-home-information-architecture-design.md`](superpowers/specs/2026-04-11-p2b-home-information-architecture-design.md)。 |
 | ✅   | P2-C | 全站文案与多语言 | 其余页面跟进多语言，语气对齐首页：面向用户、少 jargon、用户可见处用 Soul、不出现 pack 作产品名；不拿隐私吓人；基调温柔。实现见 [`docs/superpowers/specs/2026-04-10-p2c-site-copy-i18n-design.md`](superpowers/specs/2026-04-10-p2c-site-copy-i18n-design.md)。 |
-|     | P2-D | 登录与账号 | 多登录渠道（含 GitHub）；邮件登录配验证码。 |
+| ✅   | P2-D | 登录与账号 | 多登录渠道（含 GitHub）；邮件登录配验证码。 |
 |     | P2-E | 品牌与首屏视觉 | Logo、Header 标题更具设计感。 |
 |     | P2-F | 画廊检索 | 可搜索、可按标签筛选（依赖更多 soul 来源后再发力）。 |
 
