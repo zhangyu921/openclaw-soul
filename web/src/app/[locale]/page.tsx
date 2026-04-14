@@ -43,8 +43,11 @@ export default async function Home({ params }: Props) {
   });
 
   return (
-    <main className="mx-auto max-w-[var(--container-max)] px-4 py-10 sm:px-6">
-      <div className="mb-10 text-center sm:mb-12">
+    <main className="mx-auto max-w-(--container-max) px-4 py-10 sm:px-6">
+      <div className="relative mb-10 overflow-hidden rounded-2xl border border-border/60 bg-linear-to-b from-primary/[0.07] via-background to-background px-4 py-7 text-center sm:mb-12 sm:px-8 sm:py-10">
+        <div className="pointer-events-none absolute -top-16 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
+        <div className="pointer-events-none absolute right-0 bottom-0 h-28 w-28 translate-x-1/4 translate-y-1/4 rounded-full bg-accent/25 blur-2xl" />
+        <p className="mb-3 text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">{t("heroKicker")}</p>
         <Badge variant="secondary" className="mb-4 gap-1 px-3 py-1 text-xs font-medium">
           <Sparkles className="size-3.5" aria-hidden />
           {t("badge")}
@@ -52,6 +55,9 @@ export default async function Home({ params }: Props) {
         <h1 className="font-heading text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
           {t("heroTitle")}
         </h1>
+        <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+          {t("heroSubtitle")}
+        </p>
       </div>
 
 
@@ -82,7 +88,7 @@ export default async function Home({ params }: Props) {
           </CardContent>
         </Card>
       ) : (
-        <div className="columns-1 gap-[var(--pin-gap)] sm:columns-2 lg:columns-3 [&>*]:mb-[var(--pin-gap)]">
+        <div className="columns-1 gap-(--pin-gap) sm:columns-2 lg:columns-3 *:mb-(--pin-gap)">
           {packs.map((p) => {
             const h = p.author.handle!;
             const encH = encodeURIComponent(h);
@@ -94,7 +100,7 @@ export default async function Home({ params }: Props) {
                 className="block break-inside-avoid"
               >
                 <Card className="card-pinterest gap-0 overflow-hidden border-0 pt-0 ring-1 ring-border/80 hover:ring-primary/25">
-                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
+                  <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
                     {p.avatarRelPath ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -103,7 +109,7 @@ export default async function Home({ params }: Props) {
                         className="size-full object-cover transition-transform duration-500 hover:scale-105"
                       />
                     ) : (
-                      <div className="flex size-full items-center justify-center bg-gradient-to-br from-accent/40 to-secondary text-sm text-muted-foreground">
+                      <div className="flex size-full items-center justify-center bg-linear-to-br from-accent/40 to-secondary text-sm text-muted-foreground">
                         {t("noAvatar")}
                       </div>
                     )}

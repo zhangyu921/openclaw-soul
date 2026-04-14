@@ -1,3 +1,29 @@
+## Harness 状态机（任务真源）
+
+本文件是 roadmap 任务状态的事实来源；PR 用 label 镜像同一状态。
+
+- `todo`：未开始（表格里留空）
+- `in_progress`：进行中（表格里用 `🚧`）
+- `needs_review`：已提 PR 待审（表格里用 `👀`）
+- `changes_requested`：审阅要求修改（表格里用 `🛠️`）
+- `ready_to_merge`：审阅通过且 CI 绿（表格里用 `✅(待合并)`）
+- `done`：已合并上线（表格里用 `✅`）
+
+约束：
+
+1. 一个子任务同一时间只能处于一个状态。
+2. 子任务状态变化时，必须同时更新对应 PR label（见 `docs/HARNESS-STATE-MACHINE.md`）。
+3. 若无 PR，不得进入 `needs_review` / `changes_requested` / `ready_to_merge`。
+
+## 当前执行队列（Harness Wave 1）
+
+| 状态 | ID | 任务 | 并行组 | Task 文档 |
+|---|---|---|---|---|
+| ✅(待合并) | P2-E-1 | Header 品牌与首屏视觉最小改造 | A | [`docs/HARNESS-TASK-P2-E-1.md`](HARNESS-TASK-P2-E-1.md) |
+|     | P2-F-1 | 画廊检索 MVP（关键词 + 标签，延期；后续走数据库检索方案） | B | [`docs/HARNESS-TASK-P2-F-1.md`](HARNESS-TASK-P2-F-1.md) |
+
+并行约束：同一轮最多 2~3 项；每项先产出 PR 再进入审阅流。
+
 ## P0 （已完成）
 
 
@@ -37,7 +63,7 @@
 | ✅   | P2-A | Web 多语言 | `/[locale]`（`en`/`zh`），`next-intl` + `messages/*.json`；站内路由 locale-aware；UI 文案分期迁入 `messages`（[`web/AGENTS.md`](../web/AGENTS.md)、设计 [`docs/superpowers/specs/2026-04-08-web-i18n-design.md`](superpowers/specs/2026-04-08-web-i18n-design.md)）。 |
 | ✅   | P2-B | 首页信息结构 | 三段话用清晰的声明/分块呈现，避免堆成一段；设计优先帮助用户一眼理解价值。实现见 [`docs/superpowers/specs/2026-04-11-p2b-home-information-architecture-design.md`](superpowers/specs/2026-04-11-p2b-home-information-architecture-design.md)。 |
 | ✅   | P2-C | 全站文案与多语言 | 其余页面跟进多语言，语气对齐首页：面向用户、少 jargon、用户可见处用 Soul、不出现 pack 作产品名；不拿隐私吓人；基调温柔。实现见 [`docs/superpowers/specs/2026-04-10-p2c-site-copy-i18n-design.md`](superpowers/specs/2026-04-10-p2c-site-copy-i18n-design.md)。 |
-| ✅   | P2-D | 登录与账号 | 多登录渠道（含 GitHub）；邮件登录配验证码。 |
+| ✅   | P2-D | 登录与账号 | 多登录渠道（含 GitHub）；邮件登录/注册需要验证码。 |
 |     | P2-E | 品牌与首屏视觉 | Logo、Header 标题更具设计感。 |
 |     | P2-F | 画廊检索 | 可搜索、可按标签筛选（依赖更多 soul 来源后再发力）。 |
 
@@ -45,3 +71,4 @@
 ## P3
 
 **验证与复盘**（外人路径、门面叙事等）
+
