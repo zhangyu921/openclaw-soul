@@ -23,7 +23,7 @@
 
 - **标题**：Header 品牌与首屏视觉最小改造
 - **文档**：`docs/HARNESS-TASK-P2-E-1.md`
-- **状态**：`ready_to_merge`（roadmap 标记 `✅(待合并)`）
+- **状态**：`done`（roadmap 标记 `✅`）
 - **验收关键点**：
   - Hero/Header 品牌视觉增强可见
   - 不破坏登录/导航/多语言
