@@ -1,6 +1,7 @@
 {
   "common": {
     "siteName": "OpenClaw Soul",
+    "brandTaglineMini": "Soul 画廊",
     "defaultMetaDescription": "为 OpenClaw 发现社区 Soul：先浏览、在站内开聊，再一条命令 apply 到本机。",
     "footerTagline": "OpenClaw Soul — 分享与发现来自社区的 Soul",
     "footerPrivacy": "隐私与上传说明"
@@ -290,8 +291,16 @@
   "home": {
     "metaTitle": "OpenClaw Soul",
     "metaDescription": "找到你想聊的 Soul。浏览社区上架内容，一条命令装到本机 OpenClaw。",
+    "heroKicker": "找到你的对话气质",
     "badge": "OpenClaw Soul · 遇见想聊的 Soul",
     "heroTitle": "找到你真正想聊的那一个 Soul。",
+    "heroSubtitle": "先在浏览器里试聊社区 Soul，遇到对味的，再一条命令带回你的本机 OpenClaw workspace。",
+    "searchPlaceholder": "按标题、简介、slug 或作者搜索…",
+    "tagsLabel": "标签：",
+    "allTags": "全部",
+    "clearFilters": "清空",
+    "noResultsTitle": "没有匹配的 Soul",
+    "noResultsDescription": "换个关键词，或清空标签筛选后再看看。",
     "introWhatLabel": "这是什么：",
     "introWhatBody": "社区里的 Soul：人设、提示词与工作区里的内容，让对话像你特意选中的对象，而不是默认模板。",
     "introWhoLabel": "为谁：",

@@ -56,7 +56,10 @@
 | Pack/Workspace 模型、安全条文、CLI 锚点、开发习惯 | [`docs/REPOSITORY-CONTEXT.md`](docs/REPOSITORY-CONTEXT.md) |
 | 部署 | [`docs/DEPLOY.md`](docs/DEPLOY.md) |
 | Harness 执行闭环（MVP） | [`docs/HARNESS-WORKFLOW.md`](docs/HARNESS-WORKFLOW.md) |
+| Harness 状态机与标签协议 | [`docs/HARNESS-STATE-MACHINE.md`](docs/HARNESS-STATE-MACHINE.md) |
+| Harness 执行命令规范（/harness-go） | [`docs/HARNESS-GO-SPEC.md`](docs/HARNESS-GO-SPEC.md) |
 | Harness 任务模板 | [`docs/HARNESS-TASK-TEMPLATE.md`](docs/HARNESS-TASK-TEMPLATE.md) |
+| 想法收件箱（自由一行一条） | [`docs/IDEAS-INBOX.md`](docs/IDEAS-INBOX.md) |
 | 设计与执行计划草稿 | [`docs/superpowers/specs/`](docs/superpowers/specs/) · [`docs/superpowers/plans/`](docs/superpowers/plans/) |
 | 仅改 `web/`（Next.js） | [`web/AGENTS.md`](web/AGENTS.md) |
 
