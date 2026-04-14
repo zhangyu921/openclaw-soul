@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Sparkles } from "lucide-react";
 
 import { HomeIntroStack } from "@/components/home-intro-stack";
-import { HomePackGallery } from "@/components/home-pack-gallery";
+import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PackVisibility } from "@/generated/prisma/client";
@@ -29,7 +29,7 @@ export default async function Home({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("home");
 
-  const packsRaw = await prisma.pack.findMany({
+  const packs = await prisma.pack.findMany({
     where: { visibility: PackVisibility.LISTED, author: { handle: { not: null } } },
     orderBy: { createdAt: "desc" },
     select: {
@@ -38,17 +38,9 @@ export default async function Home({ params }: Props) {
       title: true,
       summary: true,
       avatarRelPath: true,
-      packFilePaths: true,
       author: { select: { handle: true } },
     },
   });
-
-  const packs = packsRaw.map((p) => ({
-    ...p,
-    packFilePaths: Array.isArray(p.packFilePaths)
-      ? p.packFilePaths.filter((v): v is string => typeof v === "string")
-      : [],
-  }));
 
   return (
     <main className="mx-auto max-w-(--container-max) px-4 py-10 sm:px-6">
@@ -96,19 +88,54 @@ export default async function Home({ params }: Props) {
           </CardContent>
         </Card>
       ) : (
-        <HomePackGallery
-          packs={packs}
-          copy={{
-            searchPlaceholder: t("searchPlaceholder"),
-            tagsLabel: t("tagsLabel"),
-            allTags: t("allTags"),
-            clearFilters: t("clearFilters"),
-            noResultsTitle: t("noResultsTitle"),
-            noResultsDescription: t("noResultsDescription"),
-            noAvatar: t("noAvatar"),
-            noSummary: t("noSummary"),
-          }}
-        />
+        <div className="columns-1 gap-(--pin-gap) sm:columns-2 lg:columns-3 *:mb-(--pin-gap)">
+          {packs.map((p) => {
+            const h = p.author.handle!;
+            const encH = encodeURIComponent(h);
+            const encS = encodeURIComponent(p.slug);
+            return (
+              <Link
+                key={p.id}
+                href={`/packs/${h}/${p.slug}`}
+                className="block break-inside-avoid"
+              >
+                <Card className="card-pinterest gap-0 overflow-hidden border-0 pt-0 ring-1 ring-border/80 hover:ring-primary/25">
+                  <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
+                    {p.avatarRelPath ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={`/api/packs/${encH}/${encS}/avatar`}
+                        alt=""
+                        className="size-full object-cover transition-transform duration-500 hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex size-full items-center justify-center bg-linear-to-br from-accent/40 to-secondary text-sm text-muted-foreground">
+                        {t("noAvatar")}
+                      </div>
+                    )}
+                  </div>
+                  <CardHeader className="border-0 px-4 pb-2 pt-3">
+                    <CardTitle className="line-clamp-2 text-base leading-snug">{p.title}</CardTitle>
+                    <CardDescription className="font-mono text-xs">
+                      {h}/{p.slug}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p
+                      className={
+                        p.summary?.trim()
+                          ? "line-clamp-3 text-sm text-muted-foreground"
+                          : "line-clamp-2 text-sm italic text-muted-foreground/80"
+                      }
+                    >
+                      {p.summary?.trim() ? p.summary.trim() : t("noSummary")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
+        </div>
       )}
     </main>
   );

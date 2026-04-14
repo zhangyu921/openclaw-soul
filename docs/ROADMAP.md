@@ -20,7 +20,7 @@
 | 状态 | ID | 任务 | 并行组 | Task 文档 |
 |---|---|---|---|---|
 | 👀 | P2-E-1 | Header 品牌与首屏视觉最小改造 | A | [`docs/HARNESS-TASK-P2-E-1.md`](HARNESS-TASK-P2-E-1.md) |
-| 👀 | P2-F-1 | 画廊检索 MVP（关键词 + 标签） | B | [`docs/HARNESS-TASK-P2-F-1.md`](HARNESS-TASK-P2-F-1.md) |
+| 🛠️ | P2-F-1 | 画廊检索 MVP（关键词 + 标签，按 review 回退并延期） | B | [`docs/HARNESS-TASK-P2-F-1.md`](HARNESS-TASK-P2-F-1.md) |
 
 并行约束：同一轮最多 2~3 项；每项先产出 PR 再进入审阅流。
 
