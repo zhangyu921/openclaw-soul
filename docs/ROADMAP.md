@@ -72,9 +72,3 @@
 
 **验证与复盘**（外人路径、门面叙事等）
 
-
-
-## IDEAS（迁移）
-
-自由输入想法已迁移到：[`docs/IDEAS-INBOX.md`](IDEAS-INBOX.md)  
-约定：想法一行一条，harness 先提炼成候选任务，再回写 roadmap。
