@@ -135,7 +135,7 @@ function RegisterForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="reg-code">{t("registerEmailCodeLabel")}</Label>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <Input
                 id="reg-code"
                 type="text"

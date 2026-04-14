@@ -109,6 +109,8 @@
     "loginSubmit": "登录",
     "loginSubmitting": "登录中…",
     "loginFailed": "登录失败",
+    "loginMethodPassword": "邮箱 + 密码",
+    "loginMethodCode": "邮箱 + 验证码",
     "noAccount": "还没有账号？",
     "hasAccount": "已有账号？",
     "registerLink": "注册",

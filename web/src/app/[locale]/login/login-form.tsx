@@ -26,10 +26,10 @@ export default function LoginForm() {
   const search = useSearchParams();
   const next = search.get("next") || "/dashboard";
   const githubError = search.get("error") === "github_oauth";
+  const [loginMethod, setLoginMethod] = useState<"password" | "code">("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [codeEmail, setCodeEmail] = useState("");
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState<string | null>(null);
   const [codeSentHint, setCodeSentHint] = useState<string | null>(null);
@@ -66,8 +66,7 @@ export default function LoginForm() {
     window.location.assign(href);
   }
 
-  async function onRequestCode(e: React.FormEvent) {
-    e.preventDefault();
+  async function onRequestCode() {
     setCodeError(null);
     setCodeSentHint(null);
     setCodeSending(true);
@@ -75,7 +74,7 @@ export default function LoginForm() {
       const res = await fetch("/api/auth/email/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: codeEmail }),
+        body: JSON.stringify({ email }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -100,7 +99,7 @@ export default function LoginForm() {
       const res = await fetch("/api/auth/email/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: codeEmail, code }),
+        body: JSON.stringify({ email, code }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -132,7 +131,7 @@ export default function LoginForm() {
           {oauthLoading ? t("githubLoginSubmitting") : t("githubLogin")}
         </Button>
         <p className="mb-4 text-center text-xs text-muted-foreground">{t("oauthDivider")}</p>
-        <form onSubmit={onSubmit} className="flex flex-col gap-4">
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="login-email">{t("loginEmail")}</Label>
             <Input
@@ -145,81 +144,103 @@ export default function LoginForm() {
               className="h-10"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="login-password">{t("loginPassword")}</Label>
-            <Input
-              id="login-password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              className="h-10"
-            />
+
+          <div className="grid grid-cols-2 gap-2 rounded-lg border border-border/70 p-1">
+            <Button
+              type="button"
+              size="sm"
+              variant={loginMethod === "password" ? "default" : "ghost"}
+              onClick={() => {
+                setLoginMethod("password");
+                setCodeError(null);
+              }}
+            >
+              {t("loginMethodPassword")}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={loginMethod === "code" ? "default" : "ghost"}
+              onClick={() => {
+                setLoginMethod("code");
+                setError(null);
+              }}
+            >
+              {t("loginMethodCode")}
+            </Button>
           </div>
-          {error || githubError ? (
+
+          {loginMethod === "password" ? (
+            <form onSubmit={onSubmit} className="flex flex-col gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="login-password">{t("loginPassword")}</Label>
+                <Input
+                  id="login-password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  className="h-10"
+                />
+              </div>
+              {error ? (
+                <p className="text-sm font-medium text-destructive" role="alert">
+                  {error}
+                </p>
+              ) : null}
+              <Button type="submit" size="lg" className="w-full" disabled={loading}>
+                {loading ? t("loginSubmitting") : t("loginSubmit")}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={onVerifyCode} className="flex flex-col gap-3">
+              <p className="text-sm font-medium text-foreground">{t("emailCodeTitle")}</p>
+              <p className="text-xs text-muted-foreground">{t("emailCodeHint")}</p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="w-full"
+                onClick={onRequestCode}
+                disabled={codeSending || codeVerifying}
+              >
+                {codeSending ? t("emailCodeSending") : t("emailCodeSend")}
+              </Button>
+              <div className="space-y-2">
+                <Label htmlFor="login-code-input">{t("emailCodeLabel")}</Label>
+                <Input
+                  id="login-code-input"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  required
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className="h-10"
+                />
+              </div>
+              {codeSentHint ? (
+                <p className="text-xs text-muted-foreground" role="status">
+                  {codeSentHint}
+                </p>
+              ) : null}
+              {codeError ? (
+                <p className="text-sm font-medium text-destructive" role="alert">
+                  {codeError}
+                </p>
+              ) : null}
+              <Button type="submit" size="sm" className="w-full" disabled={codeVerifying || codeSending}>
+                {codeVerifying ? t("emailCodeVerifying") : t("emailCodeSubmit")}
+              </Button>
+            </form>
+          )}
+          {githubError ? (
             <p className="text-sm font-medium text-destructive" role="alert">
-              {error || t("githubLoginFailed")}
+              {t("githubLoginFailed")}
             </p>
           ) : null}
-          <Button type="submit" size="lg" className="w-full" disabled={loading}>
-            {loading ? t("loginSubmitting") : t("loginSubmit")}
-          </Button>
-        </form>
-        <div className="my-5 border-t border-border/70" />
-        <form onSubmit={onRequestCode} className="flex flex-col gap-3">
-          <p className="text-sm font-medium text-foreground">{t("emailCodeTitle")}</p>
-          <p className="text-xs text-muted-foreground">{t("emailCodeHint")}</p>
-          <div className="space-y-2">
-            <Label htmlFor="login-code-email">{t("loginEmail")}</Label>
-            <Input
-              id="login-code-email"
-              type="email"
-              required
-              value={codeEmail}
-              onChange={(e) => setCodeEmail(e.target.value)}
-              autoComplete="email"
-              className="h-10"
-            />
-          </div>
-          <Button
-            type="submit"
-            size="sm"
-            variant="outline"
-            className="w-full"
-            disabled={codeSending || codeVerifying}
-          >
-            {codeSending ? t("emailCodeSending") : t("emailCodeSend")}
-          </Button>
-        </form>
-        <form onSubmit={onVerifyCode} className="mt-3 flex flex-col gap-3">
-          <div className="space-y-2">
-            <Label htmlFor="login-code-input">{t("emailCodeLabel")}</Label>
-            <Input
-              id="login-code-input"
-              type="text"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              required
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="h-10"
-            />
-          </div>
-          {codeSentHint ? (
-            <p className="text-xs text-muted-foreground" role="status">
-              {codeSentHint}
-            </p>
-          ) : null}
-          {codeError ? (
-            <p className="text-sm font-medium text-destructive" role="alert">
-              {codeError}
-            </p>
-          ) : null}
-          <Button type="submit" size="sm" className="w-full" disabled={codeVerifying || codeSending}>
-            {codeVerifying ? t("emailCodeVerifying") : t("emailCodeSubmit")}
-          </Button>
-        </form>
+        </div>
       </CardContent>
       <CardFooter className="flex flex-col gap-3 text-center text-sm text-muted-foreground">
         <p>

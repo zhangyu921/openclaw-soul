@@ -109,6 +109,8 @@
     "loginSubmit": "Log in",
     "loginSubmitting": "Signing in…",
     "loginFailed": "Sign-in failed",
+    "loginMethodPassword": "Email + password",
+    "loginMethodCode": "Email + code",
     "noAccount": "No account?",
     "hasAccount": "Already have an account?",
     "registerLink": "Register",

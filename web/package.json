@@ -8,6 +8,7 @@
     "start": "next start",
     "test": "vitest run",
     "e2e:smoke": "playwright test tests/smoke/github-login.spec.ts",
+    "e2e:smoke:reuse-dev": "PLAYWRIGHT_NO_WEBSERVER=1 PLAYWRIGHT_BASE_URL=http://localhost:3000 playwright test tests/smoke/github-login.spec.ts",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "db:migrate": "prisma migrate dev",
