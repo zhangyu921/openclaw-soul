@@ -23,7 +23,7 @@
 
 - **标题**：Header 品牌与首屏视觉最小改造
 - **文档**：`docs/HARNESS-TASK-P2-E-1.md`
-- **状态**：`needs_review`（roadmap 标记 `👀`）
+- **状态**：`ready_to_merge`（roadmap 标记 `✅(待合并)`）
 - **验收关键点**：
   - Hero/Header 品牌视觉增强可见
   - 不破坏登录/导航/多语言
@@ -33,7 +33,7 @@
 
 - **标题**：画廊检索 MVP（关键词 + 标签）
 - **文档**：`docs/HARNESS-TASK-P2-F-1.md`
-- **状态**：`changes_requested`（roadmap 标记 `🛠️`，本轮按 review 回退并延期）
+- **状态**：`todo`（roadmap 留空，延期；后续按数据库检索方案重启）
 - **验收关键点**：
   - 关键词搜索可用
   - 标签筛选可用（最小兼容策略）
