@@ -23,8 +23,9 @@
 |    | P2-F-1 | 画廊检索 MVP（延期；后续走数据库检索方案） | [`docs/harness/task-p2-f-1.md`](harness/task-p2-f-1.md) |
 | ✅ | P2-G-1 | 登录入口整合：GitHub 主入口 + 邮箱分流 /register | [`docs/HARNESS-TASK-P2-G-1.md`](HARNESS-TASK-P2-G-1.md) |
 | ✅ | P2-H-1 | 创建 pack 后自动跳转详情页 | [`docs/harness/task-p2-h-1.md`](harness/task-p2-h-1.md) |
-| 👀 | P2-I-1 | Soul 对话本地缓存 + 新对话按钮 | [`docs/harness/task-p2-i-1.md`](harness/task-p2-i-1.md) |
+| ✅ | P2-I-1 | Soul 对话本地缓存 + 新对话按钮 | [`docs/harness/task-p2-i-1.md`](harness/task-p2-i-1.md) |
 | ✅ | P2-J-1 | Bug: 头像二次上传后页面未刷新 | [`docs/harness/task-p2-j-1.md`](harness/task-p2-j-1.md) |
+|    | P2-K-1 | Pack zip 懒惰生成（apply/下载时再写 blob 缓存） | [`docs/harness/task-p2-k-1.md`](harness/task-p2-k-1.md) |
 
 约束：一任务一 commit（小任务）或一分支一 PR（大任务）；开放 PR ≥ 3 时不开新任务。
 
@@ -68,8 +69,9 @@
 |    | P2-F | 画廊检索 | 可搜索、可按标签筛选（依赖更多 soul 来源后再发力）。 |
 | ✅ | P2-G | 登录入口整合 | GitHub 主入口；验证码登录在 `/login`；密码登录/注册在 `/register`；注册 handle 可后置。 |
 | ✅ | P2-H | 创建 pack 后跳转 | 「从零构建」创建成功后 `router.push(viewPath)` 进入详情页（见 task-p2-h-1）。 |
-|    | P2-I | Soul 对话本地缓存 | 站内对话缓存到本地（localStorage / IndexedDB）；新增「新对话」按钮清空上下文。 |
+| ✅ | P2-I | Soul 对话本地缓存 | 站内对话缓存到本地（localStorage）；「新对话」清空线程（见 P2-I-1）。 |
 | ✅ | P2-J | 头像二次上传刷新 | Bug fix：再次上传头像后页面仍显示旧图，需缓存失效 / URL bust / refetch。（见 P2-J-1） |
+|    | P2-K | Pack zip 懒惰生成 | 避免每次改 md/包内文件都重打 zip；仅在 `apply` 或用户下载需要时再生成并落 blob 缓存，减少无效占用。 |
 
 ## P3
 
