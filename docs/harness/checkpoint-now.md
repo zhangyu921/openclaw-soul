@@ -9,10 +9,10 @@
 ## 1) 全局状态
 
 - **PR cap**：3
-- **开放 PR 数**：0
+- **开放 PR 数**：1（推送后）
 - **IDEAS-INBOX 已读行数**：20（全部已归入 ROADMAP）
-- **上次 tick**：2026-04-16 — P0：合并 #12（P2-I-1）；P2：收件箱「zip 懒惰生成」归入 ROADMAP **P2-K-1**；ROADMAP / checkpoint 同步
-- **下一 tick 建议**：P3 执行 **P2-K-1**（或继续延期 P2-F-1）
+- **上次 tick**：2026-04-16 — P3：`harness/p2-k-1` 实现 zip 懒惰生成（`zipRelPath` 可空 + sync 失效 + download 按需组包）；task / ROADMAP `👀`；待 PR 审阅
+- **下一 tick 建议**：合并 P2-K-1 PR → ROADMAP `✅`；或 P2-F-1
 
 ---
 
@@ -26,7 +26,7 @@
 | P2-H-1 | 创建 pack 后跳转详情页 | ✅ done | — | — | `docs/harness/task-p2-h-1.md` |
 | P2-I-1 | Soul 对话本地缓存 + 新对话 | ✅ done | — | #12 (merged) | `docs/harness/task-p2-i-1.md` |
 | P2-J-1 | 头像二次上传刷新 | ✅ done | — | — | `docs/harness/task-p2-j-1.md` |
-| P2-K-1 | Pack zip 懒惰生成 | todo | — | — | `docs/harness/task-p2-k-1.md` |
+| P2-K-1 | Pack zip 懒惰生成 | 👀 needs_review | harness/p2-k-1 | （待填） | `docs/harness/task-p2-k-1.md` |
 
 ---
 

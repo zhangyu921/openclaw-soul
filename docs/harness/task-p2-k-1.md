@@ -19,6 +19,19 @@
 3. **方向 B**：`GET /api/packs/.../download`（及 apply 所用端点）在响应前若缺 zip 或 dirty，则 `buildAndStoreZipFromPackDb` 再返回。
 4. **验证**：`pnpm test`、关键 API 手测或 route 测试；确认 blob 写入次数下降。
 
-## C. 实施记录 / D. 验收证据
+## C. 实施记录（Implementation Log）
 
-（实现时填写）
+- **实际改动文件**：
+  - `web/prisma/schema.prisma` — `zipRelPath` 可选
+  - `web/prisma/migrations/20260416180000_pack_zip_rel_path_optional/migration.sql`
+  - `web/src/lib/pack-source-sync.ts` — 源变更时删旧 blob、`zipRelPath: null`，不再 `buildAndStoreZipFromPackDb`
+  - `web/src/app/api/packs/[handle]/[slug]/download/route.ts` — `zipRelPath` 为空或读失败时按需 `buildAndStoreZipFromPackDb`
+- **关键实现说明**：缓存失效后首次下载/apply 会组包并写回 `zipRelPath`（沿用现有 `buildAndStoreZipFromPackDb`）。
+- **与硬约束对齐**：不对用户目录做破坏性操作；CLI 仍走同一 download URL。
+
+## D. 验收证据（Verification Evidence）
+
+- `pnpm test`：通过
+- `pnpm --filter @openclaw-soul/web typecheck`：通过（`prisma generate` 后 `tsc`）
+- `pnpm --filter @openclaw-soul/web lint`：通过
+- **结果摘要**：通过
