@@ -20,7 +20,7 @@ test("github login entry renders and oauth start endpoint redirects", async ({
   request,
 }) => {
   await page.goto("/zh/login");
-  await expect(page.getByRole("button", { name: "使用 GitHub 登录" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "使用 GitHub 继续" })).toBeVisible();
 
   const oauthStart = await request.get("/api/auth/github/start?locale=zh&next=/dashboard", {
     maxRedirects: 0,
@@ -37,7 +37,7 @@ test("github login entry renders and oauth start endpoint redirects", async ({
 test("dashboard requires login and preserves next path", async ({ page }) => {
   await page.goto("/zh/dashboard");
   await expect(page).toHaveURL(/\/zh\/login\?next=%2Fdashboard/);
-  await expect(page.getByRole("button", { name: "使用 GitHub 登录" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "使用 GitHub 继续" })).toBeVisible();
 });
 
 test("oauth callback with invalid state redirects to login with error", async ({
