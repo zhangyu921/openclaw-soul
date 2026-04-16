@@ -27,7 +27,7 @@
 ## D. 验收证据
 
 - **代码审阅**：上述路径与调用链一致即可视为通过。
-- **可选本地**：`pnpm test`、`pnpm --filter @openclaw-soul/web build`（本轮以文档闭环为主，由后续 tick 或 CI 兜底）。
+- **测试**：`pnpm test`（root）— 通过（cli + web vitest）。
 
 ## F. Done 判定
 
