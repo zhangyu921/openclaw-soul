@@ -11,13 +11,13 @@
 - **串行 tick**：单次 chat 只做一件事；通过反复调用 `/harness-go` 推进。
 - **一任务一 commit**：小任务直接在 main commit（轻量模式）；大任务才走分支+PR。
 - **PR cap**：开放 PR ≥ 3 时不开新任务。
-- **Checkpoint 驱动**：每轮结束更新 `docs/HARNESS-CHECKPOINT-NOW.md`，新 chat 可无缝恢复。
+- **Checkpoint 驱动**：每轮结束更新 `docs/harness/checkpoint-now.md`，新 chat 可无缝恢复。
 
 ---
 
 ## 输入（Step 0 必读）
 
-1. `docs/HARNESS-CHECKPOINT-NOW.md`
+1. `docs/harness/checkpoint-now.md`
 2. `docs/ROADMAP.md`
 3. `docs/IDEAS-INBOX.md`
 4. `gh pr list --search "label:status:needs-review,status:changes-requested,status:ready-to-merge" --json number,title,labels,headRefName`
@@ -52,7 +52,7 @@ ROADMAP 执行队列中第一个 `todo` 任务。
 
 #### 3b. 建 task 文档
 
-按 `docs/HARNESS-TASK-TEMPLATE.md` 创建 `docs/HARNESS-TASK-<ID>.md`，填写 A 节（目标/范围/验收条件）。
+按 `docs/harness/task-template.md` 创建 `docs/harness/task-<id>.md`，填写 A 节（目标/范围/验收条件）。
 
 #### 3c. Brainstorming（强制）
 
@@ -127,4 +127,4 @@ pnpm --filter @openclaw-soul/web lint
 |------|------|------|
 | 分支名 | `harness/<task-id>` | `harness/p2-g-1` |
 | PR 标题 | `[Harness] <task-id>: <简述>` | `[Harness] P2-G-1: 登录入口整合` |
-| Task 文档 | `docs/HARNESS-TASK-<ID>.md` | `docs/HARNESS-TASK-P2-G-1.md` |
+| Task 文档 | `docs/harness/task-<id>.md` | `docs/harness/task-p2-g-1.md` |

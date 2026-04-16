@@ -2,7 +2,7 @@
 
 本文面向**克隆本仓库**的贡献者与维护者；终端用户只需 npm 上的 CLI，见根目录 [`README.md`](../README.md)。
 
-AI / 协作者请先读根目录 [`AGENTS.md`](../AGENTS.md)（使命、对齐方式与硬约束）；领域模型与 CLI 条文见 [`REPOSITORY-CONTEXT.md`](REPOSITORY-CONTEXT.md)。仅改 `web/` 时配合 [`web/AGENTS.md`](../web/AGENTS.md)。
+AI / 协作者请先读根目录 [`AGENTS.md`](../AGENTS.md)（使命、约束与领域速查）。仅改 `web/` 时配合 [`web/AGENTS.md`](../web/AGENTS.md)。
 
 ---
 

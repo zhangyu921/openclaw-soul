@@ -8,4 +8,4 @@ description: >-
 
 # /harness-go
 
-读取并严格执行 [`docs/HARNESS-GO-SPEC.md`](../../../docs/HARNESS-GO-SPEC.md) 中的完整步骤。
+读取并严格执行 [`docs/skills/harness-go.md`](../../../docs/skills/harness-go.md) 中的完整步骤。

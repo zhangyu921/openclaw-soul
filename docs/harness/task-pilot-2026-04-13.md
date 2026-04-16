@@ -1,6 +1,6 @@
 # HARNESS TASK PILOT (2026-04-13)
 
-本文件是首轮真实任务样例，按 `docs/HARNESS-TASK-TEMPLATE.md` 填写。
+本文件是首轮真实任务样例，按 `docs/harness/task-template.md` 填写。
 
 ---
 

@@ -31,7 +31,7 @@
   - `web/src/components/home-pack-gallery.tsx`（已删除）
   - `web/messages/en.json`（已移除检索相关文案键）
   - `web/messages/zh.json`（已移除检索相关文案键）
-  - `docs/HARNESS-TASK-P2-F-1.md`
+  - `docs/harness/task-p2-f-1.md`
 - **关键实现说明（为什么这样做）**：
   - 根据 review 结论（当前画廊样本不足且实现方向不对），本轮撤回前端关键词/标签筛选实现，避免在错误方向继续投入。
   - 后续重启时改为数据库侧检索方案优先，再决定前端交互形态。
