@@ -9,10 +9,10 @@
 ## 1) 全局状态
 
 - **PR cap**：3
-- **开放 PR 数**：1
+- **开放 PR 数**：0
 - **IDEAS-INBOX 已读行数**：19（全部已归入 ROADMAP）
-- **上次 tick**：2026-04-16 — 恢复 docs 文件（被其他 chat 回退）；SPEC/SKILL 升级（强制 brainstorming + 轻量/PR 两档模式）
-- **下一 tick 建议**：审阅 PR #11（P2-G-1 登录入口整合），或关闭后重做；然后推进 P2-J-1（bug fix，轻量模式）
+- **上次 tick**：2026-04-16 — P0：合并 PR #11（P2-G-1）；ROADMAP/CHECKPOINT 已更新
+- **下一 tick 建议**：P3 轻量核对 P2-H-1（跳转已存在则标 ✅）或开 P2-J-1 头像刷新 bug
 
 ---
 
@@ -22,7 +22,7 @@
 |----|------|------|------|----|------|
 | P2-E-1 | Header 品牌与首屏视觉最小改造 | ✅ done | — | #10 (merged) | — |
 | P2-F-1 | 画廊检索 MVP | deferred | — | — | 待数据库检索方案 |
-| P2-G-1 | 登录入口整合 | 👀 needs_review | harness/p2-g-1 | #11 (open) | 需审阅或关闭重做 |
+| P2-G-1 | 登录入口整合 | ✅ done | — | #11 (merged) | Task：`docs/HARNESS-TASK-P2-G-1.md` |
 | P2-H-1 | 创建 pack 后跳转详情页 | todo | — | — | 轻量模式候选 |
 | P2-I-1 | Soul 对话本地缓存 + 新对话 | todo | — | — | PR 模式候选（新存储层） |
 | P2-J-1 | 头像二次上传刷新 | todo | — | — | bug fix，轻量模式候选 |
