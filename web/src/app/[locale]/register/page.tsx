@@ -1,8 +1,9 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
+import { GithubMark } from "@/components/icons/github-mark";
 import { Link, useRouter } from "@/i18n/navigation";
 import { Suspense, useState } from "react";
 
@@ -17,9 +18,11 @@ import { AuthLoading } from "../login/auth-loading";
 
 function RegisterForm() {
   const t = useTranslations("auth");
+  const locale = useLocale();
   const router = useRouter();
   const search = useSearchParams();
   const next = search.get("next");
+  const nextOrDash = next || "/dashboard";
   const [email, setEmail] = useState("");
   const [handle, setHandle] = useState("");
   const [password, setPassword] = useState("");
@@ -30,6 +33,14 @@ function RegisterForm() {
   const [codeError, setCodeError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [codeSending, setCodeSending] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
+  const [emailExpanded, setEmailExpanded] = useState(false);
+
+  function onGithubSignup() {
+    setOauthLoading(true);
+    const href = `/api/auth/github/start?next=${encodeURIComponent(nextOrDash)}&locale=${encodeURIComponent(locale)}`;
+    window.location.assign(href);
+  }
 
   async function onRequestCode() {
     setCodeError(null);
@@ -92,105 +103,139 @@ function RegisterForm() {
         <CardTitle className="font-heading text-2xl">{t("registerTitle")}</CardTitle>
         <CardDescription>{t("registerSubtitle")}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="reg-email">{t("loginEmail")}</Label>
-            <Input
-              id="reg-email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              className="h-10"
-            />
+      <CardContent className="space-y-4">
+        <Button
+          type="button"
+          size="lg"
+          className="w-full gap-2"
+          disabled={oauthLoading || loading}
+          onClick={onGithubSignup}
+        >
+          <GithubMark className="size-5 shrink-0" />
+          {oauthLoading ? t("githubLoginSubmitting") : t("githubLogin")}
+        </Button>
+        {!emailExpanded ? (
+          <div className="text-center">
+            <button
+              type="button"
+              className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+              onClick={() => setEmailExpanded(true)}
+            >
+              {t("registerEmailAuthExpand")}
+            </button>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="reg-handle">{t("registerHandle")}</Label>
-            <Input
-              id="reg-handle"
-              type="text"
-              required
-              value={handle}
-              onChange={(e) => setHandle(e.target.value)}
-              autoComplete="username"
-              placeholder={t("registerHandlePlaceholder")}
-              className="h-10 font-mono text-sm"
-            />
-            <p className="text-xs text-muted-foreground">{t("registerHandleHint")}</p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="reg-password">{t("registerPassword")}</Label>
-            <Input
-              id="reg-password"
-              type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-              className="h-10"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="reg-code">{t("registerEmailCodeLabel")}</Label>
-            <div className="flex gap-2 items-center">
-              <Input
-                id="reg-code"
-                type="text"
-                required
-                value={emailCode}
-                onChange={(e) => setEmailCode(e.target.value)}
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                className="h-10"
-              />
-              <Button
+        ) : (
+          <div className="space-y-4 border-t border-border/80 pt-4">
+            <div className="flex justify-end">
+              <button
                 type="button"
-                variant="outline"
-                onClick={onRequestCode}
-                disabled={codeSending || loading || !email.trim()}
+                className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+                onClick={() => setEmailExpanded(false)}
               >
-                {codeSending ? t("emailCodeSending") : t("registerEmailCodeSend")}
-              </Button>
+                {t("emailAuthCollapse")}
+              </button>
             </div>
-            {codeHint ? <p className="text-xs text-muted-foreground">{codeHint}</p> : null}
-            {codeError ? (
-              <p className="text-xs font-medium text-destructive" role="alert">
-                {codeError}
-              </p>
-            ) : null}
+            <p className="text-center text-xs text-muted-foreground">{t("oauthDivider")}</p>
+            <form onSubmit={onSubmit} className="flex flex-col gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="reg-email">{t("loginEmail")}</Label>
+                <Input
+                  id="reg-email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reg-handle">{t("registerHandle")}</Label>
+                <Input
+                  id="reg-handle"
+                  type="text"
+                  required
+                  value={handle}
+                  onChange={(e) => setHandle(e.target.value)}
+                  autoComplete="username"
+                  placeholder={t("registerHandlePlaceholder")}
+                  className="h-10 font-mono text-sm"
+                />
+                <p className="text-xs text-muted-foreground">{t("registerHandleHint")}</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reg-password">{t("registerPassword")}</Label>
+                <Input
+                  id="reg-password"
+                  type="password"
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reg-code">{t("registerEmailCodeLabel")}</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    id="reg-code"
+                    type="text"
+                    required
+                    value={emailCode}
+                    onChange={(e) => setEmailCode(e.target.value)}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    className="h-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onRequestCode}
+                    disabled={codeSending || loading || !email.trim()}
+                  >
+                    {codeSending ? t("emailCodeSending") : t("registerEmailCodeSend")}
+                  </Button>
+                </div>
+                {codeHint ? <p className="text-xs text-muted-foreground">{codeHint}</p> : null}
+                {codeError ? (
+                  <p className="text-xs font-medium text-destructive" role="alert">
+                    {codeError}
+                  </p>
+                ) : null}
+              </div>
+              <div className="flex items-start gap-3 rounded-lg border border-border/80 bg-muted/30 p-3">
+                <Checkbox
+                  id="reg-privacy"
+                  checked={acceptPrivacy}
+                  onCheckedChange={(v) => setAcceptPrivacy(v === true)}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="reg-privacy" className="cursor-pointer font-normal leading-snug text-muted-foreground">
+                  {t("registerPrivacy")}{" "}
+                  <Link
+                    href="/privacy"
+                    className={privacyLinkClassName}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {t("registerPrivacyLink")}
+                  </Link>
+                  {t("registerPrivacyEnd")}
+                </Label>
+              </div>
+              {error ? (
+                <p className="text-sm font-medium text-destructive" role="alert">
+                  {error}
+                </p>
+              ) : null}
+              <Button type="submit" size="lg" className="w-full" disabled={loading || !acceptPrivacy}>
+                {loading ? t("registerSubmitting") : t("registerSubmit")}
+              </Button>
+            </form>
           </div>
-          <div className="flex items-start gap-3 rounded-lg border border-border/80 bg-muted/30 p-3">
-            <Checkbox
-              id="reg-privacy"
-              checked={acceptPrivacy}
-              onCheckedChange={(v) => setAcceptPrivacy(v === true)}
-              className="mt-0.5"
-            />
-            <Label htmlFor="reg-privacy" className="cursor-pointer font-normal leading-snug text-muted-foreground">
-              {t("registerPrivacy")}{" "}
-              <Link
-                href="/privacy"
-                className={privacyLinkClassName}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {t("registerPrivacyLink")}
-              </Link>
-              {t("registerPrivacyEnd")}
-            </Label>
-          </div>
-          {error ? (
-            <p className="text-sm font-medium text-destructive" role="alert">
-              {error}
-            </p>
-          ) : null}
-          <Button type="submit" size="lg" className="w-full" disabled={loading || !acceptPrivacy}>
-            {loading ? t("registerSubmitting") : t("registerSubmit")}
-          </Button>
-        </form>
+        )}
       </CardContent>
       <CardFooter className="flex flex-col gap-2 text-center text-sm text-muted-foreground">
         <p>

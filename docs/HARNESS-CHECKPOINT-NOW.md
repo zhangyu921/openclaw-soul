@@ -1,79 +1,38 @@
 # HARNESS CHECKPOINT NOW
 
-用途：在新对话里快速恢复上下文，避免重复解释。
+跨 chat 恢复的唯一入口。新对话只需读此文件 + ROADMAP 即可继续。
 
-更新日期：2026-04-14
-
----
-
-## 1) 当前目标（单轮）
-
-- 进入 harness 执行阶段（不是再做流程设计）
-- 本轮任务上限：2（必要时降到 1）
-- 只认以下真源：
-  - `docs/ROADMAP.md`
-  - `docs/HARNESS-TASK-*.md`
-  - PR labels（`status:*`）
+更新日期：2026-04-16
 
 ---
 
-## 2) 当前执行队列（Wave 1）
+## 1) 全局状态
 
-### Task A — `P2-E-1`
-
-- **标题**：Header 品牌与首屏视觉最小改造
-- **文档**：`docs/HARNESS-TASK-P2-E-1.md`
-- **状态**：`done`（roadmap 标记 `✅`）
-- **验收关键点**：
-  - Hero/Header 品牌视觉增强可见
-  - 不破坏登录/导航/多语言
-  - 通过 lint/typecheck/test/smoke（按改动范围）
-
-### Task B — `P2-F-1`
-
-- **标题**：画廊检索 MVP（关键词 + 标签）
-- **文档**：`docs/HARNESS-TASK-P2-F-1.md`
-- **状态**：`todo`（roadmap 留空，延期；后续按数据库检索方案重启）
-- **验收关键点**：
-  - 关键词搜索可用
-  - 标签筛选可用（最小兼容策略）
-  - 搜索与筛选可组合且结果可预期
+- **PR cap**：3
+- **开放 PR 数**：1（见下方活跃任务表）
+- **IDEAS-INBOX 已读行数**：19（全部已归入 ROADMAP）
+- **上次 tick**：2026-04-16 — P3：P2-G-1 登录/注册页 GitHub 主入口 + 邮箱折叠；已开 PR 待审
+- **下一 tick 建议**：合并或审阅 P2-G-1 PR 后推进 P2-H-1；或发 `/harness-go` 处理新 inbox
 
 ---
 
-## 3) 已完成的 harness 基建
+## 2) 活跃任务追踪
 
-- 流程与模板：
-  - `docs/HARNESS-WORKFLOW.md`
-  - `docs/HARNESS-TASK-TEMPLATE.md`
-  - `docs/HARNESS-STATE-MACHINE.md`
-  - `docs/HARNESS-GO-SPEC.md`
-- 输入收件箱：
-  - `docs/IDEAS-INBOX.md`（一行一条自由输入）
-- 审阅模板：
-  - `.github/pull_request_template.md`
-- CI 守门（已接入）：
-  - `pnpm test`
-  - `pnpm typecheck`
-  - `pnpm e2e:smoke`
-- Auth smoke 已覆盖成功/失败核心链路（GitHub + email-code 相关）
+| ID | 任务 | 状态 | 分支 | PR | 备注 |
+|----|------|------|------|----|------|
+| P2-E-1 | Header 品牌与首屏视觉最小改造 | ✅ done | — | #10 (merged) | — |
+| P2-F-1 | 画廊检索 MVP | deferred | — | — | 待数据库检索方案 |
+| P2-G-1 | 登录入口整合 | 👀 needs_review | harness/p2-g-1 | （创建 PR 后填入） | Task：`docs/HARNESS-TASK-P2-G-1.md` |
+| P2-H-1 | 创建 pack 后跳转详情页 | todo | — | — | — |
+| P2-I-1 | Soul 对话本地缓存 + 新对话 | todo | — | — | — |
+| P2-J-1 | 头像二次上传刷新 | todo | — | — | bug fix |
 
 ---
 
-## 4) 协作规则（给新对话）
+## 3) 新对话启动语句
 
-1. 不要先扩 scope；先执行 Wave 1。
-2. 每个任务先建/更新 task 文档，再动代码。
-3. 每个任务完成后必须给：
-   - 改动摘要
-   - 验证证据
-   - 风险与回滚
-4. 到 `needs_review` 再开 PR。
-5. 任何路径优化（>=30% 收益）先暂停并提方案让用户决策。
+```
+/harness-go
+```
 
----
-
-## 5) 新对话启动语句（可直接复制）
-
-“请先读取 `docs/HARNESS-CHECKPOINT-NOW.md`、`docs/ROADMAP.md`、`docs/HARNESS-TASK-P2-E-1.md`、`docs/HARNESS-TASK-P2-F-1.md`。  
-只执行 Wave 1，不新增任务。先从 `P2-E-1` 开始（或我指定的任务），完成后输出：变更摘要、验证证据、风险与回滚，再等待我审阅。”
+Agent 会自动读取本文件并按优先级队列执行下一个动作。
