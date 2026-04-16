@@ -59,11 +59,11 @@
     "sourceEmptyBody": "对话需要可注入的 Soul 文件作为上下文。请先在上方「Soul 内文件」中至少添加一个文件。",
     "sourceEmptyHint": "在 Soul 内文件中添加 Markdown 或其他文件后再试。",
     "loginCardBody": "登录后可与当前 Soul 的上下文进行多轮对话（演示用途）。",
-    "flowIntro": "使用当前 Soul 的 SOUL / IDENTITY / AGENTS，以及你在对话前确认的 USER 上下文。对话仅在当前浏览器会话中保留。",
+    "flowIntro": "使用当前 Soul 的 SOUL / IDENTITY / AGENTS，以及你在对话前确认的 USER 上下文。对话记录保存在本机浏览器；可用「新对话」清空当前线程。",
     "chatWithName": "与 {name} 对话",
     "needUserBody": "请先完成对话者（USER）设定，以便注入与 OpenClaw 对齐的上下文。",
     "openSettings": "打开设定",
-    "activeIntro": "使用当前 Soul 的 SOUL / IDENTITY / AGENTS 与你确认的 USER 上下文。对话仅在当前浏览器会话中保留。",
+    "activeIntro": "使用当前 Soul 的 SOUL / IDENTITY / AGENTS 与你确认的 USER 上下文。对话记录保存在本机浏览器；可用「新对话」清空当前线程。",
     "cachedNotice": "已使用之前的设定开始对话。",
     "resetSettings": "重新设定",
     "dialogTitleInitial": "对话者设定",
@@ -72,7 +72,9 @@
     "userDialogHint": "若 Soul 内已有 USER.md 会载入为原文；否则使用默认模板。可直接编辑全文。",
     "userDialogCancel": "取消",
     "userDialogConfirm": "确认并开始",
-    "startChatLoading": "启动中…"
+    "startChatLoading": "启动中…",
+    "newChat": "新对话",
+    "newChatAria": "清空当前对话并开始新对话"
   },
   "tokens": {
     "pageTitle": "API tokens",

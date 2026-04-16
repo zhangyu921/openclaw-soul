@@ -1,11 +1,13 @@
 "use client";
 
-import { useChat } from "@ai-sdk/react";
+import { useChat, type UIMessage } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { MessageSquare } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+const PERSIST_DEBOUNCE_MS = 400;
 
 import {
   Conversation,
@@ -33,7 +35,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { packChatUserBlockStorageKey } from "@/lib/pack-chat-storage";
+import {
+  packChatMessagesStorageKey,
+  packChatUserBlockStorageKey,
+} from "@/lib/pack-chat-storage";
 import {
   applyUserMdPlaceholders,
   DEFAULT_USER_MD_TEMPLATE,
@@ -107,7 +112,68 @@ export default function PackChat({
     transport,
   });
 
+  const messagesKey = useMemo(
+    () => (userId ? packChatMessagesStorageKey(userId, handle, slug) : null),
+    [userId, handle, slug]
+  );
+
+  /** After restoring from localStorage, allow persisting (avoids wiping storage with [] before load). */
+  const [messagesHydrated, setMessagesHydrated] = useState(false);
+
+  useEffect(() => {
+    if (!messagesKey || userBlock === null) {
+      setMessagesHydrated(false);
+      return;
+    }
+    setMessagesHydrated(false);
+    try {
+      const raw =
+        typeof window !== "undefined" ? window.localStorage.getItem(messagesKey) : null;
+      if (raw) {
+        const parsed = JSON.parse(raw) as unknown;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed as UIMessage[]);
+        }
+      }
+    } catch {
+      // ignore corrupt storage
+    }
+    queueMicrotask(() => {
+      setMessagesHydrated(true);
+    });
+  }, [messagesKey, userBlock, setMessages]);
+
+  useEffect(() => {
+    if (!messagesKey || userBlock === null || !messagesHydrated) {
+      return;
+    }
+    const id = window.setTimeout(() => {
+      try {
+        if (messages.length === 0) {
+          window.localStorage.removeItem(messagesKey);
+        } else {
+          window.localStorage.setItem(messagesKey, JSON.stringify(messages));
+        }
+      } catch {
+        // quota or private mode
+      }
+    }, PERSIST_DEBOUNCE_MS);
+    return () => window.clearTimeout(id);
+  }, [messages, messagesKey, userBlock, messagesHydrated]);
+
   const busy = status === "streaming" || status === "submitted";
+
+  const startNewChat = useCallback(() => {
+    stop();
+    setMessages([]);
+    if (messagesKey) {
+      try {
+        window.localStorage.removeItem(messagesKey);
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [stop, setMessages, messagesKey]);
 
   const handlePromptSubmit = useCallback(
     async (message: PromptInputMessage) => {
@@ -308,13 +374,24 @@ export default function PackChat({
                 {t("resetSettings")}
               </button>
             </p>
-            {messages.length > 0 ? (
-              <ConversationDownload
-                aria-label={t("downloadMarkdown")}
-                className="static top-auto right-auto shrink-0"
-                messages={messages}
-              />
-            ) : null}
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={startNewChat}
+                aria-label={t("newChatAria")}
+              >
+                {t("newChat")}
+              </Button>
+              {messages.length > 0 ? (
+                <ConversationDownload
+                  aria-label={t("downloadMarkdown")}
+                  className="static top-auto right-auto shrink-0"
+                  messages={messages}
+                />
+              ) : null}
+            </div>
           </div>
           <div className="flex h-[min(50vh,420px)] min-h-[200px] w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-muted/20">
             <Conversation className="min-h-0 flex-1">

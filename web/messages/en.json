@@ -59,11 +59,11 @@
     "sourceEmptyBody": "Chat needs files from this Soul to build context. Add at least one file in Files above first.",
     "sourceEmptyHint": "Add a Markdown or other file under Files, then try again.",
     "loginCardBody": "Sign in to chat with this Soul in the browser (demo).",
-    "flowIntro": "Uses this Soul's SOUL / IDENTITY / AGENTS plus the USER block you confirm before chatting. The conversation stays in this browser session.",
+    "flowIntro": "Uses this Soul's SOUL / IDENTITY / AGENTS plus the USER block you confirm before chatting. Chat history is saved in this browser; use New chat to clear the thread.",
     "chatWithName": "Chat with {name}",
     "needUserBody": "Confirm your USER context first so it lines up with OpenClaw.",
     "openSettings": "Open settings",
-    "activeIntro": "Using this Soul's SOUL / IDENTITY / AGENTS with your confirmed USER context. The conversation stays in this browser session.",
+    "activeIntro": "Using this Soul's SOUL / IDENTITY / AGENTS with your confirmed USER context. Chat history is saved in this browser; use New chat to clear the thread.",
     "cachedNotice": "Continuing with your previous settings.",
     "resetSettings": "Reset",
     "dialogTitleInitial": "Conversation partner (USER)",
@@ -72,7 +72,9 @@
     "userDialogHint": "If USER.md exists in this Soul it loads as-is; otherwise a default template is used. You can edit the full text.",
     "userDialogCancel": "Cancel",
     "userDialogConfirm": "Confirm and start",
-    "startChatLoading": "Starting…"
+    "startChatLoading": "Starting…",
+    "newChat": "New chat",
+    "newChatAria": "Clear the current conversation and start over"
   },
   "tokens": {
     "pageTitle": "API tokens",
