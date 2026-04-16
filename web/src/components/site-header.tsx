@@ -63,14 +63,9 @@ export function SiteHeader({ initialUser }: { initialUser: HeaderUser | null }) 
               {displayName(initialUser)}
             </Link>
           ) : (
-            <>
-              <Link href="/login" className={navClass}>
-                {tNav("login")}
-              </Link>
-              <Link href="/register" className={navClass}>
-                {tNav("register")}
-              </Link>
-            </>
+            <Link href="/login" className={navClass}>
+              {tNav("login")}
+            </Link>
           )}
           <LocaleSwitcher />
           <ModeToggle />

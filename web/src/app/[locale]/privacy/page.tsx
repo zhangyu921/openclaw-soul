@@ -55,12 +55,12 @@ export default async function PrivacyPage({ params }: Props) {
       </Card>
 
       <p className="mt-10 text-center text-sm text-muted-foreground">
-        <Link href="/register" className="font-medium text-primary underline-offset-4 hover:underline">
-          {t("register")}
-        </Link>
-        {" · "}
         <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
           {t("login")}
+        </Link>
+        {" · "}
+        <Link href="/register" className="font-medium text-primary underline-offset-4 hover:underline">
+          {t("register")}
         </Link>
         {" · "}
         <Link href="/" className="underline-offset-4 hover:underline">

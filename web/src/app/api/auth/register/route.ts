@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { hashEmailLoginCode } from "@/lib/email-login";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
+import { createSessionToken, setSessionCookie } from "@/lib/session";
 import { assertValidHandle } from "@/lib/storage";
 
 export async function POST(req: Request) {
@@ -19,11 +20,11 @@ export async function POST(req: Request) {
   }
   const email = body.email?.trim().toLowerCase();
   const password = body.password;
-  const handle = body.handle?.trim().toLowerCase();
+  const handleRaw = body.handle?.trim().toLowerCase() ?? "";
   const emailCode = body.emailCode?.trim();
-  if (!email || !password || !handle || !emailCode) {
+  if (!email || !password || !emailCode) {
     return NextResponse.json(
-      { error: "email, email code, password, and public handle required" },
+      { error: "email, email code, and password required" },
       { status: 400 }
     );
   }
@@ -36,24 +37,30 @@ export async function POST(req: Request) {
   if (password.length < 8) {
     return NextResponse.json({ error: "password min 8 chars" }, { status: 400 });
   }
-  try {
-    assertValidHandle(handle);
-  } catch {
-    return NextResponse.json(
-      {
-        error:
-          "handle must be lowercase letters, digits, and hyphens only (3–40 chars recommended)",
-      },
-      { status: 400 }
-    );
+
+  let handle: string | null = null;
+  if (handleRaw) {
+    try {
+      assertValidHandle(handleRaw);
+    } catch {
+      return NextResponse.json(
+        {
+          error:
+            "handle must be lowercase letters, digits, and hyphens only (3–40 chars recommended)",
+        },
+        { status: 400 }
+      );
+    }
+    const existsHandle = await prisma.user.findUnique({ where: { handle: handleRaw } });
+    if (existsHandle) {
+      return NextResponse.json({ error: "handle already taken" }, { status: 409 });
+    }
+    handle = handleRaw;
   }
+
   const existsEmail = await prisma.user.findUnique({ where: { email } });
   if (existsEmail) {
     return NextResponse.json({ error: "email already registered" }, { status: 409 });
-  }
-  const existsHandle = await prisma.user.findUnique({ where: { handle } });
-  if (existsHandle) {
-    return NextResponse.json({ error: "handle already taken" }, { status: 409 });
   }
 
   const now = new Date();
@@ -78,6 +85,11 @@ export async function POST(req: Request) {
   });
 
   const passwordHash = await hashPassword(password);
-  await prisma.user.create({ data: { email, passwordHash, handle } });
-  return NextResponse.json({ ok: true });
+  const user = await prisma.user.create({
+    data: { email, passwordHash, handle },
+    select: { id: true },
+  });
+  const token = await createSessionToken(user.id);
+  await setSessionCookie(token);
+  return NextResponse.json({ ok: true, userId: user.id });
 }
