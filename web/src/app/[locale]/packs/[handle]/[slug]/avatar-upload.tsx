@@ -20,9 +20,12 @@ import { Label } from "@/components/ui/label";
 export default function AvatarUpload({
   handle,
   slug,
+  onUploaded,
 }: {
   handle: string;
   slug: string;
+  /** 上传成功后调用（例如为头像 URL 追加 cache-bust，避免浏览器沿用强缓存的旧图）。 */
+  onUploaded?: () => void;
 }) {
   const t = useTranslations("packDetail");
   const router = useRouter();
@@ -57,6 +60,7 @@ export default function AvatarUpload({
         return;
       }
       setStatus(t("avatarSaved"));
+      onUploaded?.();
       setOpen(false);
       router.refresh();
     } finally {

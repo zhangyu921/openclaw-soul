@@ -15,9 +15,9 @@ import {
 import { PackVisibility } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
-import { cn, privacyLinkClassName } from "@/lib/utils";
+import { privacyLinkClassName } from "@/lib/utils";
 import { normalizeShowcaseImageRefs } from "@/lib/showcase-refs";
-import AvatarUpload from "./avatar-upload";
+import PackAvatarBlock from "./pack-avatar-block";
 import PackShowcase from "./pack-showcase";
 import PackSourceFiles from "./pack-source-files";
 import PackPublishButton from "./pack-publish";
@@ -78,6 +78,7 @@ export default async function PackDetailPage({ params }: Props) {
   const encH = encodeURIComponent(pack.author.handle);
   const encS = encodeURIComponent(pack.slug);
   const downloadUrl = `/api/packs/${encH}/${encS}/download`;
+  const hasAvatar = Boolean(pack.avatarRelPath);
   const sourceFiles = [
     ...pack.markdownFiles.map((m) => ({
       path: m.path,
@@ -106,34 +107,12 @@ export default async function PackDetailPage({ params }: Props) {
 
       <Card className="overflow-hidden border-0 shadow-lg ring-1 ring-border/80">
         <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-start">
-          <div className="group relative mx-auto shrink-0 sm:mx-0">
-            <div className="size-28 shrink-0 overflow-hidden rounded-2xl bg-muted shadow-inner ring-1 ring-border/60 sm:size-32">
-              {pack.avatarRelPath ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={`/api/packs/${encH}/${encS}/avatar`}
-                  alt=""
-                  className="size-full object-cover"
-                />
-              ) : (
-                <div className="flex size-full items-center justify-center bg-gradient-to-br from-accent/50 to-secondary text-xs text-muted-foreground">
-                  {t("noAvatar")}
-                </div>
-              )}
-            </div>
-            {isAuthor ? (
-              <div
-                className={cn(
-                  "absolute -right-2 -top-2 z-10 transition-opacity duration-200",
-                  pack.avatarRelPath
-                    ? "opacity-100 sm:opacity-0 sm:pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto sm:focus-within:opacity-100 sm:focus-within:pointer-events-auto"
-                    : "opacity-100"
-                )}
-              >
-                <AvatarUpload handle={pack.author.handle} slug={pack.slug} />
-              </div>
-            ) : null}
-          </div>
+          <PackAvatarBlock
+            handle={pack.author.handle}
+            slug={pack.slug}
+            hasAvatar={hasAvatar}
+            isAuthor={isAuthor}
+          />
           <div className="min-w-0 flex-1 text-center sm:text-left">
             <PackTitleEdit
               handle={pack.author.handle}

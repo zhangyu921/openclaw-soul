@@ -11,8 +11,8 @@
 - **PR cap**：3
 - **开放 PR 数**：0
 - **IDEAS-INBOX 已读行数**：19（全部已归入 ROADMAP）
-- **上次 tick**：2026-04-16 — P3 轻量：P2-H-1 代码审阅已满足跳转；新增 `task-p2-h-1.md`，ROADMAP 标 ✅
-- **下一 tick 建议**：P2-J-1 头像上传刷新 bug（轻量）或 P2-I-1 对话缓存（偏大，建议 PR 模式）
+- **上次 tick**：2026-04-16 — P3 轻量：P2-J-1 头像二次上传 cache-bust（`PackAvatarBlock` + `onUploaded`）；`task-p2-j-1.md`；ROADMAP P2-J / P2-J-1 标 ✅
+- **下一 tick 建议**：P2-I-1 Soul 对话本地缓存（偏大，建议 PR 模式）或 P2-F-1 画廊检索延期项
 
 ---
 
@@ -25,7 +25,7 @@
 | P2-G-1 | 登录入口整合 | ✅ done | — | #11 (merged) | Task：`docs/HARNESS-TASK-P2-G-1.md` |
 | P2-H-1 | 创建 pack 后跳转详情页 | ✅ done | — | — | `docs/harness/task-p2-h-1.md` |
 | P2-I-1 | Soul 对话本地缓存 + 新对话 | todo | — | — | PR 模式候选（新存储层） |
-| P2-J-1 | 头像二次上传刷新 | todo | — | — | bug fix，轻量模式候选 |
+| P2-J-1 | 头像二次上传刷新 | ✅ done | — | — | `docs/harness/task-p2-j-1.md` |
 
 ---
 
