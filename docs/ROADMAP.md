@@ -22,7 +22,7 @@
 | ✅ | P2-E-1 | Header 品牌与首屏视觉最小改造 | [`docs/harness/task-p2-e-1.md`](harness/task-p2-e-1.md) |
 |    | P2-F-1 | 画廊检索 MVP（延期；后续走数据库检索方案） | [`docs/harness/task-p2-f-1.md`](harness/task-p2-f-1.md) |
 | ✅ | P2-G-1 | 登录入口整合：GitHub 主入口 + 邮箱分流 /register | [`docs/HARNESS-TASK-P2-G-1.md`](HARNESS-TASK-P2-G-1.md) |
-|    | P2-H-1 | 创建 pack 后自动跳转详情页 | — |
+| ✅ | P2-H-1 | 创建 pack 后自动跳转详情页 | [`docs/harness/task-p2-h-1.md`](harness/task-p2-h-1.md) |
 |    | P2-I-1 | Soul 对话本地缓存 + 新对话按钮 | — |
 |    | P2-J-1 | Bug: 头像二次上传后页面未刷新 | — |
 
@@ -67,7 +67,7 @@
 | ✅ | P2-E | 品牌与首屏视觉 | Logo、Header 标题更具设计感。 |
 |    | P2-F | 画廊检索 | 可搜索、可按标签筛选（依赖更多 soul 来源后再发力）。 |
 | ✅ | P2-G | 登录入口整合 | GitHub 主入口；验证码登录在 `/login`；密码登录/注册在 `/register`；注册 handle 可后置。 |
-|    | P2-H | 创建 pack 后跳转 | 「从零构建」创建完成后自动导航到新 pack 详情页。 |
+| ✅ | P2-H | 创建 pack 后跳转 | 「从零构建」创建成功后 `router.push(viewPath)` 进入详情页（见 task-p2-h-1）。 |
 |    | P2-I | Soul 对话本地缓存 | 站内对话缓存到本地（localStorage / IndexedDB）；新增「新对话」按钮清空上下文。 |
 |    | P2-J | 头像二次上传刷新 | Bug fix：再次上传头像后页面仍显示旧图，需缓存失效 / URL bust / refetch。 |
 
