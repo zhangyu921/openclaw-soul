@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 
+import { GithubMark } from "@/components/icons/github-mark";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useState } from "react";
 
@@ -12,7 +13,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -26,39 +26,15 @@ export default function LoginForm() {
   const search = useSearchParams();
   const next = search.get("next") || "/dashboard";
   const githubError = search.get("error") === "github_oauth";
-  const [loginMethod, setLoginMethod] = useState<"password" | "code">("password");
+
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState<string | null>(null);
   const [codeSentHint, setCodeSentHint] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [codeSending, setCodeSending] = useState(false);
   const [codeVerifying, setCodeVerifying] = useState(false);
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(typeof data.error === "string" ? data.error : t("loginFailed"));
-        return;
-      }
-      router.push(next);
-      router.refresh();
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [emailExpanded, setEmailExpanded] = useState(false);
 
   function onGithubLogin() {
     setOauthLoading(true);
@@ -114,157 +90,129 @@ export default function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md border-0 shadow-lg ring-1 ring-border/80">
+    <Card className="w-full max-w-md border-0 shadow-lg ring-1 ring-border/80 py-8">
       <CardHeader className="space-y-1 text-center">
         <CardTitle className="font-heading text-2xl">{t("loginTitle")}</CardTitle>
         <CardDescription>{t("loginSubtitle")}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
         <Button
           type="button"
           size="lg"
-          variant="outline"
-          className="mb-4 w-full"
-          disabled={oauthLoading || loading}
+          className="w-full gap-2"
+          disabled={oauthLoading || codeVerifying}
           onClick={onGithubLogin}
         >
+          <GithubMark className="size-5 shrink-0" />
           {oauthLoading ? t("githubLoginSubmitting") : t("githubLogin")}
         </Button>
-        <p className="mb-4 text-center text-xs text-muted-foreground">{t("oauthDivider")}</p>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="login-email">{t("loginEmail")}</Label>
-            <Input
-              id="login-email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              className="h-10"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 rounded-lg border border-border/70 p-1">
-            <Button
-              type="button"
-              size="sm"
-              variant={loginMethod === "password" ? "default" : "ghost"}
-              onClick={() => {
-                setLoginMethod("password");
-                setCodeError(null);
-              }}
-            >
-              {t("loginMethodPassword")}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={loginMethod === "code" ? "default" : "ghost"}
-              onClick={() => {
-                setLoginMethod("code");
-                setError(null);
-              }}
-            >
-              {t("loginMethodCode")}
-            </Button>
-          </div>
-
-          {loginMethod === "password" ? (
-            <form onSubmit={onSubmit} className="flex flex-col gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="login-password">{t("loginPassword")}</Label>
-                <Input
-                  id="login-password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  className="h-10"
-                />
-              </div>
-              {error ? (
-                <p className="text-sm font-medium text-destructive" role="alert">
-                  {error}
-                </p>
-              ) : null}
-              <Button type="submit" size="lg" className="w-full" disabled={loading}>
-                {loading ? t("loginSubmitting") : t("loginSubmit")}
-              </Button>
-            </form>
-          ) : (
-            <form onSubmit={onVerifyCode} className="flex flex-col gap-3">
-              <p className="text-sm font-medium text-foreground">{t("emailCodeTitle")}</p>
-              <p className="text-xs text-muted-foreground">{t("emailCodeHint")}</p>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="w-full"
-                onClick={onRequestCode}
-                disabled={codeSending || codeVerifying}
-              >
-                {codeSending ? t("emailCodeSending") : t("emailCodeSend")}
-              </Button>
-              <div className="space-y-2">
-                <Label htmlFor="login-code-input">{t("emailCodeLabel")}</Label>
-                <Input
-                  id="login-code-input"
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  required
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  className="h-10"
-                />
-              </div>
-              {codeSentHint ? (
-                <p className="text-xs text-muted-foreground" role="status">
-                  {codeSentHint}
-                </p>
-              ) : null}
-              {codeError ? (
-                <p className="text-sm font-medium text-destructive" role="alert">
-                  {codeError}
-                </p>
-              ) : null}
-              <Button type="submit" size="sm" className="w-full" disabled={codeVerifying || codeSending}>
-                {codeVerifying ? t("emailCodeVerifying") : t("emailCodeSubmit")}
-              </Button>
-            </form>
-          )}
-          {githubError ? (
-            <p className="text-sm font-medium text-destructive" role="alert">
-              {t("githubLoginFailed")}
-            </p>
-          ) : null}
-        </div>
-      </CardContent>
-      <CardFooter className="flex flex-col gap-3 text-center text-sm text-muted-foreground">
-        <p>
-          {t("noAccount")}{" "}
-          <Link
-            href={`/register?next=${encodeURIComponent(next)}`}
-            className="font-medium text-primary underline-offset-4 hover:underline"
-          >
-            {t("registerLink")}
-          </Link>
-        </p>
-        <p>
+        <p className="text-center text-[13px] leading-relaxed text-muted-foreground">
+          <span>{t("loginLegalIntro")}</span>
           <Link href="/privacy" className={privacyLinkClassName}>
             {t("registerPrivacyLink")}
           </Link>
-          <span className="text-muted-foreground/40" aria-hidden>
+          <span className="text-muted-foreground/50" aria-hidden>
             {" "}
             ·{" "}
           </span>
           <Link href="/" className={privacyLinkClassName}>
             {t("homeLink")}
           </Link>
+          {t("loginLegalOutro")}
         </p>
-      </CardFooter>
+        {githubError ? (
+          <p className="text-sm font-medium text-destructive" role="alert">
+            {t("githubLoginFailed")}
+          </p>
+        ) : null}
+        {!emailExpanded ? (
+          <div className="text-center">
+            <button
+              type="button"
+              className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+              onClick={() => setEmailExpanded(true)}
+            >
+              {t("loginEmailAuthExpand")}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4 border-t border-border/80 pt-4">
+            <div className="flex justify-center">
+              <button
+                type="button"
+                className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+                onClick={() => setEmailExpanded(false)}
+              >
+                {t("emailAuthCollapse")}
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="login-email">{t("loginEmail")}</Label>
+                <Input
+                  id="login-email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  className="h-10"
+                />
+              </div>
+
+              <form onSubmit={onVerifyCode} className="flex flex-col gap-3">
+                <p className="text-sm font-medium text-foreground">{t("emailCodeTitle")}</p>
+                <p className="text-xs text-muted-foreground">{t("emailCodeHint")}</p>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="w-full"
+                  onClick={onRequestCode}
+                  disabled={codeSending || codeVerifying}
+                >
+                  {codeSending ? t("emailCodeSending") : t("emailCodeSend")}
+                </Button>
+                <div className="space-y-2">
+                  <Label htmlFor="login-code-input">{t("emailCodeLabel")}</Label>
+                  <Input
+                    id="login-code-input"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    required
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    className="h-10"
+                  />
+                </div>
+                {codeSentHint ? (
+                  <p className="text-xs text-muted-foreground" role="status">
+                    {codeSentHint}
+                  </p>
+                ) : null}
+                {codeError ? (
+                  <p className="text-sm font-medium text-destructive" role="alert">
+                    {codeError}
+                  </p>
+                ) : null}
+                <Button type="submit" size="lg" className="w-full" disabled={codeVerifying || codeSending}>
+                  {codeVerifying ? t("emailCodeVerifying") : t("emailCodeSubmit")}
+                </Button>
+              </form>
+
+              <p className="text-center text-sm text-muted-foreground/90">
+                <Link
+                  href={{ pathname: "/register", query: { next } }}
+                  className="underline-offset-4 hover:text-muted-foreground hover:underline"
+                >
+                  {t("authPasswordEntry")}
+                </Link>
+              </p>
+            </div>
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 }

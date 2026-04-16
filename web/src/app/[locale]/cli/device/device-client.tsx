@@ -107,10 +107,10 @@ export default function DeviceClient() {
           <p className="text-center text-sm text-muted-foreground">
             {tAuth("noAccount")}{" "}
             <Link
-              href={`/register?next=${encodeURIComponent(loginNext)}`}
+              href={{ pathname: "/register", query: { next: loginNext } }}
               className="font-medium text-primary underline-offset-4 hover:underline"
             >
-              {tNav("register")}
+              {tAuth("registerPasswordTabRegister")}
             </Link>
           </p>
         </CardContent>
