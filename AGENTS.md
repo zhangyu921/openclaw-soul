@@ -72,7 +72,13 @@
 
 ---
 
-## 与 harness 工程对齐
+## /harness-go
 
-- **根目录篇幅**：`AGENTS.md` 由 CI 限制 **≤100 行**，细节在 `docs/`；避免单文件叙事过长、挤占任务上下文。
-- **合并前**：跑 **`pnpm test`**；与用户目录安全、`apply` 行为相关的逻辑，优先用测试或 CI 守门，而不是只写在文档里。
+当收到 `/harness-go` 指令时，读取并严格执行 [`docs/HARNESS-GO-SPEC.md`](docs/HARNESS-GO-SPEC.md) 中的完整步骤。
+
+---
+
+## 补充约束
+
+- **根目录篇幅**：`AGENTS.md` 由 CI 限制 **≤100 行**，细节在 `docs/`。
+- **合并前**：跑 **`pnpm test`**；与用户目录安全、`apply` 行为相关的逻辑，优先用测试或 CI 守门。

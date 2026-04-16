@@ -2,7 +2,7 @@
 
 定义 `/harness-go` 的单轮执行协议（"tick"）。每次调用做**一个**最高优先级动作。
 
-SKILL 文件 `.cursor/skills/harness-go/SKILL.md` 是模型侧的执行入口，本文件是完整规范。两者冲突时以本文件为准。
+本文件是完整规范，IDE 无关。任何 agent 收到 `/harness-go` 指令时按此文件严格执行。
 
 ---
 
