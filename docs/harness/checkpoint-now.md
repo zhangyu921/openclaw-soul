@@ -26,7 +26,7 @@
 | P2-H-1 | 创建 pack 后跳转详情页 | ✅ done | — | — | `docs/harness/task-p2-h-1.md` |
 | P2-I-1 | Soul 对话本地缓存 + 新对话 | ✅ done | — | #12 (merged) | `docs/harness/task-p2-i-1.md` |
 | P2-J-1 | 头像二次上传刷新 | ✅ done | — | — | `docs/harness/task-p2-j-1.md` |
-| P2-K-1 | Pack zip 懒惰生成 | 👀 needs_review | harness/p2-k-1 | （待填） | `docs/harness/task-p2-k-1.md` |
+| P2-K-1 | Pack zip 懒惰生成 | 👀 needs_review | harness/p2-k-1 | #13 | `docs/harness/task-p2-k-1.md` |
 
 ---
 
