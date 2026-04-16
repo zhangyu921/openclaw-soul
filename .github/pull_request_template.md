@@ -1,7 +1,7 @@
 ## 任务上下文
 
 - Roadmap 项：`<P?-X>`
-- Harness task 文档：`docs/HARNESS-TASK-*.md`
+- Harness task 文档：`docs/harness/task-*.md`
 - 当前状态（必须与 label 一致）：`status:todo|in-progress|needs-review|changes-requested|ready-to-merge|done`
 
 ## 变更说明（Why > What）

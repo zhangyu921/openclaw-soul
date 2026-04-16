@@ -12,21 +12,21 @@
 约束：
 
 1. 一个子任务同一时间只能处于一个状态。
-2. 子任务状态变化时，必须同时更新对应 PR label（见 `docs/HARNESS-STATE-MACHINE.md`）。
+2. 子任务状态变化时，必须同时更新对应 PR label（见 `docs/harness/state-machine.md`）。
 3. 若无 PR，不得进入 `needs_review` / `changes_requested` / `ready_to_merge`。
 
 ## 当前执行队列
 
 | 状态 | ID | 任务 | Task 文档 |
 |---|---|---|---|
-| ✅ | P2-E-1 | Header 品牌与首屏视觉最小改造 | [`docs/HARNESS-TASK-P2-E-1.md`](HARNESS-TASK-P2-E-1.md) |
-|    | P2-F-1 | 画廊检索 MVP（延期；后续走数据库检索方案） | [`docs/HARNESS-TASK-P2-F-1.md`](HARNESS-TASK-P2-F-1.md) |
-| 👀 | P2-G-1 | 登录入口整合：GitHub 主入口 + 邮箱折叠 | [`docs/HARNESS-TASK-P2-G-1.md`](HARNESS-TASK-P2-G-1.md) |
+| ✅ | P2-E-1 | Header 品牌与首屏视觉最小改造 | [`docs/harness/task-p2-e-1.md`](harness/task-p2-e-1.md) |
+|    | P2-F-1 | 画廊检索 MVP（延期；后续走数据库检索方案） | [`docs/harness/task-p2-f-1.md`](harness/task-p2-f-1.md) |
+| 👀 | P2-G-1 | 登录入口整合：GitHub 主入口 + 邮箱折叠 | — |
 |    | P2-H-1 | 创建 pack 后自动跳转详情页 | — |
 |    | P2-I-1 | Soul 对话本地缓存 + 新对话按钮 | — |
 |    | P2-J-1 | Bug: 头像二次上传后页面未刷新 | — |
 
-约束：一任务 = 一分支（`harness/<id>`）= 一 PR；开放 PR ≥ 3 时不开新任务。
+约束：一任务一 commit（小任务）或一分支一 PR（大任务）；开放 PR ≥ 3 时不开新任务。
 
 ## P0 （已完成）
 
