@@ -1,9 +1,11 @@
 /**
- * After `PackMarkdownFile` / `PackBinaryFile` rows change, refresh denormalized path list + zip.
+ * After `PackMarkdownFile` / `PackBinaryFile` rows change, refresh denormalized path list.
+ * Does **not** write a new zip to storage; invalidates any cached zip (`zipRelPath` cleared, blob removed).
+ * Zip is built lazily on download / `apply` via `buildAndStoreZipFromPackDb`.
  */
 import { PackVisibility } from "@/generated/prisma/client";
 import type { PrismaClient } from "@/generated/prisma/client";
-import { buildAndStoreZipFromPackDb } from "@/lib/pack-source-zip";
+import { removeStoredFileIfExists } from "@/lib/storage";
 import { extractPackFilePathsFromDb } from "@/lib/zip-pack-preview";
 
 export async function syncPackDerivedAfterSourceChange(
@@ -11,11 +13,12 @@ export async function syncPackDerivedAfterSourceChange(
   packId: string
 ): Promise<void> {
   const preview = await extractPackFilePathsFromDb(db, packId);
-  await buildAndStoreZipFromPackDb(db, packId);
   const row = await db.pack.findUnique({
     where: { id: packId },
-    select: { visibility: true },
+    select: { visibility: true, zipRelPath: true },
   });
+  await removeStoredFileIfExists(row?.zipRelPath ?? null);
+
   const empty = preview.packFilePaths.length === 0;
   const mustUnlist =
     empty && row?.visibility === PackVisibility.LISTED;
@@ -23,6 +26,7 @@ export async function syncPackDerivedAfterSourceChange(
     where: { id: packId },
     data: {
       packFilePaths: preview.packFilePaths,
+      zipRelPath: null,
       ...(mustUnlist ? { visibility: PackVisibility.UNLISTED } : {}),
     },
   });

@@ -40,9 +40,22 @@ export async function GET(req: Request, { params }: Params) {
 
   try {
     let buf: Buffer;
-    try {
-      buf = await readStoredFile(pack.zipRelPath);
-    } catch {
+    if (pack.zipRelPath) {
+      try {
+        buf = await readStoredFile(pack.zipRelPath);
+      } catch {
+        try {
+          const built = await buildAndStoreZipFromPackDb(prisma, pack.id);
+          buf = built.zipBuf;
+        } catch (e) {
+          console.error(e);
+          return NextResponse.json(
+            { error: "failed to build pack zip" },
+            { status: 500 }
+          );
+        }
+      }
+    } else {
       try {
         const built = await buildAndStoreZipFromPackDb(prisma, pack.id);
         buf = built.zipBuf;

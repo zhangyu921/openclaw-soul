@@ -37,7 +37,8 @@ model Pack {
   slug                 String
   title                String
   summary              String?
-  zipRelPath           String
+  /// Cached zip bytes in blob/local storage; null after source edits until next download/apply rebuild.
+  zipRelPath           String?
   avatarRelPath        String?
   /// Sorted relative paths of file entries (max count capped); derived from md/binary rows; full contents via zip download.
   packFilePaths        Json      @default("[]")
