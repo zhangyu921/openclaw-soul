@@ -27,7 +27,7 @@
 | ✅ | P2-J-1 | Bug: 头像二次上传后页面未刷新 | [`docs/harness/task-p2-j-1.md`](harness/task-p2-j-1.md) |
 | ✅ | P2-K-1 | Pack zip 懒惰生成（apply/下载时再写 blob 缓存） | [`docs/harness/task-p2-k-1.md`](harness/task-p2-k-1.md) |
 | ✅ | P2-L-1 | 我的 Souls：从列表移除（DB 标记；列表隐藏；释放 slug） | [`docs/harness/task-p2-l-1.md`](harness/task-p2-l-1.md) |
-|    | P2-M-1 | Pack 详情 Chat：流式/思考阶段 typing 指示（不展示思考内容） | [`docs/harness/task-p2-m-1.md`](harness/task-p2-m-1.md) |
+| 👀 | P2-M-1 | Pack 详情 Chat：流式/思考阶段 typing 指示（不展示思考内容） | [`docs/harness/task-p2-m-1.md`](harness/task-p2-m-1.md) |
 |    | P2-N-1 | 详情页包内文件：默认仅列表，点击再拉取预览（减闪烁） | [`docs/harness/task-p2-n-1.md`](harness/task-p2-n-1.md) |
 
 约束：一任务一 commit（小任务）或一分支一 PR（大任务）；开放 PR ≥ 3 时不开新任务。
@@ -76,7 +76,7 @@
 | ✅ | P2-J | 头像二次上传刷新 | Bug fix：再次上传头像后页面仍显示旧图，需缓存失效 / URL bust / refetch。（见 P2-J-1） |
 | ✅ | P2-K | Pack zip 懒惰生成 | 避免每次改 md/包内文件都重打 zip；仅在 `apply` 或用户下载需要时再生成并落 blob 缓存，减少无效占用。（见 P2-K-1） |
 | ✅ | P2-L | 我的 Souls 列表治理 | 用户可从「我的 Souls」移除条目：库表标记、列表不展示；移除时下架并释放 slug（P2-L-1 已合并）。 |
-|    | P2-M | Pack Chat 体验 | 流式生成时展示「对方正在输入」类 typing，不暴露中间思考文本。 |
+| 👀 | P2-M | Pack Chat 体验 | 流式生成时展示「对方正在输入」类 typing，不暴露中间思考文本（P2-M-1 PR）。 |
 |    | P2-N | 包内文件加载 | 详情页默认仅文件列表，点击再拉取预览，减少闪烁（见 P2-N-1）。 |
 
 ## P3

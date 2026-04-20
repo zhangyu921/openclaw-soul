@@ -80,7 +80,11 @@
     "userDialogConfirm": "确认并开始",
     "startChatLoading": "启动中…",
     "newChat": "新对话",
-    "newChatAria": "清空当前对话并开始新对话"
+    "newChatAria": "清空当前对话并开始新对话",
+    "typingAria": "对方正在打字",
+    "typingShimmer": "正在打字…",
+    "retryAria": "重试此消息",
+    "retryTooltip": "从此处重新发送该消息（将丢弃其后的对话）"
   },
   "tokens": {
     "pageTitle": "API tokens",

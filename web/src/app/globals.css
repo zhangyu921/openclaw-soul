@@ -291,3 +291,36 @@
     transform: translateY(-4px);
   }
 }
+
+/* Pack chat — typing line: theme primary sweep (wide canvas + linear motion reads clearly) */
+@keyframes pack-chat-typing-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.pack-chat-typing-shimmer {
+  display: inline-block;
+  /* Long canvas so position shift is obvious on short strings like "Typing…" */
+  background-image: linear-gradient(
+    95deg,
+    var(--muted-foreground) 0%,
+    var(--muted-foreground) 38%,
+    color-mix(in srgb, var(--primary) 55%, var(--muted-foreground)) 46%,
+    color-mix(in srgb, var(--primary) 88%, var(--primary-foreground)) 49.2%,
+    var(--primary) 50%,
+    color-mix(in srgb, var(--primary) 88%, var(--primary-foreground)) 50.8%,
+    color-mix(in srgb, var(--primary) 55%, var(--muted-foreground)) 54%,
+    var(--muted-foreground) 62%,
+    var(--muted-foreground) 100%
+  );
+  background-size: 380% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  will-change: background-position;
+  animation: pack-chat-typing-shimmer 1.45s linear infinite;
+}
