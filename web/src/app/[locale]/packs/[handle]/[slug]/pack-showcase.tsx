@@ -866,13 +866,13 @@ export default function PackShowcase({
       <Dialog open={lightbox !== null} onOpenChange={(o) => !o && setLightbox(null)}>
         <DialogContent
           className={cn(
-            "max-h-[min(90vh,880px)] w-[min(calc(100vw-1.5rem),56rem)] max-w-[min(calc(100vw-1.5rem),56rem)] gap-0 overflow-hidden",
-            "border-0 p-4 pt-14 shadow-2xl sm:max-w-[min(calc(100vw-2rem),56rem)] sm:p-6 sm:pt-16"
+            "max-h-[min(90vh,1080px)] w-[min(calc(100vw-1.5rem),56rem)] max-w-[min(calc(100vw-1.5rem),56rem)] gap-0 overflow-hidden",
+            "p-0 shadow-2xl sm:max-w-[min(calc(100vw-2rem),56rem)] rounded-md border border-border/80 bg-muted/30"
           )}
           showCloseButton
         >
           {lightboxSrc ? (
-            <div className="max-h-[60vh] w-full overflow-auto rounded-md border border-border/80 bg-muted/30">
+            <div className="max-h-[70vh] w-full overflow-auto ">
               {/* eslint-disable-next-line @next/next/no-img-element -- remote or blob URL */}
               <img
                 src={lightboxSrc}
