@@ -228,7 +228,7 @@
     "creating": "创建中…",
     "emptyAuthor": "尚未添加任何文件；请使用上方表单创建第一个 Markdown 文件。",
     "listAria": "Soul 内文件列表",
-    "pickFileHint": "在左侧列表中点选一个文件以加载预览。",
+    "pickFileHint": "在列表中点选一个文件以加载预览。",
     "loading": "加载中…",
     "loadFailed": "加载失败",
     "unknownResponse": "未知响应",
