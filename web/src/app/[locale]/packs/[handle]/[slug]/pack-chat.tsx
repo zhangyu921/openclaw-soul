@@ -601,15 +601,13 @@ export default function PackChat({
                       <Message from="assistant">
                         <MessageContent>
                           <div
-                            className="flex items-center gap-1.5 py-1 text-muted-foreground"
+                            className="py-1"
                             role="status"
                             aria-live="polite"
                             aria-label={t("typingAria")}
                           >
-                            <span className="flex items-center gap-0.5" aria-hidden>
-                              <span className="inline-block size-1.5 animate-bounce rounded-full bg-current animation-duration-[0.9s]" />
-                              <span className="inline-block size-1.5 animate-bounce rounded-full bg-current animation-delay-[150ms] animation-duration-[0.9s]" />
-                              <span className="inline-block size-1.5 animate-bounce rounded-full bg-current animation-delay-[300ms] animation-duration-[0.9s]" />
+                            <span className="pack-chat-typing-shimmer text-sm font-medium select-none">
+                              {t("typingShimmer")}
                             </span>
                           </div>
                         </MessageContent>
