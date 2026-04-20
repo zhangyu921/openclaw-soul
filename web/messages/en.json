@@ -92,7 +92,7 @@
     "retryTooltip": "Resend this message and continue from here",
     "shareAria": "Open share options",
     "shareDownloadMarkdown": "Download as Markdown",
-    "shareGenerateShowcaseImage": "Add chat as image to screenshots…",
+    "shareGenerateShowcaseImage": "Generate chat image",
     "shareShowcaseFull": "Screenshot gallery is full (10 images). Remove one in Showcase first.",
     "shareImageTruncated": "Content below was truncated. Shorten the chat and try again.",
     "shareImageEmpty": "Nothing to export",
@@ -101,7 +101,8 @@
     "sharePreviewTitle": "Preview",
     "sharePreviewHint": "Uses one screenshot slot (max 10). Each image up to about 2 MiB.",
     "shareConfirmUpload": "Add to screenshots",
-    "shareCancel": "Cancel"
+    "shareCancel": "Cancel",
+    "shareSaveImage": "Save"
   },
   "tokens": {
     "pageTitle": "API tokens",

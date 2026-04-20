@@ -60,7 +60,7 @@ export default function PackChatShareToShowcaseDialog({
             />
           </div>
         ) : null}
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
           <Button
             type="button"
             variant="outline"
@@ -68,6 +68,23 @@ export default function PackChatShareToShowcaseDialog({
             onClick={() => onOpenChange(false)}
           >
             {t("shareCancel")}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy || !previewFile || !previewUrl}
+            onClick={() => {
+              if (!previewFile || !previewUrl) return;
+              const a = document.createElement("a");
+              a.href = previewUrl;
+              a.download = previewFile.name || "chat-share.webp";
+              a.rel = "noopener";
+              document.body.append(a);
+              a.click();
+              a.remove();
+            }}
+          >
+            {t("shareSaveImage")}
           </Button>
           <Button
             type="button"

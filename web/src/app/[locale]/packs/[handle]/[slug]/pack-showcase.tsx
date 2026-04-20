@@ -876,13 +876,15 @@ export default function PackShowcase({
           showCloseButton
         >
           {lightboxSrc ? (
-            <div className="flex max-h-[min(82vh,760px)] min-h-[12rem] w-full items-center justify-center px-4 pb-4 pt-14 sm:px-6 sm:pb-6 sm:pt-16">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={lightboxSrc}
-                alt=""
-                className="max-h-[min(72vh,680px)] w-auto max-w-full rounded-md object-contain"
-              />
+            <div className="flex min-h-0 w-full flex-1 flex-col px-4 pb-4 pt-14 sm:px-6 sm:pb-6 sm:pt-16">
+              <div className="max-h-[min(72vh,680px)] min-h-[12rem] w-full overflow-y-auto rounded-md border border-white/15 bg-zinc-900/60">
+                {/* eslint-disable-next-line @next/next/no-img-element -- remote or blob URL */}
+                <img
+                  src={lightboxSrc}
+                  alt=""
+                  className="block h-auto w-full object-contain"
+                />
+              </div>
             </div>
           ) : null}
         </DialogContent>
