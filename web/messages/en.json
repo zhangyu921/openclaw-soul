@@ -89,7 +89,12 @@
     "typingAria": "Assistant is typing",
     "typingShimmer": "Typing…",
     "retryAria": "Retry this message",
-    "retryTooltip": "Resend this message and continue from here"
+    "retryTooltip": "Resend this message and continue from here",
+    "shareToShowcase": "Share conversation to Showcase",
+    "shareToShowcaseAria": "Append this chat to showcase copy",
+    "shareToShowcaseSuccess": "Appended to Showcase copy. You can edit it under Showcase.",
+    "shareToShowcaseFailed": "Could not update showcase",
+    "shareToShowcaseEmpty": "Nothing to share (no messages to export)"
   },
   "tokens": {
     "pageTitle": "API tokens",

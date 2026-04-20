@@ -100,9 +100,21 @@ export async function PATCH(req: Request, { params }: Params) {
   const hasTitle = "title" in b;
   const hasSummary = "summary" in b;
   const hasShowcaseMd = "showcaseMd" in b;
-  if (!hasTitle && !hasSummary && !hasShowcaseMd) {
+  const hasAppendShowcaseMd = "appendShowcaseMd" in b;
+  if (!hasTitle && !hasSummary && !hasShowcaseMd && !hasAppendShowcaseMd) {
     return NextResponse.json(
-      { error: "provide at least one of: title, summary, showcaseMd" },
+      {
+        error:
+          "provide at least one of: title, summary, showcaseMd, appendShowcaseMd",
+      },
+      { status: 400 }
+    );
+  }
+  if (hasShowcaseMd && hasAppendShowcaseMd) {
+    return NextResponse.json(
+      {
+        error: "provide only one of: showcaseMd, appendShowcaseMd",
+      },
       { status: 400 }
     );
   }
@@ -152,7 +164,39 @@ export async function PATCH(req: Request, { params }: Params) {
     data.summary = summary;
   }
 
-  if (hasShowcaseMd) {
+  if (hasAppendShowcaseMd) {
+    const raw = b.appendShowcaseMd;
+    if (typeof raw !== "string") {
+      return NextResponse.json(
+        { error: "appendShowcaseMd must be a string" },
+        { status: 400 }
+      );
+    }
+    const piece = raw.trim();
+    if (piece.length === 0) {
+      return NextResponse.json(
+        { error: "appendShowcaseMd cannot be empty" },
+        { status: 400 }
+      );
+    }
+    const existingRow = await prisma.pack.findUnique({
+      where: { id: pack.id },
+      select: { showcaseMd: true },
+    });
+    const current = existingRow?.showcaseMd?.trim() ?? "";
+    const separator = current.length > 0 ? "\n\n---\n\n" : "";
+    const block = `## Chat\n\n${piece}`;
+    const merged = `${current}${separator}${block}`.trim();
+    if (merged.length > MAX_SHOWCASE_MD_CHARS) {
+      return NextResponse.json(
+        {
+          error: `showcaseMd too long (max ${MAX_SHOWCASE_MD_CHARS} characters)`,
+        },
+        { status: 400 }
+      );
+    }
+    data.showcaseMd = merged;
+  } else if (hasShowcaseMd) {
     const raw = b.showcaseMd;
     if (raw !== null && typeof raw !== "string") {
       return NextResponse.json(
