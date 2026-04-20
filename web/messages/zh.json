@@ -30,7 +30,6 @@
     "emptyStateHint": "使用下方命令发布后，会显示在这里。",
     "badgeListed": "已公开",
     "badgeUnlisted": "未公开",
-    "rowDetail": "详情",
     "publishWorkspaceTitle": "在本机 workspace 发布",
     "publishWorkspaceHint": "从本机上传或更新 Soul。",
     "createRowTitle": "从零构建你的 Soul",

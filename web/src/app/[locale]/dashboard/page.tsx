@@ -128,7 +128,7 @@ export default async function DashboardPage({ params }: Props) {
                     </div>
                   )}
                 </div>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 pe-10">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="line-clamp-1 font-medium text-foreground">{p.title}</span>
                     <Badge variant={listed ? "outline" : "secondary"} className="shrink-0 text-xs">
@@ -139,25 +139,23 @@ export default async function DashboardPage({ params }: Props) {
                     {handle ? `${handle}/${p.slug}` : p.slug}
                   </p>
                 </div>
-                {canLink ? (
-                  <span className="hidden shrink-0 self-center text-sm text-primary sm:inline">
-                    {t("rowDetail")}
-                  </span>
-                ) : null}
               </>
             );
             return (
               <li key={p.id}>
-                {canLink && detailHref ? (
-                  <div className="flex items-stretch gap-1">
-                    <Link href={detailHref} className={`${rowClass} min-w-0 flex-1`}>
+                {canLink && detailHref && handle ? (
+                  <div className={`${rowClass} relative grid`}>
+                    <Link
+                      href={detailHref}
+                      className="col-start-1 row-start-1 flex min-w-0 gap-4 outline-offset-2 focus-visible:ring-2 focus-visible:ring-ring"
+                    >
                       {inner}
                     </Link>
-                    {handle ? (
-                      <div className="flex shrink-0 items-center pe-1">
+                    <div className="pointer-events-none col-start-1 row-start-1 flex justify-end items-start pt-1.5 pe-1.5">
+                      <div className="pointer-events-auto">
                         <RemoveFromDashboardButton handle={handle} slug={p.slug} />
                       </div>
-                    ) : null}
+                    </div>
                   </div>
                 ) : (
                   <div className={rowClass}>{inner}</div>
