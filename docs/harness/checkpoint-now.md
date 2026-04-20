@@ -11,8 +11,8 @@
 - **PR cap**：3
 - **开放 PR 数**：1
 - **IDEAS-INBOX 已读行数**：25（全部已归入 ROADMAP）
-- **上次 tick**：2026-04-20 — P3：**P2-L-1** 我的 Souls 列表移除（DB 标记 + 释放 slug + API/UI）；已开 PR 待审
-- **下一 tick 建议**：审阅/合并 P2-L-1 PR；或 P3 **P2-M-1** Pack Chat typing
+- **上次 tick**：2026-04-20 — P1：**#14** review 反馈（删除钮移入卡片内、去掉「详情」文案）；已 push，label 标回 `status:needs-review`
+- **下一 tick 建议**：审阅/合并 **#14**；通过后 P0 squash merge；或继续 **P2-M-1**
 
 ---
 
@@ -27,7 +27,7 @@
 | P2-I-1 | Soul 对话本地缓存 + 新对话 | ✅ done | — | #12 (merged) | `docs/harness/task-p2-i-1.md` |
 | P2-J-1 | 头像二次上传刷新 | ✅ done | — | — | `docs/harness/task-p2-j-1.md` |
 | P2-K-1 | Pack zip 懒惰生成 | ✅ done | — | #13 (merged) | `docs/harness/task-p2-k-1.md` |
-| P2-L-1 | 我的 Souls 列表移除 | 👀 needs_review | harness/p2-l-1 | #14 | `docs/harness/task-p2-l-1.md` |
+| P2-L-1 | 我的 Souls 列表移除 | 👀 needs_review（#14 已按反馈改 UI） | harness/p2-l-1 | #14 | `docs/harness/task-p2-l-1.md` |
 | P2-M-1 | Pack Chat typing 指示 | todo | — | — | `docs/harness/task-p2-m-1.md`（草案） |
 
 ---
