@@ -2,9 +2,9 @@
 
 import { useChat, type UIMessage } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { Loader2, MessageSquare, RotateCcw, Share2 } from "lucide-react";
+import { MessageSquare, RotateCcw } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const PERSIST_DEBOUNCE_MS = 400;
@@ -15,7 +15,6 @@ import {
   ConversationDownload,
   ConversationEmptyState,
   ConversationScrollButton,
-  messagesToMarkdown,
 } from "@/components/ai-elements/conversation";
 import {
   Message,
@@ -100,8 +99,6 @@ type Props = {
   packTitle: string;
   /** No md/bin rows — chat API and UI are disabled. */
   sourceEmpty: boolean;
-  /** Logged-in author — enables「分享到 Showcase」. */
-  isAuthor?: boolean;
 };
 
 export default function PackChat({
@@ -110,11 +107,9 @@ export default function PackChat({
   userId,
   packTitle,
   sourceEmpty,
-  isAuthor = false,
 }: Props) {
   const t = useTranslations("packChat");
   const pathname = usePathname();
-  const router = useRouter();
   const loginHref = `/login?next=${encodeURIComponent(pathname)}`;
 
   const [userBlock, setUserBlock] = useState<string | null>(null);
@@ -244,7 +239,6 @@ export default function PackChat({
 
   const startNewChat = useCallback(() => {
     stop();
-    setShareStatus(null);
     setMessages([]);
     if (messagesKey) {
       try {
@@ -254,42 +248,6 @@ export default function PackChat({
       }
     }
   }, [stop, setMessages, messagesKey]);
-
-  const [shareStatus, setShareStatus] = useState<string | null>(null);
-  const [shareSaving, setShareSaving] = useState(false);
-
-  const shareToShowcase = useCallback(async () => {
-    const exportMessages = messages.filter((m) => !isAssistantErrorMessage(m));
-    if (exportMessages.length === 0) {
-      setShareStatus(t("shareToShowcaseEmpty"));
-      return;
-    }
-    const md = messagesToMarkdown(exportMessages);
-    setShareSaving(true);
-    setShareStatus(null);
-    try {
-      const res = await fetch(
-        `/api/packs/${encodeURIComponent(handle)}/${encodeURIComponent(slug)}`,
-        {
-          method: "PATCH",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ appendShowcaseMd: md }),
-        }
-      );
-      const j = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        setShareStatus(j.error ?? t("shareToShowcaseFailed"));
-        return;
-      }
-      setShareStatus(t("shareToShowcaseSuccess"));
-      router.refresh();
-    } catch {
-      setShareStatus(t("shareToShowcaseFailed"));
-    } finally {
-      setShareSaving(false);
-    }
-  }, [messages, handle, slug, router, t]);
 
   const handlePromptSubmit = useCallback(
     async (message: PromptInputMessage) => {
@@ -494,8 +452,7 @@ export default function PackChat({
           <CardDescription>{t("activeIntro")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="min-w-0 flex-1 text-sm text-muted-foreground">
               {usingCached ? t("cachedNotice") : null}{" "}
               <button
@@ -506,58 +463,24 @@ export default function PackChat({
                 {t("resetSettings")}
               </button>
             </p>
-            <TooltipProvider>
-              <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={startNewChat}
-                  aria-label={t("newChatAria")}
-                >
-                  {t("newChat")}
-                </Button>
-                {messages.length > 0 ? (
-                  <>
-                    {isAuthor ? (
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            className="shrink-0"
-                            disabled={shareSaving || busy}
-                            onClick={() => void shareToShowcase()}
-                            aria-label={t("shareToShowcaseAria")}
-                          >
-                            {shareSaving ? (
-                              <Loader2 className="size-4 animate-spin" aria-hidden />
-                            ) : (
-                              <Share2 className="size-4" aria-hidden />
-                            )}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{t("shareToShowcase")}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : null}
-                    <ConversationDownload
-                      aria-label={t("downloadMarkdown")}
-                      className="static top-auto right-auto shrink-0"
-                      messages={messages}
-                    />
-                  </>
-                ) : null}
-              </div>
-            </TooltipProvider>
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={startNewChat}
+                aria-label={t("newChatAria")}
+              >
+                {t("newChat")}
+              </Button>
+              {messages.length > 0 ? (
+                <ConversationDownload
+                  aria-label={t("downloadMarkdown")}
+                  className="static top-auto right-auto shrink-0"
+                  messages={messages}
+                />
+              ) : null}
             </div>
-            {shareStatus ? (
-              <p className="text-right text-xs text-muted-foreground" role="status">
-                {shareStatus}
-              </p>
-            ) : null}
           </div>
           <div className="flex h-[min(50vh,420px)] min-h-[200px] w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-muted/20">
             <Conversation className="min-h-0 flex-1">

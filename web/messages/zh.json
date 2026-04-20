@@ -89,12 +89,7 @@
     "typingAria": "对方正在打字",
     "typingShimmer": "正在打字…",
     "retryAria": "重试此消息",
-    "retryTooltip": "从此处重新发送该消息（将丢弃其后的对话）",
-    "shareToShowcase": "分享到 Showcase",
-    "shareToShowcaseAria": "将本段对话追加到展示正文",
-    "shareToShowcaseSuccess": "已追加到 Showcase 正文，可在上方 Showcase 区块继续编辑。",
-    "shareToShowcaseFailed": "无法更新展示正文",
-    "shareToShowcaseEmpty": "没有可分享的内容（无有效消息）"
+    "retryTooltip": "从此处重新发送该消息（将丢弃其后的对话）"
   },
   "tokens": {
     "pageTitle": "API tokens",
