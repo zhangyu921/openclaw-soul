@@ -30,7 +30,11 @@ export default async function Home({ params }: Props) {
   const t = await getTranslations("home");
 
   const packs = await prisma.pack.findMany({
-    where: { visibility: PackVisibility.LISTED, author: { handle: { not: null } } },
+    where: {
+      visibility: PackVisibility.LISTED,
+      author: { handle: { not: null } },
+      authorDashboardHiddenAt: null,
+    },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,

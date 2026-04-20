@@ -48,6 +48,9 @@ model Pack {
   showcaseImageRefs    Json      @default("[]")
   authorId             String
   author               User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  /// Set when the author removes this Soul from「我的 Souls」: row kept, slug rewritten to release handle/slug for a new pack.
+  authorDashboardHiddenAt DateTime?
+  slugBeforeDashboardHide String?
   createdAt            DateTime       @default(now())
   visibility           PackVisibility @default(UNLISTED)
   markdownFiles        PackMarkdownFile[]

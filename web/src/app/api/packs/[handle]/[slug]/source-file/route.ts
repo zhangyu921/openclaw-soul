@@ -19,6 +19,7 @@ async function findPackForSourceApi(handle: string, slug: string) {
       id: true,
       authorId: true,
       visibility: true,
+      authorDashboardHiddenAt: true,
     },
   });
 }

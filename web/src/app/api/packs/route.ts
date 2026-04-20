@@ -46,7 +46,11 @@ function resolvePackVisibility(
 
 export async function GET() {
   const packs = await prisma.pack.findMany({
-    where: { visibility: PackVisibility.LISTED, author: { handle: { not: null } } },
+    where: {
+      visibility: PackVisibility.LISTED,
+      author: { handle: { not: null } },
+      authorDashboardHiddenAt: null,
+    },
     orderBy: { createdAt: "desc" },
     select: {
       slug: true,

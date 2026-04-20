@@ -35,7 +35,12 @@ export async function POST(req: Request, { params }: Params) {
   const { handle, slug } = await params;
   const pack = await prisma.pack.findFirst({
     where: { slug, author: { handle } },
-    select: { id: true, authorId: true, visibility: true },
+    select: {
+      id: true,
+      authorId: true,
+      visibility: true,
+      authorDashboardHiddenAt: true,
+    },
   });
   if (!pack || !canViewPack(userId, pack)) {
     return NextResponse.json({ error: "not found" }, { status: 404 });

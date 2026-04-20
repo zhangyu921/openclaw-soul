@@ -23,6 +23,7 @@ export async function GET(req: Request, { params }: Params) {
       createdAt: true,
       visibility: true,
       authorId: true,
+      authorDashboardHiddenAt: true,
       showcaseMd: true,
       showcaseImageRefs: true,
       author: { select: { email: true, handle: true } },
@@ -49,6 +50,9 @@ export async function GET(req: Request, { params }: Params) {
   };
 
   if (pack.visibility === PackVisibility.LISTED) {
+    if (pack.authorDashboardHiddenAt) {
+      return NextResponse.json({ error: "not found" }, { status: 404 });
+    }
     return NextResponse.json(packJson());
   }
 

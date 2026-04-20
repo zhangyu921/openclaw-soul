@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import DashboardCreatePackEntry from "./create-pack-dialog";
+import RemoveFromDashboardButton from "./remove-from-dashboard-button";
 import { CopyPublishCommand } from "./copy-publish-command";
 import { Link, redirect } from "@/i18n/navigation";
 import { PackVisibility } from "@/generated/prisma/client";
@@ -49,7 +50,7 @@ export default async function DashboardPage({ params }: Props) {
   });
 
   const packs = await prisma.pack.findMany({
-    where: { authorId: userId },
+    where: { authorId: userId, authorDashboardHiddenAt: null },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -138,19 +139,27 @@ export default async function DashboardPage({ params }: Props) {
                     {handle ? `${handle}/${p.slug}` : p.slug}
                   </p>
                 </div>
-                {canLink ? (
-                  <span className="hidden shrink-0 self-center text-sm text-primary sm:inline">
-                    {t("rowDetail")}
-                  </span>
-                ) : null}
               </>
             );
             return (
               <li key={p.id}>
-                {canLink && detailHref ? (
-                  <Link href={detailHref} className={rowClass}>
-                    {inner}
-                  </Link>
+                {canLink && detailHref && handle ? (
+                  <div className="group flex w-full items-stretch gap-2 sm:items-center">
+                    <Link
+                      href={detailHref}
+                      className={`${rowClass} min-w-0 flex-1 outline-offset-2 focus-visible:ring-2 focus-visible:ring-ring`}
+                    >
+                      {inner}
+                    </Link>
+                    {/* w-0: no layout gap when hidden; overflow-visible + absolute: button sits outside card; whole row stays group-hover */}
+                    <div className="relative hidden w-0 shrink-0 overflow-visible sm:block">
+                      <div
+                        className="pointer-events-none absolute top-1/2 left-0 z-10 -translate-y-1/2 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
+                      >
+                        <RemoveFromDashboardButton handle={handle} slug={p.slug} />
+                      </div>
+                    </div>
+                  </div>
                 ) : (
                   <div className={rowClass}>{inner}</div>
                 )}
