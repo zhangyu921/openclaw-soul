@@ -28,7 +28,7 @@
 | P2-J-1 | 头像二次上传刷新 | ✅ done | — | — | `docs/harness/task-p2-j-1.md` |
 | P2-K-1 | Pack zip 懒惰生成 | ✅ done | — | #13 (merged) | `docs/harness/task-p2-k-1.md` |
 | P2-L-1 | 我的 Souls 列表移除 | ✅ done | — | #14 (merged) | `docs/harness/task-p2-l-1.md` |
-| P2-M-1 | Pack Chat typing 指示 | 👀 needs_review | harness/p2-m-1 | （PR 创建后填 #） | `docs/harness/task-p2-m-1.md` |
+| P2-M-1 | Pack Chat typing 指示 | 👀 needs_review | harness/p2-m-1 | #15 | `docs/harness/task-p2-m-1.md` |
 | P2-N-1 | 包内文件按需预览 | todo | — | — | `docs/harness/task-p2-n-1.md`（草案） |
 
 ---
