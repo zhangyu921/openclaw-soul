@@ -866,25 +866,19 @@ export default function PackShowcase({
       <Dialog open={lightbox !== null} onOpenChange={(o) => !o && setLightbox(null)}>
         <DialogContent
           className={cn(
-            "!fixed !left-1/2 !top-1/2 !z-50 !max-h-[min(90vh,880px)] !w-[min(calc(100vw-1.5rem),56rem)] !max-w-[min(calc(100vw-1.5rem),56rem)] !translate-x-[-50%] !translate-y-[-50%]",
-            "!rounded-xl border-0 bg-zinc-950 p-0 shadow-2xl ring-1 ring-white/10 sm:!max-w-[min(calc(100vw-2rem),56rem)]",
-            "flex flex-col gap-0 overflow-hidden",
-            "[&_[data-slot=dialog-close]_button]:absolute [&_[data-slot=dialog-close]_button]:right-3 [&_[data-slot=dialog-close]_button]:top-3 [&_[data-slot=dialog-close]_button]:z-20",
-            "[&_[data-slot=dialog-close]_button]:bg-white [&_[data-slot=dialog-close]_button]:text-zinc-900",
-            "[&_[data-slot=dialog-close]_button]:shadow-md hover:[&_[data-slot=dialog-close]_button]:bg-zinc-100"
+            "max-h-[min(90vh,880px)] w-[min(calc(100vw-1.5rem),56rem)] max-w-[min(calc(100vw-1.5rem),56rem)] gap-0 overflow-hidden",
+            "border-0 p-4 pt-14 shadow-2xl sm:max-w-[min(calc(100vw-2rem),56rem)] sm:p-6 sm:pt-16"
           )}
           showCloseButton
         >
           {lightboxSrc ? (
-            <div className="flex min-h-0 w-full flex-1 flex-col px-4 pb-4 pt-14 sm:px-6 sm:pb-6 sm:pt-16">
-              <div className="max-h-[min(72vh,680px)] min-h-[12rem] w-full overflow-y-auto rounded-md border border-white/15 bg-zinc-900/60">
-                {/* eslint-disable-next-line @next/next/no-img-element -- remote or blob URL */}
-                <img
-                  src={lightboxSrc}
-                  alt=""
-                  className="block h-auto w-full object-contain"
-                />
-              </div>
+            <div className="max-h-[60vh] w-full overflow-auto rounded-md border border-border/80 bg-muted/30">
+              {/* eslint-disable-next-line @next/next/no-img-element -- remote or blob URL */}
+              <img
+                src={lightboxSrc}
+                alt=""
+                className="h-auto w-full object-contain"
+              />
             </div>
           ) : null}
         </DialogContent>
