@@ -2,7 +2,7 @@
 
 import { useChat, type UIMessage } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, RotateCcw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -29,6 +29,12 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -52,6 +58,28 @@ function assistantVisibleTextLength(message: UIMessage | undefined): number {
     if (p.type === "text" && p.text) raw += p.text;
   }
   return raw.trim().length;
+}
+
+const ASSISTANT_ERROR_ID_PREFIX = "assistant-error-";
+
+function formatErrorForAssistantBubble(err: Error): string {
+  const lines = [`${err.name}: ${err.message}`];
+  if (err.stack?.trim()) lines.push("", err.stack);
+  return lines.join("\n");
+}
+
+function isAssistantErrorMessage(message: UIMessage): boolean {
+  return (
+    message.role === "assistant" && message.id.startsWith(ASSISTANT_ERROR_ID_PREFIX)
+  );
+}
+
+function userMessageText(message: UIMessage): string {
+  if (message.role !== "user") return "";
+  return message.parts
+    .filter((p): p is { type: "text"; text: string } => p.type === "text")
+    .map((p) => p.text)
+    .join("");
 }
 
 /** Show dots while waiting for the first assistant tokens (submitted / streaming preamble). */
@@ -125,10 +153,11 @@ export default function PackChat({
 
   const chatId = useMemo(() => `pack-chat-${handle}-${slug}`, [handle, slug]);
 
-  const { messages, sendMessage, status, setMessages, error, stop } = useChat({
-    id: chatId,
-    transport,
-  });
+  const { messages, sendMessage, status, setMessages, error, stop, clearError } =
+    useChat({
+      id: chatId,
+      transport,
+    });
 
   const messagesKey = useMemo(
     () => (userId ? packChatMessagesStorageKey(userId, handle, slug) : null),
@@ -179,6 +208,32 @@ export default function PackChat({
     return () => window.clearTimeout(id);
   }, [messages, messagesKey, userBlock, messagesHydrated]);
 
+  useEffect(() => {
+    if (!error) return;
+    const err =
+      error instanceof Error ? error : new Error(String(error));
+    const errText = formatErrorForAssistantBubble(err);
+    setMessages((prev) => {
+      let base = prev;
+      const last = base[base.length - 1];
+      if (
+        last?.role === "assistant" &&
+        assistantVisibleTextLength(last) === 0
+      ) {
+        base = base.slice(0, -1);
+      }
+      return [
+        ...base,
+        {
+          id: `${ASSISTANT_ERROR_ID_PREFIX}${crypto.randomUUID()}`,
+          role: "assistant" as const,
+          parts: [{ type: "text" as const, text: errText }],
+        },
+      ];
+    });
+    clearError();
+  }, [error, setMessages, clearError]);
+
   const busy = status === "streaming" || status === "submitted";
   const showAssistantTyping = shouldShowAssistantTyping(messages, busy);
 
@@ -203,6 +258,21 @@ export default function PackChat({
       await sendMessage({ text });
     },
     [busy, sendMessage]
+  );
+
+  const retryFromUserMessage = useCallback(
+    (userMessageIndex: number) => {
+      if (busy) return;
+      const m = messages[userMessageIndex];
+      if (!m || m.role !== "user") return;
+      const text = userMessageText(m).trim();
+      if (!text) return;
+      stop();
+      clearError();
+      setMessages((prev) => prev.slice(0, userMessageIndex));
+      void sendMessage({ text });
+    },
+    [busy, messages, stop, clearError, setMessages, sendMessage]
   );
 
   /** Pack `USER.md` if present; otherwise default template with `${…}` replaced. */
@@ -415,6 +485,7 @@ export default function PackChat({
           <div className="flex h-[min(50vh,420px)] min-h-[200px] w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-muted/20">
             <Conversation className="min-h-0 flex-1">
               <ConversationContent>
+                <TooltipProvider>
                 {messages.length === 0 ? (
                   <ConversationEmptyState
                     description={t("emptyDescription")}
@@ -435,6 +506,49 @@ export default function PackChat({
                       ) {
                         return null;
                       }
+                      if (message.role === "user") {
+                        return (
+                          <div
+                            key={message.id}
+                            className="flex w-full max-w-[95%] flex-row-reverse items-start gap-1 self-end"
+                          >
+                            <Message from="user" className="ml-0! max-w-[min(100%,28rem)]">
+                              <MessageContent>
+                                {message.parts.map((part, i) => {
+                                  if (part.type !== "text") return null;
+                                  return (
+                                    <span
+                                      key={`${message.id}-${i}`}
+                                      className="whitespace-pre-wrap break-words"
+                                    >
+                                      {part.text}
+                                    </span>
+                                  );
+                                })}
+                              </MessageContent>
+                            </Message>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  className="mt-1 shrink-0 text-muted-foreground hover:text-foreground"
+                                  disabled={busy}
+                                  aria-label={t("retryAria")}
+                                  onClick={() => retryFromUserMessage(idx)}
+                                >
+                                  <RotateCcw className="size-4" aria-hidden />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{t("retryTooltip")}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                        );
+                      }
+
                       return (
                         <Message from={message.role} key={message.id}>
                           <MessageContent>
@@ -443,14 +557,14 @@ export default function PackChat({
                                 return null;
                               }
                               const partKey = `${message.id}-${i}`;
-                              if (message.role === "user") {
+                              if (isAssistantErrorMessage(message)) {
                                 return (
-                                  <span
+                                  <pre
                                     key={partKey}
-                                    className="whitespace-pre-wrap break-words"
+                                    className="max-w-full overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs text-destructive"
                                   >
                                     {part.text}
-                                  </span>
+                                  </pre>
                                 );
                               }
                               return (
@@ -483,15 +597,11 @@ export default function PackChat({
                     ) : null}
                   </>
                 )}
+                </TooltipProvider>
               </ConversationContent>
               <ConversationScrollButton />
             </Conversation>
           </div>
-          {error ? (
-            <p className="text-sm text-destructive" role="alert">
-              {error.message}
-            </p>
-          ) : null}
           <PromptInput
             className="relative w-full [&_[data-slot=input-group]]:items-stretch"
             onSubmit={handlePromptSubmit}

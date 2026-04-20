@@ -81,7 +81,9 @@
     "startChatLoading": "Starting…",
     "newChat": "New chat",
     "newChatAria": "Clear the current conversation and start over",
-    "typingAria": "Assistant is typing"
+    "typingAria": "Assistant is typing",
+    "retryAria": "Retry this message",
+    "retryTooltip": "Resend this message and continue from here"
   },
   "tokens": {
     "pageTitle": "API tokens",
