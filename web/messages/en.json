@@ -228,6 +228,7 @@
     "creating": "Creating…",
     "emptyAuthor": "No files yet—create your first Markdown file with the form above.",
     "listAria": "Files in this Soul",
+    "pickFileHint": "Select a file in the list to load its preview.",
     "loading": "Loading…",
     "loadFailed": "Failed to load",
     "unknownResponse": "Unknown response",

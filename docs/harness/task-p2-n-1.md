@@ -1,4 +1,4 @@
-# HARNESS TASK — P2-N-1（草案）
+# HARNESS TASK — P2-N-1
 
 ## A. 输入任务（Task Intake）
 
@@ -12,4 +12,28 @@
 
 ## B. 执行拆解（Execution Plan）
 
-（实现前补全：列表选中态、加载态、与现有编辑器的衔接。）
+1. 初始 `selectedPath` 为 `null`，移除「列表变化时默认选中首项」导致的自动 `GET`。
+2. 仅在用户点击列表项（或作者新建文件后选中新建路径）时触发 `loadFile`；`pendingSelectRef` 覆盖 `router.refresh()` 与列表短暂不同步。
+3. 未选中时右侧展示 `pickFileHint`；切换文件时用路径比对避免短暂展示陈旧 `ok` 内容。
+4. `pnpm test`、web typecheck、lint。
+
+## C. 实施记录（Implementation Log）
+
+- **实际改动文件**：`web/src/app/[locale]/packs/[handle]/[slug]/pack-source-files.tsx`、`web/messages/en.json`、`web/messages/zh.json`
+- **关键实现说明**：按需 fetch；新建 Markdown 后仍选中并加载新文件
+- **与硬约束对齐说明**：未触碰 `apply`/脱敏文案
+
+## D. 验收证据（Verification Evidence）
+
+- **测试命令与结论**：
+  - `pnpm test`：通过
+  - `pnpm --filter @openclaw-soul/web typecheck`：通过
+  - `pnpm --filter @openclaw-soul/web lint`：通过
+- **结果摘要**：通过
+
+## F. Done 判定（Definition of Done）
+
+- [x] 目标与验收条件达成
+- [x] 必要测试通过
+- [x] 硬约束未触碰
+- [x] 验证证据完整

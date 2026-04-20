@@ -28,7 +28,7 @@
 | ✅ | P2-K-1 | Pack zip 懒惰生成（apply/下载时再写 blob 缓存） | [`docs/harness/task-p2-k-1.md`](harness/task-p2-k-1.md) |
 | ✅ | P2-L-1 | 我的 Souls：从列表移除（DB 标记；列表隐藏；释放 slug） | [`docs/harness/task-p2-l-1.md`](harness/task-p2-l-1.md) |
 | ✅ | P2-M-1 | Pack 详情 Chat：流式/思考阶段 typing 指示（不展示思考内容） | [`docs/harness/task-p2-m-1.md`](harness/task-p2-m-1.md) |
-|    | P2-N-1 | 详情页包内文件：默认仅列表，点击再拉取预览（减闪烁） | [`docs/harness/task-p2-n-1.md`](harness/task-p2-n-1.md) |
+| ✅ | P2-N-1 | 详情页包内文件：默认仅列表，点击再拉取预览（减闪烁） | [`docs/harness/task-p2-n-1.md`](harness/task-p2-n-1.md) |
 |    | P2-O-1 | Header 窄屏防折行（缩小或隐藏长标题） | [`docs/harness/task-p2-o-1.md`](harness/task-p2-o-1.md) |
 |    | P2-P-1 | 语言切换：图标入口 + 弹窗选择 locale | [`docs/harness/task-p2-p-1.md`](harness/task-p2-p-1.md) |
 
@@ -79,7 +79,7 @@
 | ✅ | P2-K | Pack zip 懒惰生成 | 避免每次改 md/包内文件都重打 zip；仅在 `apply` 或用户下载需要时再生成并落 blob 缓存，减少无效占用。（见 P2-K-1） |
 | ✅ | P2-L | 我的 Souls 列表治理 | 用户可从「我的 Souls」移除条目：库表标记、列表不展示；移除时下架并释放 slug（P2-L-1 已合并）。 |
 | ✅ | P2-M | Pack Chat 体验 | 流式生成时展示「对方正在输入」类 typing，不暴露中间思考文本（P2-M-1 已合并）。 |
-|    | P2-N | 包内文件加载 | 详情页默认仅文件列表，点击再拉取预览，减少闪烁（见 P2-N-1）。 |
+| ✅ | P2-N | 包内文件加载 | 详情页默认仅文件列表，点击再拉取预览，减少闪烁（P2-N-1 已合并）。 |
 |    | P2-O | Header 响应式 | 窄屏缩小或隐藏品牌长文案，避免 header 折行（见 P2-O-1）。 |
 |    | P2-P | 语言切换 UI | 用语言图标触发弹窗切换 locale（见 P2-P-1）。 |
 

@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { FilePlus, FileText, Loader2, Pencil, Save, X } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -80,9 +80,8 @@ export default function PackSourceFiles({
     [files]
   );
 
-  const [selectedPath, setSelectedPath] = useState<string | null>(() =>
-    sorted.length > 0 ? sorted[0]!.path : null
-  );
+  const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const pendingSelectRef = useRef<string | null>(null);
   const [fetchState, setFetchState] = useState<FetchState>({ status: "idle" });
   const [editMode, setEditMode] = useState(false);
   const [draftContent, setDraftContent] = useState("");
@@ -94,14 +93,33 @@ export default function PackSourceFiles({
 
   useEffect(() => {
     if (sorted.length === 0) {
+      pendingSelectRef.current = null;
       setSelectedPath(null);
       return;
     }
     setSelectedPath((prev) => {
       if (prev && sorted.some((f) => f.path === prev)) return prev;
-      return sorted[0]!.path;
+      const pend = pendingSelectRef.current;
+      if (pend && sorted.some((f) => f.path === pend)) {
+        pendingSelectRef.current = null;
+        return pend;
+      }
+      if (prev && pend && prev === pend) {
+        return prev;
+      }
+      pendingSelectRef.current = null;
+      return null;
     });
   }, [sorted]);
+
+  useEffect(() => {
+    if (!selectedPath) {
+      setFetchState({ status: "idle" });
+      setEditMode(false);
+      setDraftContent("");
+      setSaveError(null);
+    }
+  }, [selectedPath]);
 
   const loadFile = useCallback(
     async (path: string) => {
@@ -191,8 +209,9 @@ export default function PackSourceFiles({
       const created =
         typeof data.path === "string" ? data.path : raw;
       setNewPath("");
-      router.refresh();
+      pendingSelectRef.current = created;
       setSelectedPath(created);
+      router.refresh();
     } finally {
       setCreating(false);
     }
@@ -206,6 +225,11 @@ export default function PackSourceFiles({
     fetchState.status === "ok" && fetchState.data.kind === "markdown"
       ? fetchState.data
       : null;
+
+  const fetchStale =
+    Boolean(selectedPath) &&
+    fetchState.status === "ok" &&
+    fetchState.data.path !== selectedPath;
 
   return (
     <Card className="border-0 shadow-md ring-1 ring-border/80">
@@ -268,7 +292,10 @@ export default function PackSourceFiles({
                   <li key={f.path}>
                     <button
                       type="button"
-                      onClick={() => setSelectedPath(f.path)}
+                      onClick={() => {
+                        pendingSelectRef.current = null;
+                        setSelectedPath(f.path);
+                      }}
                       className={cn(
                         "flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-mono transition-colors",
                         active
@@ -301,7 +328,13 @@ export default function PackSourceFiles({
           </nav>
 
           <div className="min-h-[12rem] min-w-0 flex-1">
-            {fetchState.status === "loading" || fetchState.status === "idle" ? (
+            {!selectedPath ? (
+              <div className="flex h-40 items-center justify-center px-2 text-center text-sm text-muted-foreground">
+                {t("pickFileHint")}
+              </div>
+            ) : fetchState.status === "loading" ||
+              (fetchState.status === "idle" && selectedPath) ||
+              fetchStale ? (
               <div className="flex h-40 items-center justify-center gap-2 text-muted-foreground">
                 <Loader2 className="size-5 animate-spin" aria-hidden />
                 <span className="text-sm">{t("loading")}</span>
@@ -310,7 +343,8 @@ export default function PackSourceFiles({
               <p className="text-sm text-destructive" role="alert">
                 {fetchState.message}
               </p>
-            ) : fetchState.data.kind === "binary" ? (
+            ) : fetchState.status === "ok" &&
+              fetchState.data.kind === "binary" ? (
               <div className="space-y-2 rounded-xl border border-dashed border-border/80 bg-muted/30 p-4">
                 <p className="text-sm text-muted-foreground">{t("binaryLead")}</p>
                 <pre className="break-all font-mono text-sm leading-relaxed text-foreground">
@@ -322,7 +356,7 @@ export default function PackSourceFiles({
                   </p>
                 ) : null}
               </div>
-            ) : (
+            ) : fetchState.status === "ok" ? (
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
                   {isAuthor ? (
@@ -411,7 +445,7 @@ export default function PackSourceFiles({
                   </div>
                 ) : null}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
         )}
