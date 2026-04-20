@@ -10,9 +10,9 @@
 
 - **PR cap**：3
 - **开放 PR 数**：0
-- **IDEAS-INBOX 已读行数**：27（新增 2 条已归入 **P2-O-1**、**P2-P-1**）
-- **上次 tick**：2026-04-20 — P3：**P2-O-1** Header 窄屏防折行（main commit）
-- **下一 tick 建议**：P3 **P2-P-1**（语言切换图标 + 弹窗）
+- **IDEAS-INBOX 已读行数**：29（新行已归入 **P2-Q-1**）
+- **上次 tick**：2026-04-20 — P2 收件箱归入 **P2-Q-1**；P3：**P2-P-1** 语言图标 + Dialog（main commit）
+- **下一 tick 建议**：P3 **P2-Q-1**（Chat → Showcase 一键分享）
 
 ---
 
@@ -31,7 +31,8 @@
 | P2-M-1 | Pack Chat typing 指示 | ✅ done | — | #15 (merged) | `docs/harness/task-p2-m-1.md` |
 | P2-N-1 | 包内文件按需预览 | ✅ done | — | — | `docs/harness/task-p2-n-1.md` |
 | P2-O-1 | Header 窄屏防折行 | ✅ done | — | — | `docs/harness/task-p2-o-1.md` |
-| P2-P-1 | 语言切换图标 + 弹窗 | todo | — | — | `docs/harness/task-p2-p-1.md`（草案） |
+| P2-P-1 | 语言切换图标 + 弹窗 | ✅ done | — | — | `docs/harness/task-p2-p-1.md` |
+| P2-Q-1 | Chat 记录分享到 showcase | todo | — | — | `docs/harness/task-p2-q-1.md`（草案） |
 
 ---
 

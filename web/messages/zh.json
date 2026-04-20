@@ -12,7 +12,12 @@
     "dashboard": "控制台",
     "themeLight": "切换到浅色模式",
     "themeDark": "切换到深色模式",
-    "themePending": "主题"
+    "themePending": "主题",
+    "language": "语言",
+    "localeDialogTitle": "语言",
+    "localeDialogDescription": "选择界面显示语言。",
+    "localeNameEn": "English",
+    "localeNameZh": "中文"
   },
   "dashboard": {
     "metaTitle": "控制台",

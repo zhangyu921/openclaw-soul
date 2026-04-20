@@ -12,7 +12,12 @@
     "dashboard": "Dashboard",
     "themeLight": "Switch to light mode",
     "themeDark": "Switch to dark mode",
-    "themePending": "Theme"
+    "themePending": "Theme",
+    "language": "Language",
+    "localeDialogTitle": "Language",
+    "localeDialogDescription": "Choose which language to use for the interface.",
+    "localeNameEn": "English",
+    "localeNameZh": "中文"
   },
   "dashboard": {
     "metaTitle": "Dashboard",
