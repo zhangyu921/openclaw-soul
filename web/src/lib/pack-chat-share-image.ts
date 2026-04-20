@@ -217,7 +217,7 @@ export async function buildPackChatShareImageFile(
     y += row.h + GAP;
   }
 
-  let blob =
+  const blob =
     (await canvasToBlob(canvas, "image/webp", 0.92)) ??
     (await canvasToBlob(canvas, "image/jpeg", 0.92));
   if (!blob) {
@@ -226,7 +226,7 @@ export async function buildPackChatShareImageFile(
 
   const ext = blob.type.includes("webp") ? "webp" : "jpg";
   const mime = blob.type || (ext === "webp" ? "image/webp" : "image/jpeg");
-  let file = new File([blob], `chat-share.${ext}`, { type: mime });
+  const file = new File([blob], `chat-share.${ext}`, { type: mime });
 
   return compressShowcaseForUpload(file);
 }
