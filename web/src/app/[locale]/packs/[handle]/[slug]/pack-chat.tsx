@@ -49,6 +49,10 @@ import {
   applyUserMdPlaceholders,
   DEFAULT_USER_MD_TEMPLATE,
 } from "@/lib/user-md-template";
+import {
+  ASSISTANT_ERROR_ID_PREFIX,
+  isAssistantErrorMessage,
+} from "@/lib/pack-chat-assistant-error";
 import PackChatUserDialog from "./pack-chat-user-dialog";
 
 function assistantVisibleTextLength(message: UIMessage | undefined): number {
@@ -60,18 +64,10 @@ function assistantVisibleTextLength(message: UIMessage | undefined): number {
   return raw.trim().length;
 }
 
-const ASSISTANT_ERROR_ID_PREFIX = "assistant-error-";
-
 function formatErrorForAssistantBubble(err: Error): string {
   const lines = [`${err.name}: ${err.message}`];
   if (err.stack?.trim()) lines.push("", err.stack);
   return lines.join("\n");
-}
-
-function isAssistantErrorMessage(message: UIMessage): boolean {
-  return (
-    message.role === "assistant" && message.id.startsWith(ASSISTANT_ERROR_ID_PREFIX)
-  );
 }
 
 function userMessageText(message: UIMessage): string {
