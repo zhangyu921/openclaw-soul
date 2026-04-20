@@ -27,7 +27,7 @@
 | ✅ | P2-J-1 | Bug: 头像二次上传后页面未刷新 | [`docs/harness/task-p2-j-1.md`](harness/task-p2-j-1.md) |
 | ✅ | P2-K-1 | Pack zip 懒惰生成（apply/下载时再写 blob 缓存） | [`docs/harness/task-p2-k-1.md`](harness/task-p2-k-1.md) |
 | ✅ | P2-L-1 | 我的 Souls：从列表移除（DB 标记；列表隐藏；释放 slug） | [`docs/harness/task-p2-l-1.md`](harness/task-p2-l-1.md) |
-|    | P2-M-1 | Pack 详情 Chat：流式/思考阶段 typing 指示（不展示思考内容） | [`docs/harness/task-p2-m-1.md`](harness/task-p2-m-1.md) |
+| 👀 | P2-M-1 | Pack 详情 Chat：流式/思考阶段 typing 指示（不展示思考内容） | [`docs/harness/task-p2-m-1.md`](harness/task-p2-m-1.md) |
 |    | P2-N-1 | 详情页包内文件：默认仅列表，点击再拉取预览（减闪烁） | [`docs/harness/task-p2-n-1.md`](harness/task-p2-n-1.md) |
 
 约束：一任务一 commit（小任务）或一分支一 PR（大任务）；开放 PR ≥ 3 时不开新任务。

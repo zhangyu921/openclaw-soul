@@ -80,7 +80,8 @@
     "userDialogConfirm": "确认并开始",
     "startChatLoading": "启动中…",
     "newChat": "新对话",
-    "newChatAria": "清空当前对话并开始新对话"
+    "newChatAria": "清空当前对话并开始新对话",
+    "typingAria": "对方正在输入"
   },
   "tokens": {
     "pageTitle": "API tokens",

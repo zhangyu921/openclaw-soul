@@ -80,7 +80,8 @@
     "userDialogConfirm": "Confirm and start",
     "startChatLoading": "Starting…",
     "newChat": "New chat",
-    "newChatAria": "Clear the current conversation and start over"
+    "newChatAria": "Clear the current conversation and start over",
+    "typingAria": "Assistant is typing"
   },
   "tokens": {
     "pageTitle": "API tokens",

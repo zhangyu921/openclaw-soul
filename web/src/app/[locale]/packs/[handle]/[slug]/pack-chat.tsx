@@ -45,6 +45,24 @@ import {
 } from "@/lib/user-md-template";
 import PackChatUserDialog from "./pack-chat-user-dialog";
 
+function assistantVisibleTextLength(message: UIMessage | undefined): number {
+  if (!message || message.role !== "assistant") return 0;
+  let raw = "";
+  for (const p of message.parts) {
+    if (p.type === "text" && p.text) raw += p.text;
+  }
+  return raw.trim().length;
+}
+
+/** Show dots while waiting for the first assistant tokens (submitted / streaming preamble). */
+function shouldShowAssistantTyping(messages: UIMessage[], busy: boolean): boolean {
+  if (!busy) return false;
+  const last = messages[messages.length - 1];
+  if (!last) return false;
+  if (last.role === "user") return true;
+  return assistantVisibleTextLength(last) === 0;
+}
+
 type Props = {
   handle: string;
   slug: string;
@@ -162,6 +180,7 @@ export default function PackChat({
   }, [messages, messagesKey, userBlock, messagesHydrated]);
 
   const busy = status === "streaming" || status === "submitted";
+  const showAssistantTyping = shouldShowAssistantTyping(messages, busy);
 
   const startNewChat = useCallback(() => {
     stop();
@@ -405,33 +424,64 @@ export default function PackChat({
                     title={t("emptyTitle")}
                   />
                 ) : (
-                  messages.map((message) => (
-                    <Message from={message.role} key={message.id}>
-                      <MessageContent>
-                        {message.parts.map((part, i) => {
-                          if (part.type !== "text") {
-                            return null;
-                          }
-                          const partKey = `${message.id}-${i}`;
-                          if (message.role === "user") {
-                            return (
-                              <span
-                                key={partKey}
-                                className="whitespace-pre-wrap break-words"
-                              >
-                                {part.text}
-                              </span>
-                            );
-                          }
-                          return (
-                            <MessageResponse key={partKey}>
-                              {part.text}
-                            </MessageResponse>
-                          );
-                        })}
-                      </MessageContent>
-                    </Message>
-                  ))
+                  <>
+                    {messages.map((message, idx) => {
+                      const isLast = idx === messages.length - 1;
+                      if (
+                        message.role === "assistant" &&
+                        assistantVisibleTextLength(message) === 0 &&
+                        showAssistantTyping &&
+                        isLast
+                      ) {
+                        return null;
+                      }
+                      return (
+                        <Message from={message.role} key={message.id}>
+                          <MessageContent>
+                            {message.parts.map((part, i) => {
+                              if (part.type !== "text") {
+                                return null;
+                              }
+                              const partKey = `${message.id}-${i}`;
+                              if (message.role === "user") {
+                                return (
+                                  <span
+                                    key={partKey}
+                                    className="whitespace-pre-wrap break-words"
+                                  >
+                                    {part.text}
+                                  </span>
+                                );
+                              }
+                              return (
+                                <MessageResponse key={partKey}>
+                                  {part.text}
+                                </MessageResponse>
+                              );
+                            })}
+                          </MessageContent>
+                        </Message>
+                      );
+                    })}
+                    {showAssistantTyping ? (
+                      <Message from="assistant">
+                        <MessageContent>
+                          <div
+                            className="flex items-center gap-1.5 py-1 text-muted-foreground"
+                            role="status"
+                            aria-live="polite"
+                            aria-label={t("typingAria")}
+                          >
+                            <span className="flex items-center gap-0.5" aria-hidden>
+                              <span className="inline-block size-1.5 animate-bounce rounded-full bg-current animation-duration-[0.9s]" />
+                              <span className="inline-block size-1.5 animate-bounce rounded-full bg-current animation-delay-[150ms] animation-duration-[0.9s]" />
+                              <span className="inline-block size-1.5 animate-bounce rounded-full bg-current animation-delay-[300ms] animation-duration-[0.9s]" />
+                            </span>
+                          </div>
+                        </MessageContent>
+                      </Message>
+                    ) : null}
+                  </>
                 )}
               </ConversationContent>
               <ConversationScrollButton />
