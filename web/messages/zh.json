@@ -46,7 +46,14 @@
     "createSubmit": "创建并打开",
     "createLoading": "创建中…",
     "copyPublishTitle": "点击复制",
-    "copyPublishCopied": "已复制"
+    "copyPublishCopied": "已复制",
+    "removeAria": "从「我的 Soul」列表移除",
+    "removeDialogTitle": "从列表移除此 Soul？",
+    "removeDialogDescription": "将从控制台列表隐藏 {path}；若已公开则会下架；并释放 slug，便于你用相同名称新建 Soul。数据仍保留在内部链接下。",
+    "removeCancel": "取消",
+    "removeConfirm": "移除",
+    "removeLoading": "移除中…",
+    "removeErrorFailed": "移除失败"
   },
   "packChat": {
     "emptyTitle": "发送第一条消息开始",

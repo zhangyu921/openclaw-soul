@@ -46,7 +46,14 @@
     "createSubmit": "Create and open",
     "createLoading": "Creating…",
     "copyPublishTitle": "Click to copy",
-    "copyPublishCopied": "Copied"
+    "copyPublishCopied": "Copied",
+    "removeAria": "Remove from your Souls list",
+    "removeDialogTitle": "Remove from your Souls?",
+    "removeDialogDescription": "This hides {path} from your dashboard, unlists it if it was public, and frees the slug so you can create a new Soul with the same name. The data is kept under an internal link.",
+    "removeCancel": "Cancel",
+    "removeConfirm": "Remove",
+    "removeLoading": "Removing…",
+    "removeErrorFailed": "Could not remove"
   },
   "packChat": {
     "emptyTitle": "Start the conversation",

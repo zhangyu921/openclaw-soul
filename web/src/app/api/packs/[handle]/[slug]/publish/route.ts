@@ -26,6 +26,15 @@ export async function POST(_req: Request, { params }: Params) {
     return NextResponse.json({ ok: true, visibility: PackVisibility.LISTED });
   }
 
+  if (pack.authorDashboardHiddenAt) {
+    return NextResponse.json(
+      {
+        error: "Cannot list a Soul that was removed from your dashboard.",
+      },
+      { status: 400 }
+    );
+  }
+
   if (await packIsSourceEmpty(prisma, pack.id)) {
     return NextResponse.json(
       {

@@ -63,6 +63,7 @@ export default async function PackDetailPage({ params }: Props) {
       createdAt: true,
       authorId: true,
       visibility: true,
+      authorDashboardHiddenAt: true,
       showcaseMd: true,
       showcaseImageRefs: true,
       author: { select: { handle: true } },
@@ -72,6 +73,7 @@ export default async function PackDetailPage({ params }: Props) {
   });
   if (!pack || !pack.author.handle) notFound();
   const isAuthor = Boolean(userId && pack.authorId === userId);
+  if (pack.authorDashboardHiddenAt && !isAuthor) notFound();
   if (pack.visibility === PackVisibility.UNLISTED && !isAuthor) notFound();
   const isListed = pack.visibility === PackVisibility.LISTED;
 

@@ -34,13 +34,15 @@ export async function GET(req: Request, { params }: Params) {
       avatarRelPath: true,
       visibility: true,
       authorId: true,
+      authorDashboardHiddenAt: true,
     },
   });
   if (!pack?.avatarRelPath) {
     return NextResponse.json({ error: "no avatar" }, { status: 404 });
   }
 
-  let allowed = pack.visibility === PackVisibility.LISTED;
+  let allowed =
+    pack.visibility === PackVisibility.LISTED && !pack.authorDashboardHiddenAt;
   if (!allowed) {
     const sessionUserId = await readSessionUserId();
     if (sessionUserId === pack.authorId) {

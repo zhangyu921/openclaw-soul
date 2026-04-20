@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import DashboardCreatePackEntry from "./create-pack-dialog";
+import RemoveFromDashboardButton from "./remove-from-dashboard-button";
 import { CopyPublishCommand } from "./copy-publish-command";
 import { Link, redirect } from "@/i18n/navigation";
 import { PackVisibility } from "@/generated/prisma/client";
@@ -49,7 +50,7 @@ export default async function DashboardPage({ params }: Props) {
   });
 
   const packs = await prisma.pack.findMany({
-    where: { authorId: userId },
+    where: { authorId: userId, authorDashboardHiddenAt: null },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -148,9 +149,16 @@ export default async function DashboardPage({ params }: Props) {
             return (
               <li key={p.id}>
                 {canLink && detailHref ? (
-                  <Link href={detailHref} className={rowClass}>
-                    {inner}
-                  </Link>
+                  <div className="flex items-stretch gap-1">
+                    <Link href={detailHref} className={`${rowClass} min-w-0 flex-1`}>
+                      {inner}
+                    </Link>
+                    {handle ? (
+                      <div className="flex shrink-0 items-center pe-1">
+                        <RemoveFromDashboardButton handle={handle} slug={p.slug} />
+                      </div>
+                    ) : null}
+                  </div>
                 ) : (
                   <div className={rowClass}>{inner}</div>
                 )}
