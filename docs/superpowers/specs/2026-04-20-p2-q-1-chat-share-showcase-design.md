@@ -1,7 +1,7 @@
 # P2-Q-1：Pack Chat 分享到「对话截图」— 设计说明
 
 **日期**：2026-04-20  
-**状态**：已定稿（待你审阅后进入 implementation plan）  
+**状态**：已批准；implementation plan 见 [`../plans/2026-04-20-p2-q-1-chat-share-showcase.md`](../plans/2026-04-20-p2-q-1-chat-share-showcase.md)  
 **范围**：`web/` 详情页 Pack Chat + Showcase 对话截图画廊
 
 ---
