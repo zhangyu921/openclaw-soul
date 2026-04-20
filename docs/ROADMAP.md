@@ -31,7 +31,8 @@
 | ✅ | P2-N-1 | 详情页包内文件：默认仅列表，点击再拉取预览（减闪烁） | [`docs/harness/task-p2-n-1.md`](harness/task-p2-n-1.md) |
 | ✅ | P2-O-1 | Header 窄屏防折行（缩小或隐藏长标题） | [`docs/harness/task-p2-o-1.md`](harness/task-p2-o-1.md) |
 | ✅ | P2-P-1 | 语言切换：图标入口 + 弹窗选择 locale | [`docs/harness/task-p2-p-1.md`](harness/task-p2-p-1.md) |
-|    | P2-Q-1 | Pack Chat：一键将当前聊天记录分享到 showcase | [`docs/harness/task-p2-q-1.md`](harness/task-p2-q-1.md) |
+| ✅ | P2-Q-1 | Pack Chat：一键将当前聊天记录分享到 showcase | [`docs/harness/task-p2-q-1.md`](harness/task-p2-q-1.md) |
+|    | P2-R-1 | Header：语言与主题切换按钮左移（标题右侧区域） | — |
 
 约束：一任务一 commit（小任务）或一分支一 PR（大任务）；开放 PR ≥ 3 时不开新任务。
 
@@ -83,7 +84,8 @@
 | ✅ | P2-N | 包内文件加载 | 详情页默认仅文件列表，点击再拉取预览，减少闪烁（P2-N-1 已合并）。 |
 | ✅ | P2-O | Header 响应式 | 窄屏缩小或隐藏品牌长文案，避免 header 折行（见 P2-O-1）。 |
 | ✅ | P2-P | 语言切换 UI | 用语言图标触发弹窗切换 locale（见 P2-P-1）。 |
-|    | P2-Q | Chat → Showcase | 一键把当前对话分享到 showcase（见 P2-Q-1）。 |
+| ✅ | P2-Q | Chat → Showcase | 一键把当前对话分享到 showcase（见 P2-Q-1）。 |
+|    | P2-R | Header 控件布局 | 语言与主题切换置于左侧、标题右侧（见 P2-R-1）。 |
 
 ## P3
 
