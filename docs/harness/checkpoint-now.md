@@ -9,10 +9,10 @@
 ## 1) 全局状态
 
 - **PR cap**：3
-- **开放 PR 数**：1（见下方 PR #）
-- **IDEAS-INBOX 已读行数**：26（新增 1 条已归入 **P2-N-1**）
-- **上次 tick**：2026-04-20 — P3：**P2-M-1** Pack Chat typing 指示；已开 PR 待审
-- **下一 tick 建议**：审阅/合并 P2-M-1 PR；或 P3 **P2-N-1**
+- **开放 PR 数**：0
+- **IDEAS-INBOX 已读行数**：27（新增 2 条已归入 **P2-O-1**、**P2-P-1**）
+- **上次 tick**：2026-04-20 — P0：合并 **#15**（P2-M-1 Pack Chat typing）；P2：收件箱两行入队
+- **下一 tick 建议**：P3 **P2-N-1**（或 **P2-O-1** / **P2-P-1**，按队列顺序）
 
 ---
 
@@ -28,8 +28,10 @@
 | P2-J-1 | 头像二次上传刷新 | ✅ done | — | — | `docs/harness/task-p2-j-1.md` |
 | P2-K-1 | Pack zip 懒惰生成 | ✅ done | — | #13 (merged) | `docs/harness/task-p2-k-1.md` |
 | P2-L-1 | 我的 Souls 列表移除 | ✅ done | — | #14 (merged) | `docs/harness/task-p2-l-1.md` |
-| P2-M-1 | Pack Chat typing 指示 | 👀 needs_review | harness/p2-m-1 | #15 | `docs/harness/task-p2-m-1.md` |
+| P2-M-1 | Pack Chat typing 指示 | ✅ done | — | #15 (merged) | `docs/harness/task-p2-m-1.md` |
 | P2-N-1 | 包内文件按需预览 | todo | — | — | `docs/harness/task-p2-n-1.md`（草案） |
+| P2-O-1 | Header 窄屏防折行 | todo | — | — | `docs/harness/task-p2-o-1.md`（草案） |
+| P2-P-1 | 语言切换图标 + 弹窗 | todo | — | — | `docs/harness/task-p2-p-1.md`（草案） |
 
 ---
 
