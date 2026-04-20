@@ -507,25 +507,45 @@ export default function PackChat({
                         return null;
                       }
                       if (message.role === "user") {
+                        const nextMsg = messages[idx + 1];
+                        const showRetry =
+                          Boolean(
+                            nextMsg &&
+                              nextMsg.role === "assistant" &&
+                              isAssistantErrorMessage(nextMsg)
+                          );
+                        const userBubble = (
+                          <MessageContent>
+                            {message.parts.map((part, i) => {
+                              if (part.type !== "text") return null;
+                              return (
+                                <span
+                                  key={`${message.id}-${i}`}
+                                  className="whitespace-pre-wrap break-words"
+                                >
+                                  {part.text}
+                                </span>
+                              );
+                            })}
+                          </MessageContent>
+                        );
+                        if (!showRetry) {
+                          return (
+                            <Message from="user" key={message.id}>
+                              {userBubble}
+                            </Message>
+                          );
+                        }
                         return (
                           <div
                             key={message.id}
-                            className="flex w-full max-w-[95%] flex-row-reverse items-start gap-1 self-end"
+                            className="ml-auto flex w-fit max-w-[95%] flex-row-reverse items-start gap-1"
                           >
-                            <Message from="user" className="ml-0! max-w-[min(100%,28rem)]">
-                              <MessageContent>
-                                {message.parts.map((part, i) => {
-                                  if (part.type !== "text") return null;
-                                  return (
-                                    <span
-                                      key={`${message.id}-${i}`}
-                                      className="whitespace-pre-wrap break-words"
-                                    >
-                                      {part.text}
-                                    </span>
-                                  );
-                                })}
-                              </MessageContent>
+                            <Message
+                              from="user"
+                              className="ml-0! max-w-[min(100%,28rem)]"
+                            >
+                              {userBubble}
                             </Message>
                             <Tooltip>
                               <TooltipTrigger>
