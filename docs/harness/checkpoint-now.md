@@ -11,8 +11,8 @@
 - **PR cap**：3
 - **开放 PR 数**：0
 - **IDEAS-INBOX 已读行数**：27（新增 2 条已归入 **P2-O-1**、**P2-P-1**）
-- **上次 tick**：2026-04-20 — P3：**P2-N-1** 包内文件按需预览（main commit）
-- **下一 tick 建议**：P3 **P2-O-1**（Header 窄屏）或 **P2-P-1**（语言切换弹窗）
+- **上次 tick**：2026-04-20 — P3：**P2-O-1** Header 窄屏防折行（main commit）
+- **下一 tick 建议**：P3 **P2-P-1**（语言切换图标 + 弹窗）
 
 ---
 
@@ -30,7 +30,7 @@
 | P2-L-1 | 我的 Souls 列表移除 | ✅ done | — | #14 (merged) | `docs/harness/task-p2-l-1.md` |
 | P2-M-1 | Pack Chat typing 指示 | ✅ done | — | #15 (merged) | `docs/harness/task-p2-m-1.md` |
 | P2-N-1 | 包内文件按需预览 | ✅ done | — | — | `docs/harness/task-p2-n-1.md` |
-| P2-O-1 | Header 窄屏防折行 | todo | — | — | `docs/harness/task-p2-o-1.md`（草案） |
+| P2-O-1 | Header 窄屏防折行 | ✅ done | — | — | `docs/harness/task-p2-o-1.md` |
 | P2-P-1 | 语言切换图标 + 弹窗 | todo | — | — | `docs/harness/task-p2-p-1.md`（草案） |
 
 ---
