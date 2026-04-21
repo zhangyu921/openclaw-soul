@@ -8,8 +8,9 @@
 
 - `todo`：任务已收录，尚未开始
 - `in_progress`：任务正在实现
-- `needs_review`：PR 已创建，等待人工审阅
+- `needs_review`：PR 已创建，等待人工审阅（plan 或 code）
 - `changes_requested`：审阅意见已给出，等待修复
+- `plan_approved`：PR 仅含 plan，plan 已被用户审阅通过，等待 `/harness-go` 下一 tick 走 P1.5 实现代码
 - `ready_to_merge`：审阅通过且 CI 通过，可合并
 - `done`：已合并并完成上线验证（或明确不需要上线）
 
@@ -23,6 +24,7 @@
 | `in_progress` | `🚧` | `status:in-progress` |
 | `needs_review` | `👀` | `status:needs-review` |
 | `changes_requested` | `🛠️` | `status:changes-requested` |
+| `plan_approved` | `👀(plan ✅)` | `status:plan-approved` |
 | `ready_to_merge` | `✅(待合并)` | `status:ready-to-merge` |
 | `done` | `✅` | `status:done` |
 
@@ -35,18 +37,24 @@
 
 ## 3) 允许的状态流转
 
-`todo -> in_progress -> needs_review -> ready_to_merge -> done`
+主路径：`todo -> in_progress -> needs_review -> ready_to_merge -> done`
+
+PR 两阶段（high 分歧）新增路径：
+
+`todo -> in_progress -> needs_review(plan only) -> plan_approved -> in_progress -> needs_review -> ready_to_merge -> done`
 
 可回退分支：
 
-- `needs_review -> changes_requested`
+- `needs_review -> changes_requested`（plan 或 code 均可被拒）
 - `changes_requested -> needs_review`
 - `ready_to_merge -> changes_requested`
+- `plan_approved -> changes_requested`（用户 review 后对 plan 又有新意见）
 
 禁止跳跃：
 
 - 不允许 `todo -> ready_to_merge`
 - 不允许 `in_progress -> done`（除非明确无 PR 且为文档类微改）
+- 不允许 `plan_approved -> ready_to_merge`（必须先有代码实现 + `needs_review`）
 
 ---
 

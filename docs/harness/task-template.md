@@ -18,13 +18,33 @@
 
 ## B. 执行拆解（Execution Plan）
 
-将任务拆成 3~5 个子步骤，每步都可独立验证：
+由 [`harness-recon`](../skills/harness/recon.md) skill 产出。分歧度评分必须填，供 [`harness-go`](../skills/harness-go.md) 3d 分流。
+
+```yaml
+divergence: low | medium | high
+divergence_rationale: <一句话，指向 recon skill 中的触发条件>
+scope_files_estimate: <数字>
+touches_hard_constraints: <true | false>
+recommended_alternative_id: A
+alternatives_blocked_if_chosen: <若选推荐方案会关上哪些门；none 表示无>
+```
+
+**方案对比**
+
+| 方案 | 思路 | 取舍 | 建议 |
+|------|------|------|------|
+| **A（推荐）** | | | ✅ |
+| B | | | — |
+
+**推荐方案子步骤**（3~5 步；轻量模式直接在此列；PR 模式写「详见 plan」并附 plan 路径）
 
 1.
 2.
 3.
-4.
-5.
+
+**未采纳方案的触发条件**
+
+- 若 <条件> → 改走 B
 
 ---
 
