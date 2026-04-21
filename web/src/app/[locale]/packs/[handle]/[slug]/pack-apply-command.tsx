@@ -1,12 +1,6 @@
-"use client";
-
-import { useTranslations } from "next-intl";
 import { Copy } from "lucide-react";
-import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { buildPackApplyCommand } from "@/lib/pack-apply-cmd";
-import { cn } from "@/lib/utils";
 
 export default function PackApplyCommand({
   handle,
@@ -15,43 +9,12 @@ export default function PackApplyCommand({
   handle: string;
   slug: string;
 }) {
-  const t = useTranslations("packDetail");
-  const [copied, setCopied] = useState(false);
   const line = buildPackApplyCommand(handle, slug);
 
-  async function onCopy() {
-    try {
-      await navigator.clipboard.writeText(line);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // ignore — same pattern as dashboard CopyPublishCommand
-    }
-  }
-
   return (
-    <div className="mt-4 w-full space-y-2 text-left">
-      <p className="text-sm text-muted-foreground">{t("applyCopyHint")}</p>
-      <div className="flex min-w-0 flex-wrap items-center gap-2">
-        <pre
-          className={cn(
-            "min-w-0 flex-1 overflow-x-auto rounded-xl bg-muted px-3 py-2 font-mono text-xs leading-relaxed sm:text-sm"
-          )}
-        >
-          {line}
-        </pre>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="shrink-0 gap-1.5"
-          onClick={onCopy}
-          title={copied ? t("applyCopied") : t("applyCopyAria")}
-        >
-          <Copy className="size-4 shrink-0" aria-hidden />
-          <span>{copied ? t("applyCopied") : t("applyCopyAction")}</span>
-        </Button>
-      </div>
-    </div>
+    <p className="mt-1.5 flex min-w-0 items-center gap-1 font-mono text-xs leading-normal text-muted-foreground">
+      <span className="min-w-0 truncate">{line}</span>
+      <Copy className="size-3 shrink-0 opacity-70" aria-hidden />
+    </p>
   );
 }
