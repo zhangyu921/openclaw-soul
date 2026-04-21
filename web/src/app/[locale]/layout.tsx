@@ -73,7 +73,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
             <SiteHeader initialUser={headerUser} />
             <div className="flex-1">{children}</div>
-            <footer className="border-border/60 border-t py-8 text-center text-sm text-muted-foreground">
+            <footer className="border-border/60 border-t py-8 px-8 text-center text-sm text-muted-foreground">
               <p>
                 {t("footerTagline")}
                 <span className="text-muted-foreground/40" aria-hidden>
