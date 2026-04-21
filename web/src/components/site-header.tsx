@@ -31,26 +31,32 @@ export function SiteHeader({ initialUser }: { initialUser: HeaderUser | null }) 
       style={{ minHeight: "var(--header-height)" }}
     >
       <div className="mx-auto flex min-h-[var(--header-height)] max-w-[var(--container-max)] items-center justify-between gap-2 px-3 sm:gap-3 sm:px-6">
-        <Link
-          href="/"
-          className="group inline-flex min-w-0 flex-1 items-center gap-2 rounded-lg px-1 py-0.5 transition-colors hover:text-primary sm:flex-none sm:gap-2.5"
-          title={tCommon("siteName")}
-        >
-          <span
-            className="relative inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/80 via-primary/60 to-accent/80 ring-1 ring-primary/30 sm:size-8"
-            aria-hidden
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+          <Link
+            href="/"
+            className="group inline-flex min-w-0 flex-1 items-center gap-2 rounded-lg px-1 py-0.5 transition-colors hover:text-primary sm:flex-none sm:gap-2.5"
+            title={tCommon("siteName")}
           >
-            <span className="size-2.5 rounded-full bg-background/95 shadow-sm sm:size-3" />
-          </span>
-          <span className="min-w-0 flex-1 flex-col leading-none">
-            <span className="block truncate font-heading text-sm font-semibold tracking-tight text-foreground sm:text-base sm:text-lg">
-              {tCommon("siteName")}
+            <span
+              className="relative inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/80 via-primary/60 to-accent/80 ring-1 ring-primary/30 sm:size-8"
+              aria-hidden
+            >
+              <span className="size-2.5 rounded-full bg-background/95 shadow-sm sm:size-3" />
             </span>
-            <span className="hidden text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground transition-colors group-hover:text-primary/80 sm:block">
-              {tCommon("brandTaglineMini")}
+            <span className="min-w-0 flex-1 flex-col leading-none">
+              <span className="block truncate font-heading text-sm font-semibold tracking-tight text-foreground sm:text-base sm:text-lg">
+                {tCommon("siteName")}
+              </span>
+              <span className="hidden text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground transition-colors group-hover:text-primary/80 sm:block">
+                {tCommon("brandTaglineMini")}
+              </span>
             </span>
-          </span>
-        </Link>
+          </Link>
+          <div className="flex shrink-0 flex-nowrap items-center gap-0.5 sm:gap-1">
+            <LocaleSwitcher />
+            <ModeToggle />
+          </div>
+        </div>
         <nav className="flex shrink-0 flex-nowrap items-center justify-end gap-0.5 sm:gap-1">
           {initialUser ? (
             <Link
@@ -68,8 +74,6 @@ export function SiteHeader({ initialUser }: { initialUser: HeaderUser | null }) 
               {tNav("login")}
             </Link>
           )}
-          <LocaleSwitcher />
-          <ModeToggle />
         </nav>
       </div>
     </header>

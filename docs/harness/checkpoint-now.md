@@ -11,8 +11,8 @@
 - **PR cap**：3
 - **开放 PR 数**：0
 - **IDEAS-INBOX 已读行数**：32（**P2-R-1** 行已 `*` 归入）
-- **上次 tick**：2026-04-21 — **P0**：合并 PR **#16**（P2-Q-1 Chat 分享到 showcase，`--squash --delete-branch`）；ROADMAP P2-Q-1 已为 ✅
-- **下一 tick 建议**：P3 **P2-R-1**（Header 语言/主题按钮左移，见 ROADMAP）
+- **上次 tick**：2026-04-21 — **P3 轻量**：完成 **P2-R-1**（Header 语言/主题控件紧邻品牌区右侧）；ROADMAP / P2-R 已 ✅；见 `docs/harness/task-p2-r-1.md`
+- **下一 tick 建议**：**P4**（执行队列无未完成任务；`P2-F` 仍为延期）或人工从 `docs/IDEAS-INBOX.md` 新行触发 P2
 
 ---
 
@@ -33,7 +33,7 @@
 | P2-O-1 | Header 窄屏防折行 | ✅ done | — | — | `docs/harness/task-p2-o-1.md` |
 | P2-P-1 | 语言切换图标 + 弹窗 | ✅ done | — | — | `docs/harness/task-p2-p-1.md` |
 | P2-Q-1 | Chat 分享到对话截图 | ✅ done | — | #16 (merged) | `docs/harness/task-p2-q-1.md` |
-| P2-R-1 | Header 语言/主题按钮左移 | todo | — | — | 见 `docs/IDEAS-INBOX.md` 已归入行 |
+| P2-R-1 | Header 语言/主题按钮左移 | ✅ done | — | — | `docs/harness/task-p2-r-1.md` |
 
 ---
 
