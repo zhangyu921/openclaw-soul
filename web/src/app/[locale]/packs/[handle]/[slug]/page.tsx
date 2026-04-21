@@ -130,9 +130,6 @@ export default async function PackDetailPage({ params }: Props) {
               initialSummary={pack.summary}
               isAuthor={isAuthor}
             />
-            <p className="mt-3 font-mono text-sm text-muted-foreground">
-              {pack.author.handle}/{pack.slug}
-            </p>
             <PackApplyCommand handle={pack.author.handle} slug={pack.slug} />
           </div>
         </div>

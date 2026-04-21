@@ -35,7 +35,7 @@ export default function PackApplyCommand({
       title={copied ? t("applyCopied") : t("applyCopyHint")}
       aria-label={copied ? t("applyCopied") : t("applyCopyHint")}
       className={cn(
-        "mt-1.5 flex w-full min-w-0 max-w-full items-center gap-1.5 rounded-md bg-muted px-2 py-1.5 text-left font-mono text-xs leading-normal text-muted-foreground",
+        "mt-3 flex min-w-0 max-w-full items-center gap-1.5 rounded-md bg-muted px-2 py-1.5 text-left font-mono text-xs leading-normal text-muted-foreground",
         "cursor-pointer transition-colors hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       )}
     >
