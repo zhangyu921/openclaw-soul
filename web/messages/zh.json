@@ -212,6 +212,8 @@
     "unlistedBody": "此 Soul 尚未在画廊公开，访客无法打开此链接。上架到画廊后可被浏览与 apply。",
     "unlistedPrivacy": "说明见",
     "unlistedPrivacyLink": "隐私与上传说明",
+    "applyCopyHint": "点击复制",
+    "applyCopied": "已复制",
     "cliCardTitle": "CLI",
     "cliCardDesc": "准备在本机使用这个 Soul 时，在下方运行 apply。切换前会备份你原本的 workspace 设置。路径与各字段含义见",
     "cliCardDoc": "OpenClaw 文档（agent workspace）",

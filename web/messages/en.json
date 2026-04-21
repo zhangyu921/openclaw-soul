@@ -212,6 +212,8 @@
     "unlistedBody": "This Soul is not listed in the gallery yet—visitors cannot open this link. List it to let others browse and apply.",
     "unlistedPrivacy": "Learn more in",
     "unlistedPrivacyLink": "Privacy & uploads",
+    "applyCopyHint": "Click to copy",
+    "applyCopied": "Copied",
     "cliCardTitle": "CLI",
     "cliCardDesc": "When you are ready to use this Soul locally, run apply below. OpenClaw backs up your previous workspace setting before switching to this Soul. For paths and what each field means, see",
     "cliCardDoc": "OpenClaw docs (agent workspace)",
