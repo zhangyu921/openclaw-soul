@@ -17,6 +17,8 @@ import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
 import { privacyLinkClassName } from "@/lib/utils";
 import { normalizeShowcaseImageRefs } from "@/lib/showcase-refs";
+import { buildPackApplyCommand } from "@/lib/pack-apply-cmd";
+import PackApplyCommand from "./pack-apply-command";
 import PackAvatarBlock from "./pack-avatar-block";
 import PackShowcase from "./pack-showcase";
 import PackSourceFiles from "./pack-source-files";
@@ -131,6 +133,7 @@ export default async function PackDetailPage({ params }: Props) {
             <p className="mt-3 font-mono text-sm text-muted-foreground">
               {pack.author.handle}/{pack.slug}
             </p>
+            <PackApplyCommand handle={pack.author.handle} slug={pack.slug} />
           </div>
         </div>
       </Card>
@@ -194,9 +197,7 @@ export default async function PackDetailPage({ params }: Props) {
         <CardHeader>
           <CardTitle className="text-base">{t("cliCardTitle")}</CardTitle>
           <CardDescription className="space-y-2">
-            <p className="text-pretty">
-              {t("cliCardDesc", { slug: pack.slug })}
-            </p>
+            <p className="text-pretty">{t("cliCardDesc")}</p>
             <p>
               <a
                 className="font-medium text-primary underline-offset-4 hover:underline"
@@ -211,7 +212,7 @@ export default async function PackDetailPage({ params }: Props) {
         </CardHeader>
         <CardContent className="space-y-4">
           <pre className="overflow-x-auto rounded-xl bg-muted p-4 font-mono text-sm leading-relaxed">
-            {`npx @openclaw-soul/cli apply ${pack.author.handle}/${pack.slug}`}
+            {buildPackApplyCommand(pack.author.handle, pack.slug)}
           </pre>
           <div>
             <p className="mb-2 text-sm font-medium text-muted-foreground">{t("rawZip")}</p>
