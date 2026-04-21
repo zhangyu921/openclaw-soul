@@ -2,9 +2,9 @@
 
 import { useChat, type UIMessage } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { MessageSquare, RotateCcw } from "lucide-react";
+import { Loader2, MessageSquare, RotateCcw, Share2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Link, usePathname } from "@/i18n/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const PERSIST_DEBOUNCE_MS = 400;
@@ -12,9 +12,9 @@ const PERSIST_DEBOUNCE_MS = 400;
 import {
   Conversation,
   ConversationContent,
-  ConversationDownload,
   ConversationEmptyState,
   ConversationScrollButton,
+  messagesToMarkdown,
 } from "@/components/ai-elements/conversation";
 import {
   Message,
@@ -28,6 +28,12 @@ import {
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -49,6 +55,17 @@ import {
   applyUserMdPlaceholders,
   DEFAULT_USER_MD_TEMPLATE,
 } from "@/lib/user-md-template";
+import {
+  ASSISTANT_ERROR_ID_PREFIX,
+  isAssistantErrorMessage,
+} from "@/lib/pack-chat-assistant-error";
+import {
+  buildPackChatShareImageFile,
+  SHARE_IMAGE_EMPTY,
+} from "@/lib/pack-chat-share-image";
+import { filterMessagesForShowcaseShare } from "@/lib/pack-chat-share-messages";
+import { MAX_SHOWCASE_IMAGES } from "@/lib/upload-limits";
+import PackChatShareToShowcaseDialog from "./pack-chat-share-to-showcase-dialog";
 import PackChatUserDialog from "./pack-chat-user-dialog";
 
 function assistantVisibleTextLength(message: UIMessage | undefined): number {
@@ -60,18 +77,10 @@ function assistantVisibleTextLength(message: UIMessage | undefined): number {
   return raw.trim().length;
 }
 
-const ASSISTANT_ERROR_ID_PREFIX = "assistant-error-";
-
 function formatErrorForAssistantBubble(err: Error): string {
   const lines = [`${err.name}: ${err.message}`];
   if (err.stack?.trim()) lines.push("", err.stack);
   return lines.join("\n");
-}
-
-function isAssistantErrorMessage(message: UIMessage): boolean {
-  return (
-    message.role === "assistant" && message.id.startsWith(ASSISTANT_ERROR_ID_PREFIX)
-  );
 }
 
 function userMessageText(message: UIMessage): string {
@@ -99,6 +108,10 @@ type Props = {
   packTitle: string;
   /** No md/bin rows — chat API and UI are disabled. */
   sourceEmpty: boolean;
+  /** Pack 作者 — 可生成图并上传到对话截图。 */
+  isAuthor?: boolean;
+  /** 当前对话截图张数（用于满 10 张提示）。 */
+  showcaseImageCount: number;
 };
 
 export default function PackChat({
@@ -107,9 +120,12 @@ export default function PackChat({
   userId,
   packTitle,
   sourceEmpty,
+  isAuthor = false,
+  showcaseImageCount,
 }: Props) {
   const t = useTranslations("packChat");
   const pathname = usePathname();
+  const router = useRouter();
   const loginHref = `/login?next=${encodeURIComponent(pathname)}`;
 
   const [userBlock, setUserBlock] = useState<string | null>(null);
@@ -237,8 +253,80 @@ export default function PackChat({
   const busy = status === "streaming" || status === "submitted";
   const showAssistantTyping = shouldShowAssistantTyping(messages, busy);
 
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [shareBusy, setShareBusy] = useState(false);
+  const [shareGenerating, setShareGenerating] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
+
+  const downloadMarkdown = useCallback(() => {
+    const filtered = filterMessagesForShowcaseShare(messages);
+    const md = messagesToMarkdown(filtered);
+    const blob = new Blob([md], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "conversation.md";
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }, [messages]);
+
+  const handleGenerateShowcaseImage = useCallback(async () => {
+    if (!isAuthor) return;
+    if (showcaseImageCount >= MAX_SHOWCASE_IMAGES) {
+      setShareError(t("shareShowcaseFull"));
+      return;
+    }
+    setShareError(null);
+    setShareGenerating(true);
+    try {
+      const file = await buildPackChatShareImageFile(messages, {
+        truncatedFooter: t("shareImageTruncated"),
+      });
+      setPreviewFile(file);
+      setShareDialogOpen(true);
+    } catch (e) {
+      if (e instanceof Error && e.message === SHARE_IMAGE_EMPTY) {
+        setShareError(t("shareImageEmpty"));
+      } else {
+        setShareError(t("shareGenerateFailed"));
+      }
+    } finally {
+      setShareGenerating(false);
+    }
+  }, [isAuthor, showcaseImageCount, messages, t]);
+
+  const handleConfirmShowcaseUpload = useCallback(async () => {
+    if (!previewFile) return;
+    setShareBusy(true);
+    setShareError(null);
+    try {
+      const form = new FormData();
+      form.append("image", previewFile);
+      const res = await fetch(
+        `/api/packs/${encodeURIComponent(handle)}/${encodeURIComponent(slug)}/showcase-image`,
+        { method: "POST", body: form, credentials: "include" }
+      );
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setShareError(
+          typeof data.error === "string" ? data.error : t("shareUploadFailed")
+        );
+        return;
+      }
+      setShareDialogOpen(false);
+      setPreviewFile(null);
+      router.refresh();
+    } finally {
+      setShareBusy(false);
+    }
+  }, [previewFile, handle, slug, router, t]);
+
   const startNewChat = useCallback(() => {
     stop();
+    setShareError(null);
     setMessages([]);
     if (messagesKey) {
       try {
@@ -424,6 +512,16 @@ export default function PackChat({
         title={dialogTitle}
         onConfirm={onDialogConfirm}
       />
+      <PackChatShareToShowcaseDialog
+        open={shareDialogOpen}
+        busy={shareBusy}
+        previewFile={previewFile}
+        onConfirm={handleConfirmShowcaseUpload}
+        onOpenChange={(open) => {
+          setShareDialogOpen(open);
+          if (!open) setPreviewFile(null);
+        }}
+      />
       {userBlock === null ? (
         <Card className="mt-8 border-0 shadow-md ring-1 ring-border/80">
           <CardHeader>
@@ -452,35 +550,74 @@ export default function PackChat({
           <CardDescription>{t("activeIntro")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="min-w-0 flex-1 text-sm text-muted-foreground">
-              {usingCached ? t("cachedNotice") : null}{" "}
-              <button
-                type="button"
-                className="font-medium text-primary underline-offset-4 hover:underline"
-                onClick={openDialogForReset}
-              >
-                {t("resetSettings")}
-              </button>
-            </p>
-            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={startNewChat}
-                aria-label={t("newChatAria")}
-              >
-                {t("newChat")}
-              </Button>
-              {messages.length > 0 ? (
-                <ConversationDownload
-                  aria-label={t("downloadMarkdown")}
-                  className="static top-auto right-auto shrink-0"
-                  messages={messages}
-                />
-              ) : null}
+          <div className="flex flex-col gap-1">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="min-w-0 flex-1 text-sm text-muted-foreground">
+                {usingCached ? t("cachedNotice") : null}{" "}
+                <button
+                  type="button"
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                  onClick={openDialogForReset}
+                >
+                  {t("resetSettings")}
+                </button>
+              </p>
+              <TooltipProvider>
+                <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={startNewChat}
+                    aria-label={t("newChatAria")}
+                  >
+                    {t("newChat")}
+                  </Button>
+                  {messages.length > 0 ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="shrink-0"
+                            aria-label={t("shareAria")}
+                          />
+                        }
+                      >
+                        <Share2 className="size-4" aria-hidden />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => {
+                            void downloadMarkdown();
+                          }}
+                        >
+                          {t("shareDownloadMarkdown")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={!isAuthor || shareGenerating}
+                          onClick={() => void handleGenerateShowcaseImage()}
+                        >
+                          {shareGenerating ? (
+                            <Loader2
+                              className="size-4 shrink-0 animate-spin"
+                              aria-hidden
+                            />
+                          ) : null}
+                          {t("shareGenerateShowcaseImage")}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : null}
+                </div>
+              </TooltipProvider>
             </div>
+            {shareError ? (
+              <p className="text-right text-xs text-destructive" role="alert">
+                {shareError}
+              </p>
+            ) : null}
           </div>
           <div className="flex h-[min(50vh,420px)] min-h-[200px] w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-muted/20">
             <Conversation className="min-h-0 flex-1">

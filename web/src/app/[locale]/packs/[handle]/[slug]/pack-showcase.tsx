@@ -866,22 +866,18 @@ export default function PackShowcase({
       <Dialog open={lightbox !== null} onOpenChange={(o) => !o && setLightbox(null)}>
         <DialogContent
           className={cn(
-            "!fixed !left-1/2 !top-1/2 !z-50 !max-h-[min(90vh,880px)] !w-[min(calc(100vw-1.5rem),56rem)] !max-w-[min(calc(100vw-1.5rem),56rem)] !translate-x-[-50%] !translate-y-[-50%]",
-            "!rounded-xl border-0 bg-zinc-950 p-0 shadow-2xl ring-1 ring-white/10 sm:!max-w-[min(calc(100vw-2rem),56rem)]",
-            "flex flex-col gap-0 overflow-hidden",
-            "[&_[data-slot=dialog-close]_button]:absolute [&_[data-slot=dialog-close]_button]:right-3 [&_[data-slot=dialog-close]_button]:top-3 [&_[data-slot=dialog-close]_button]:z-20",
-            "[&_[data-slot=dialog-close]_button]:bg-white [&_[data-slot=dialog-close]_button]:text-zinc-900",
-            "[&_[data-slot=dialog-close]_button]:shadow-md hover:[&_[data-slot=dialog-close]_button]:bg-zinc-100"
+            "max-h-[min(90vh,1080px)] w-[min(calc(100vw-1.5rem),56rem)] max-w-[min(calc(100vw-1.5rem),56rem)] gap-0 overflow-hidden",
+            "p-0 shadow-2xl sm:max-w-[min(calc(100vw-2rem),56rem)] rounded-md border border-border/80 bg-muted/30"
           )}
           showCloseButton
         >
           {lightboxSrc ? (
-            <div className="flex max-h-[min(82vh,760px)] min-h-[12rem] w-full items-center justify-center px-4 pb-4 pt-14 sm:px-6 sm:pb-6 sm:pt-16">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+            <div className="max-h-[70vh] w-full overflow-auto ">
+              {/* eslint-disable-next-line @next/next/no-img-element -- remote or blob URL */}
               <img
                 src={lightboxSrc}
                 alt=""
-                className="max-h-[min(72vh,680px)] w-auto max-w-full rounded-md object-contain"
+                className="h-auto w-full object-contain"
               />
             </div>
           ) : null}

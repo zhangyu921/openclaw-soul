@@ -89,7 +89,20 @@
     "typingAria": "对方正在打字",
     "typingShimmer": "正在打字…",
     "retryAria": "重试此消息",
-    "retryTooltip": "从此处重新发送该消息（将丢弃其后的对话）"
+    "retryTooltip": "从此处重新发送该消息（将丢弃其后的对话）",
+    "shareAria": "打开分享选项",
+    "shareDownloadMarkdown": "下载为 Markdown",
+    "shareGenerateShowcaseImage": "生成对话图片",
+    "shareShowcaseFull": "对话截图已满（10 张）。请先在 Showcase 中删除一张。",
+    "shareImageTruncated": "下方内容已截断，请缩短对话后重试。",
+    "shareImageEmpty": "没有可导出的消息",
+    "shareUploadFailed": "图片上传失败",
+    "shareGenerateFailed": "无法生成图片，请重试或使用下载 Markdown。",
+    "sharePreviewTitle": "预览",
+    "sharePreviewHint": "将占用一张对话截图名额（最多 10 张），单张约 2 MiB 以内。",
+    "shareConfirmUpload": "添加到对话截图",
+    "shareCancel": "取消",
+    "shareSaveImage": "保存"
   },
   "tokens": {
     "pageTitle": "API tokens",
