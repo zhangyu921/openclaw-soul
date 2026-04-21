@@ -29,3 +29,8 @@ harness 执行时会自动归入 ROADMAP：读取新行 → 提炼为任务 → 
 * 既然有下载聊天记录的功能，可以直接一键分享当前的聊天记录到showcase板块；showcase加一项，在对话截图
 
 * 语言与主题切换置于左侧、标题右侧；右侧目前是用户登录注册和用户名；
+
+* cli apply 命令 推荐放置到 详情第一个带头像的卡片内，带有点击复制的功能，有复制icon；原本的cli 模块card 保留，‘逛到对味的 Soul 后，一条命令装进本机 OpenClaw：会写入 `openclaw.json` 中的 `agents.defaults.workspace`，并解压到 `~/.openclaw/workspace-asuka`。路径与含义见’ 这个文案太技术了，还是面向用户告诉一下会备份就行；
+
+* 新增soul被查看预览次数的统计，并在画廊列表card 内展示，位置在标题行对应的右侧， > 10次展示；
+

@@ -9,10 +9,10 @@
 ## 1) 全局状态
 
 - **PR cap**：3
-- **开放 PR 数**：0
-- **IDEAS-INBOX 已读行数**：32（**P2-R-1** 行已 `*` 归入）
-- **上次 tick**：2026-04-21 — **P3 轻量**：完成 **P2-R-1**（Header 语言/主题控件紧邻品牌区右侧）；ROADMAP / P2-R 已 ✅；见 `docs/harness/task-p2-r-1.md`
-- **下一 tick 建议**：**P4**（执行队列无未完成任务；`P2-F` 仍为延期）或人工从 `docs/IDEAS-INBOX.md` 新行触发 P2
+- **开放 PR 数**：1（#17）
+- **IDEAS-INBOX 已读行数**：37（**P2-S / P2-T** 两行已 `*` 归入）
+- **上次 tick**：2026-04-21 — **P3 PR 单阶段**：**P2-S-1**（详情 hero apply 复制 + CLI 用户向文案）；分支 `harness/p2-s-1`；PR `status:needs-review`；`P2-T-1` 仍为 todo
+- **下一 tick 建议**：审 PR / merge 后 **P3** 取 **P2-T-1**（画廊查看次数），或 **P4** 若队列空
 
 ---
 
@@ -34,6 +34,7 @@
 | P2-P-1 | 语言切换图标 + 弹窗 | ✅ done | — | — | `docs/harness/task-p2-p-1.md` |
 | P2-Q-1 | Chat 分享到对话截图 | ✅ done | — | #16 (merged) | `docs/harness/task-p2-q-1.md` |
 | P2-R-1 | Header 语言/主题按钮左移 | ✅ done | — | — | `docs/harness/task-p2-r-1.md` |
+| P2-S-1 | 详情 hero apply 复制 + CLI 文案 | 👀 needs_review | `harness/p2-s-1` | #17 | `docs/harness/task-p2-s-1.md` |
 
 ---
 
