@@ -1,5 +1,7 @@
 # HARNESS TASK P2-S-1
 
+**合并记录**：[#17](https://github.com/zhangyu921/openclaw-soul/pull/17)（squash，2026-04-21）。
+
 ## A. 输入任务（Task Intake）
 
 - **任务标题**：详情页 hero：CLI apply 一键复制 + 底部 CLI 文案面向用户
