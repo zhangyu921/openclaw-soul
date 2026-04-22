@@ -349,6 +349,7 @@
     "emptyFromWorkspace": "Publish from your local workspace:",
     "publishCommandLine": "npx @openclaw-soul/cli publish",
     "noAvatar": "No avatar",
-    "noSummary": "No summary yet"
+    "noSummary": "No summary yet",
+    "viewCount": "{count} views"
   }
 }
