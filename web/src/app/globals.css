@@ -2,6 +2,11 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Streamdown 内部渲染了自己的 Tailwind 类（code block / table / mermaid 等），
+   需要让 Tailwind v4 扫描其 dist，否则 `bg-sidebar/80` 等只在 streamdown 出现的类不会生成。
+   路径相对本文件（web/src/app/globals.css），pnpm 下 streamdown 位于 web/node_modules/。 */
+@source "../../node_modules/streamdown/dist/*.js";
+
 @custom-variant dark (&:is(.dark *));
 
 /* -------------------------------------------------------------------------- */
