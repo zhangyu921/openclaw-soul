@@ -98,8 +98,10 @@ PR 模式再按分歧度分流：
 - 建分支 `harness/<task-id>`
 - 产出 plan 到 `docs/superpowers/plans/YYYY-MM-DD-<task-id>.md`
   - 必要时同产 spec 到 `docs/superpowers/specs/YYYY-MM-DD-<task-id>-design.md`（范围广/有长期决策价值时）
-- commit（message：`docs: plan for <task-id>`）
-- push 分支 → `gh pr create --draft`（high 分歧）或先暂不开 PR，等 3f 一起 ready（low/medium）
+- **单次合并 commit**（message 由 planning skill Step 8 决定）：
+  - `high`：`docs: plan for <task-id> (#<pr-number>)`（PR 已建，含 PR 号回填到 ROADMAP/CHECKPOINT）
+  - `low/medium`：`docs: plan for <task-id>`（此时未开 PR）
+- push 分支 → `gh pr create --draft`（high 分歧，在 **commit 之前**以便回填 PR 号）或先暂不开 PR，等 3f 一起 ready（low/medium）
 - task 文档 B 节只写「见 plan 文档」+ 分歧度
 
 #### 3f. 执行分流

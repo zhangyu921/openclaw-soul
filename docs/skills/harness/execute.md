@@ -33,6 +33,17 @@ description: 按 plan（或 task B 节子步骤）实现代码；频繁 commit�
 - 轻量模式：在 main 分支，确认 `git status` 干净
 - PR 模式：`git checkout harness/<task-id>`；若首次，先从 main `git switch -c harness/<task-id>`（planning skill 若已建好则直接 checkout）
 
+**Shell 注意**：Next.js 路由里常见的 `[locale]` / `[handle]` / `[slug]` 等带方括号路径，在 zsh（macOS 默认）与 bash 开启 globbing 时会被当成字符集通配。`git add` / `git rm` 这类路径**必须**双引号包裹：
+
+```bash
+# ✅ 正确
+git add "web/src/app/[locale]/page.tsx"
+git commit -m "feat(web): ..."
+
+# ❌ 错误（zsh: no matches found）
+git add web/src/app/[locale]/page.tsx
+```
+
 ### Step 1：逐 Task 执行
 
 对 plan（或 B 节子步骤）的每一个 Task / 步骤：
@@ -47,14 +58,16 @@ description: 按 plan（或 task B 节子步骤）实现代码；频繁 commit�
 
 测试必须先写后跑，先失败再成功。**禁止**先写实现再补测试。
 
-例外（不需要测试的 Task，plan 里应已说明）：
+例外由 plan 的 Task 头 `**Testing:**` 字段声明（见 `planning.md` 的 [无测豁免规则](./planning.md#无测豁免规则)），只允许：
 
-- 纯 markdown / 配置 / i18n 文案改动
-- Prisma schema（用 `prisma migrate dev` 代替）
-- 依赖升级 / lockfile
-- Task 只负责删除死代码
+| 字段值 | 含义 |
+|---|---|
+| `tdd` | 完整 TDD 五步（默认） |
+| `migration-only` | 跑 `prisma migrate dev --name <...>` 替代测试 |
+| `no-test:infra` | 纯 markdown / i18n / 配置 / 依赖升级 / 删死代码 |
+| `no-test:rsc-side-effect:<原因>` | RSC 副作用；核心判定必须已在同 plan 内另一 `tdd` Task 用纯函数覆盖 |
 
-其余所有 Task **必须**含测试 Step。
+若 plan 某 Task 未声明 `**Testing:**` 或声明值不在此表，视同 **plan 错误** → 停 tick，按 Step 3 回报。
 
 ### Step 3：超纲检测
 

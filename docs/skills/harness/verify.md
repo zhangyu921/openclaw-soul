@@ -47,6 +47,18 @@ pnpm --filter @openclaw-soul/web lint
 
 ## 流程
 
+### Step 0：生成物预热（按改动面触发）
+
+**标准命令之前**先跑，避免因缺生成物把 typecheck 判成"失败"：
+
+| 若本 task 改动了 | 先跑 |
+|------|------|
+| `web/prisma/schema.prisma`（或同 task 跑过 `prisma migrate dev`） | `pnpm --filter @openclaw-soul/web exec prisma generate` |
+| 新增依赖（`package.json` / `pnpm-lock.yaml`） | `pnpm install --frozen-lockfile`（本地可 `pnpm install`） |
+| 新增 / 改 i18n key 且项目有类型生成步骤 | 按项目约定重生成类型 |
+
+此步是**基础设施预热**，不算验证本身，失败则视同 Step 3b 的**基础设施型失败**（见下）。
+
 ### Step 1：跑标准命令
 
 依次跑三条标准命令，记录 stdout 最后 20 行到一个临时变量。
@@ -56,6 +68,8 @@ pnpm --filter @openclaw-soul/web lint
 ```markdown
 ## D. 验收证据（Verification Evidence）
 
+- **基础设施预热**（仅当 Step 0 或 Step 3b 白名单触发时填；否则整行删除）：
+  - <例：首次 typecheck 因 schema 改动缺生成物失败；跑 `pnpm --filter @openclaw-soul/web exec prisma generate` 后通过>
 - **测试命令与结论**：
   - `pnpm test`：通过 / 未通过（<简述失败项>）
   - `pnpm --filter @openclaw-soul/web typecheck`：通过 / 未通过
@@ -72,7 +86,14 @@ pnpm --filter @openclaw-soul/web lint
 
 ### Step 3b：任一失败
 
-不得重试更多次验证；**一次失败就进入回流**。
+**基础设施型失败**（极窄白名单，**最多自救一次**）：
+
+- 症状明确指向缺生成物 / 未装依赖 / 未跑迁移（例："Property 'x' does not exist on type 'PackSelect'"、`Cannot find module 'next'`、`@prisma/client` 未生成）。
+- 处置：**只**做修复性命令（`prisma generate` / `pnpm install` / `prisma migrate dev` 等**不改源码**的动作），然后**重跑一次**标准命令。
+- 若重跑仍失败 → 不得再自救，走下面回流。
+- D 节需要加一条 `- **基础设施预热**：<做了什么>`，表明第一次失败原因与自救动作，不隐瞒。
+
+**非基础设施型失败**：不得重试更多次验证；**一次失败就进入回流**。
 
 1. 填 E 节：
 
@@ -110,4 +131,5 @@ pnpm --filter @openclaw-soul/web lint
 - ❌ 用 `|| true` / `--passWithNoTests` 让命令"假装通过"
 - ❌ 跳过子系统追加命令（CLI 改动却没跑 CLI smoke）
 - ❌ 失败时只填 D 节不填 E 节（不给下一轮任务 = 任务烂尾）
-- ❌ 在本 skill 内修代码"顺便修复"——那是下一轮任务的事
+- ❌ 在本 skill 内修**源码**"顺便修复"——那是下一轮任务的事（基础设施预热例外，仅限 3b 白名单命令）
+- ❌ 滥用基础设施白名单：症状是业务类型错/逻辑错时，强行归类"基础设施"以绕过回流
