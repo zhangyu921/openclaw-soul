@@ -35,7 +35,7 @@
 | P2-Q-1 | Chat 分享到对话截图 | ✅ done | — | #16 (merged) | `docs/harness/task-p2-q-1.md` |
 | P2-R-1 | Header 语言/主题按钮左移 | ✅ done | — | — | `docs/harness/task-p2-r-1.md` |
 | P2-S-1 | 详情 hero apply 复制 + CLI 文案 | ✅ done | — | #17 (merged) | `docs/harness/task-p2-s-1.md` |
-| P2-T-1 | 画廊查看次数 | plan 审中 | `harness/p2-t-1` | （见 draft PR） | `docs/harness/task-p2-t-1.md`；等 `status:plan-approved` 后实现 |
+| P2-T-1 | 画廊查看次数 | plan 审中 | `harness/p2-t-1` | [#18](https://github.com/zhangyu921/openclaw-soul/pull/18) (draft) | `docs/harness/task-p2-t-1.md`；等 `status:plan-approved` 后实现 |
 
 ---
 
