@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import path from "node:path";
+import { unstable_cache } from "next/cache";
 import { PackVisibility } from "@/generated/prisma/client";
+import { packAvatarDataTag } from "@/lib/cache-tags";
 import { prisma } from "@/lib/prisma";
 import { readSessionUserId } from "@/lib/session";
 import { findUserIdByApiToken } from "@/lib/token-api";
@@ -13,6 +15,7 @@ import {
 } from "@/lib/storage";
 import { MAX_AVATAR_BYTES, avatarTooLargeMessage } from "@/lib/upload-limits";
 import { findPackByHandleAndSlug } from "@/lib/pack-lookup";
+import { revalidateDataTag } from "@/lib/revalidate-data";
 
 type Params = { params: Promise<{ handle: string; slug: string }> };
 
@@ -26,17 +29,29 @@ const MIME: Record<string, string> = {
   ".webp": "image/webp",
 };
 
+const AVATAR_CACHE_CONTROL =
+  "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800";
+
+function getPackMetaForAvatar(handle: string, slug: string) {
+  return unstable_cache(
+    async () =>
+      prisma.pack.findFirst({
+        where: { slug, author: { handle } },
+        select: {
+          avatarRelPath: true,
+          visibility: true,
+          authorId: true,
+          authorDashboardHiddenAt: true,
+        },
+      }),
+    ["pack-avatar-get", handle, slug],
+    { revalidate: 60, tags: [packAvatarDataTag(handle, slug)] }
+  )();
+}
+
 export async function GET(req: Request, { params }: Params) {
   const { handle, slug } = await params;
-  const pack = await prisma.pack.findFirst({
-    where: { slug, author: { handle } },
-    select: {
-      avatarRelPath: true,
-      visibility: true,
-      authorId: true,
-      authorDashboardHiddenAt: true,
-    },
-  });
+  const pack = await getPackMetaForAvatar(handle, slug);
   if (!pack?.avatarRelPath) {
     return NextResponse.json({ error: "no avatar" }, { status: 404 });
   }
@@ -69,7 +84,7 @@ export async function GET(req: Request, { params }: Params) {
       status: 200,
       headers: {
         "Content-Type": type,
-        "Cache-Control": "public, max-age=3600",
+        "Cache-Control": AVATAR_CACHE_CONTROL,
       },
     });
   } catch {
@@ -129,6 +144,8 @@ export async function POST(req: Request, { params }: Params) {
     where: { id: pack.id },
     data: { avatarRelPath },
   });
+
+  revalidateDataTag(packAvatarDataTag(handle, slug));
 
   return NextResponse.json({ ok: true, avatarRelPath });
 }

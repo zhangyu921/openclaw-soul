@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { PackVisibility } from "@/generated/prisma/client";
+import { HOME_LISTING_PACKS_TAG } from "@/lib/cache-tags";
 import { prisma } from "@/lib/prisma";
+import { revalidateDataTag } from "@/lib/revalidate-data";
 import { findPackByHandleAndSlug } from "@/lib/pack-lookup";
 import { packIsSourceEmpty } from "@/lib/pack-source-empty";
 import { readSessionUserId } from "@/lib/session";
@@ -48,6 +50,8 @@ export async function POST(_req: Request, { params }: Params) {
     where: { id: pack.id },
     data: { visibility: PackVisibility.LISTED },
   });
+
+  revalidateDataTag(HOME_LISTING_PACKS_TAG);
 
   return NextResponse.json({ ok: true, visibility: PackVisibility.LISTED });
 }

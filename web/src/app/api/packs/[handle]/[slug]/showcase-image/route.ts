@@ -58,9 +58,9 @@ function ifNoneMatchEqualsCurrent(ifNoneMatch: string | null, etag: string): boo
 }
 
 function cacheControlForPack(visibility: PackVisibility): string {
-  // `?i=` 在重排后可能指向不同文件，不能依赖 URL 做 immutable 长缓存；用 revalidate + ETag/304
+  // `?i=` 在重排后可能指向不同文件，不能 immutable；ETag/304 + CDN 可 s-maxage 降低首访/边缘命中成本
   if (visibility === PackVisibility.LISTED) {
-    return "public, max-age=0, must-revalidate";
+    return "public, max-age=60, s-maxage=3600, stale-while-revalidate=604800, must-revalidate";
   }
   return "private, max-age=0, must-revalidate";
 }

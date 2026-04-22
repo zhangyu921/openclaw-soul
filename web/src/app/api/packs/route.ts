@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { PackVisibility } from "@/generated/prisma/client";
+import { HOME_LISTING_PACKS_TAG } from "@/lib/cache-tags";
 import { prisma } from "@/lib/prisma";
+import { revalidateDataTag } from "@/lib/revalidate-data";
 import { findUserIdByApiToken } from "@/lib/token-api";
 import {
   assertValidSlug,
@@ -222,6 +224,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "failed to update pack" }, { status: 500 });
     }
 
+    revalidateDataTag(HOME_LISTING_PACKS_TAG);
     recordPublishSuccess(authorId);
     const encH = encodeURIComponent(handle);
     const encS = encodeURIComponent(slug);
@@ -311,6 +314,7 @@ export async function POST(req: Request) {
     );
   }
 
+  revalidateDataTag(HOME_LISTING_PACKS_TAG);
   recordPublishSuccess(authorId);
   const encH = encodeURIComponent(handle);
   const encS = encodeURIComponent(slug);

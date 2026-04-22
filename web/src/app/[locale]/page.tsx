@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { unstable_cache } from "next/cache";
 import { Eye, Sparkles } from "lucide-react";
 
 import { HomeIntroStack } from "@/components/home-intro-stack";
@@ -7,9 +8,33 @@ import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PackVisibility } from "@/generated/prisma/client";
+import { HOME_LISTING_PACKS_TAG } from "@/lib/cache-tags";
 import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
+/** 画廊列表可短暂 stale，降低 TTFB 与 Prisma 压力。 */
+const getHomeListingPacks = unstable_cache(
+  async () => {
+    return prisma.pack.findMany({
+      where: {
+        visibility: PackVisibility.LISTED,
+        author: { handle: { not: null } },
+        authorDashboardHiddenAt: null,
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        summary: true,
+        avatarRelPath: true,
+        profileViewCount: true,
+        author: { select: { handle: true } },
+      },
+    });
+  },
+  ["home-listing-packs-v1"],
+  { revalidate: 30, tags: [HOME_LISTING_PACKS_TAG] }
+);
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -29,23 +54,7 @@ export default async function Home({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("home");
 
-  const packs = await prisma.pack.findMany({
-    where: {
-      visibility: PackVisibility.LISTED,
-      author: { handle: { not: null } },
-      authorDashboardHiddenAt: null,
-    },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      summary: true,
-      avatarRelPath: true,
-      profileViewCount: true,
-      author: { select: { handle: true } },
-    },
-  });
+  const packs = await getHomeListingPacks();
 
   return (
     <main className="mx-auto max-w-(--container-max) px-4 py-10 sm:px-6">

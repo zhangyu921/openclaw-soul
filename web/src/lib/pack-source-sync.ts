@@ -5,6 +5,8 @@
  */
 import { PackVisibility } from "@/generated/prisma/client";
 import type { PrismaClient } from "@/generated/prisma/client";
+import { HOME_LISTING_PACKS_TAG } from "@/lib/cache-tags";
+import { revalidateDataTag } from "@/lib/revalidate-data";
 import { removeStoredFileIfExists } from "@/lib/storage";
 import { extractPackFilePathsFromDb } from "@/lib/zip-pack-preview";
 
@@ -30,4 +32,8 @@ export async function syncPackDerivedAfterSourceChange(
       ...(mustUnlist ? { visibility: PackVisibility.UNLISTED } : {}),
     },
   });
+
+  if (mustUnlist) {
+    revalidateDataTag(HOME_LISTING_PACKS_TAG);
+  }
 }

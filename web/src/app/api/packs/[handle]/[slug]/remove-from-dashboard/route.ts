@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { PackVisibility } from "@/generated/prisma/client";
+import { HOME_LISTING_PACKS_TAG } from "@/lib/cache-tags";
 import { internalSlugAfterDashboardHide } from "@/lib/pack-dashboard-hide";
 import { prisma } from "@/lib/prisma";
+import { revalidateDataTag } from "@/lib/revalidate-data";
 import { readSessionUserId } from "@/lib/session";
 
 type Params = { params: Promise<{ handle: string; slug: string }> };
@@ -44,6 +46,8 @@ export async function POST(_req: Request, { params }: Params) {
     }
     throw e;
   }
+
+  revalidateDataTag(HOME_LISTING_PACKS_TAG);
 
   return NextResponse.json({ ok: true as const });
 }
