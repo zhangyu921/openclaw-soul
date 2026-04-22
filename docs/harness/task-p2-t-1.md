@@ -47,7 +47,15 @@ alternatives_blocked_if_chosen: 选 C 则无法满足「按 pack 在画廊 card 
 
 ## C. 实施记录（Implementation Log）
 
-- （P1.5 / 下一 tick 实现后填写）
+- **实际改动文件**：
+  - `web/prisma/schema.prisma`、`web/prisma/migrations/20260422033730_add_pack_profile_view_count/migration.sql`
+  - `web/src/lib/pack-profile-view.ts`、`web/src/lib/pack-profile-view.test.ts`
+  - `web/src/app/[locale]/packs/[handle]/[slug]/page.tsx`（`select.id`、访问通过后 `profileViewCount` increment + try/catch）
+  - `web/src/app/[locale]/page.tsx`、`web/messages/en.json`、`web/messages/zh.json`
+- **关键实现说明（为什么这样做）**：计数仅在通过 `notFound` 与可见性之后执行；`shouldCountPackProfileView` 排除作者本人。首页仅 `profileViewCount > 10` 时展示，避免低次数噪声。
+- **与硬约束对齐说明**：
+  - `apply` 写配置未触发破坏性删除
+  - 未暗示自动脱敏
 
 ---
 
