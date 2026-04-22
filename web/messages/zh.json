@@ -53,7 +53,7 @@
     "copyPublishCopied": "已复制",
     "removeAria": "从「我的 Soul」列表移除",
     "removeDialogTitle": "从列表移除此 Soul？",
-    "removeDialogDescription": "将从控制台列表隐藏 {path}；若已公开则会下架；并释放 slug，便于你用相同名称新建 Soul。数据仍保留在内部链接下。",
+    "removeDialogDescription": "确认移除 {path}？移除后该 slug 会被释放，你可以用相同的 slug 新建 Soul。",
     "removeCancel": "取消",
     "removeConfirm": "移除",
     "removeLoading": "移除中…",

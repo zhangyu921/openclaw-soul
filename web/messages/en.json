@@ -53,7 +53,7 @@
     "copyPublishCopied": "Copied",
     "removeAria": "Remove from your Souls list",
     "removeDialogTitle": "Remove from your Souls?",
-    "removeDialogDescription": "This hides {path} from your dashboard, unlists it if it was public, and frees the slug so you can create a new Soul with the same name. The data is kept under an internal link.",
+    "removeDialogDescription": "Are you sure you want to remove {path}? After removal, the slug will be freed so you can create a new Soul with the same slug.",
     "removeCancel": "Cancel",
     "removeConfirm": "Remove",
     "removeLoading": "Removing…",
