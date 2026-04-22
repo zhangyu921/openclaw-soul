@@ -40,6 +40,31 @@ function contentTypeForRef(ref: string): string {
   return MIME[ext] || "image/jpeg";
 }
 
+/** 按 `ref`（文件身份）派生 ETag；重排只改 `?i=` 时，同一槽位未换文件则 ETag 不变。 */
+function etagForShowcaseRef(ref: string): string {
+  const h = crypto.createHash("sha1").update(ref, "utf8").digest("hex");
+  return `"${h}"`;
+}
+
+function ifNoneMatchEqualsCurrent(ifNoneMatch: string | null, etag: string): boolean {
+  if (!ifNoneMatch) return false;
+  for (const part of ifNoneMatch.split(",")) {
+    const t = part.trim();
+    if (t === "*") continue;
+    const tag = t.startsWith("W/") ? t.slice(2).trim() : t;
+    if (tag === etag) return true;
+  }
+  return false;
+}
+
+function cacheControlForPack(visibility: PackVisibility): string {
+  // `?i=` 在重排后可能指向不同文件，不能依赖 URL 做 immutable 长缓存；用 revalidate + ETag/304
+  if (visibility === PackVisibility.LISTED) {
+    return "public, max-age=0, must-revalidate";
+  }
+  return "private, max-age=0, must-revalidate";
+}
+
 async function canReadShowcaseImage(
   pack: { visibility: PackVisibility; authorId: string },
   req: Request
@@ -90,6 +115,15 @@ export async function GET(req: Request, { params }: Params) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 
+  const etag = etagForShowcaseRef(entry.ref);
+  const cc = cacheControlForPack(pack.visibility);
+  if (ifNoneMatchEqualsCurrent(req.headers.get("if-none-match"), etag)) {
+    return new NextResponse(null, {
+      status: 304,
+      headers: { ETag: etag, "Cache-Control": cc },
+    });
+  }
+
   try {
     const buf = await readStoredFile(entry.ref);
     const type = contentTypeForRef(entry.ref);
@@ -97,8 +131,8 @@ export async function GET(req: Request, { params }: Params) {
       status: 200,
       headers: {
         "Content-Type": type,
-        // 索引 URL 在重排后仍复用 ?i=，避免浏览器强缓存导致顺序与画面不一致
-        "Cache-Control": "private, no-store",
+        ETag: etag,
+        "Cache-Control": cc,
       },
     });
   } catch {
