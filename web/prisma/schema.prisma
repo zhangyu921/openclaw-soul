@@ -51,6 +51,8 @@ model Pack {
   /// Set when the author removes this Soul from「我的 Souls」: row kept, slug rewritten to release handle/slug for a new pack.
   authorDashboardHiddenAt DateTime?
   slugBeforeDashboardHide String?
+  /// 站内涵览：详情页被非作者打开次数（首页画廊 card 可展示，>10）。
+  profileViewCount     Int            @default(0)
   createdAt            DateTime       @default(now())
   visibility           PackVisibility @default(UNLISTED)
   markdownFiles        PackMarkdownFile[]
