@@ -9,10 +9,10 @@
 ## 1) 全局状态
 
 - **PR cap**：3
-- **开放 PR 数**：1（P2-T-1 high 分歧：仅 plan/spec，待审后改 `status:plan-approved`）
+- **开放 PR 数**：1
 - **IDEAS-INBOX 已读行数**：37
-- **上次 tick**：2026-04-22 — **P2-T-1** 产出 `harness/p2-t-1` 文档 + draft PR（**仅 plan，分歧度 high**）；等 plan review
-- **下一 tick 建议**：人审 through：将 P2-T-1 PR label 换为 **`status:plan-approved`** 后，下一 `/harness-go` 走 **P1.5** 按 plan 实现；或 **P4** 若暂缓实现
+- **上次 tick**：2026-04-22 — **P1.5 P2-T-1**：按 plan 实现已 **push** [#18](https://github.com/zhangyu921/openclaw-soul/pull/18)；`gh pr ready`；label **`status:needs-review`**（已移除 `status:plan_approved`）；task 文档 C/D 已填
+- **下一 tick 建议**：人审 **#18** → `status:ready-to-merge` + CI 绿后 **P0** squash 合并；或 **P1** 若要求改
 
 ---
 
@@ -35,7 +35,7 @@
 | P2-Q-1 | Chat 分享到对话截图 | ✅ done | — | #16 (merged) | `docs/harness/task-p2-q-1.md` |
 | P2-R-1 | Header 语言/主题按钮左移 | ✅ done | — | — | `docs/harness/task-p2-r-1.md` |
 | P2-S-1 | 详情 hero apply 复制 + CLI 文案 | ✅ done | — | #17 (merged) | `docs/harness/task-p2-s-1.md` |
-| P2-T-1 | 画廊查看次数 | plan 审中 | `harness/p2-t-1` | [#18](https://github.com/zhangyu921/openclaw-soul/pull/18) (draft) | `docs/harness/task-p2-t-1.md`；等 `status:plan-approved` 后实现 |
+| P2-T-1 | 画廊查看次数 | 实现待审 | `harness/p2-t-1` | [#18](https://github.com/zhangyu921/openclaw-soul/pull/18) | 已 ready；`status:needs-review` |
 
 ---
 

@@ -34,7 +34,7 @@
 | ✅ | P2-Q-1 | Pack Chat：一键将当前聊天记录分享到 showcase | [`docs/harness/task-p2-q-1.md`](harness/task-p2-q-1.md) |
 | ✅ | P2-R-1 | Header：语言与主题切换按钮左移（标题右侧区域） | [`docs/harness/task-p2-r-1.md`](harness/task-p2-r-1.md) |
 | ✅ | P2-S-1 | 详情页 hero：CLI apply 一键复制 + 底部 CLI 文案面向用户 | [`docs/harness/task-p2-s-1.md`](harness/task-p2-s-1.md) |
-| 👀 | P2-T-1 | 画廊：Soul 查看/预览次数统计（列表 card 标题行右侧，>10 次展示） | [`docs/harness/task-p2-t-1.md`](harness/task-p2-t-1.md)（plan/spec 审中） |
+| 👀 | P2-T-1 | 画廊：Soul 查看/预览次数统计（列表 card 标题行右侧，>10 次展示） | [`docs/harness/task-p2-t-1.md`](harness/task-p2-t-1.md) · PR [#18](https://github.com/zhangyu921/openclaw-soul/pull/18) 待合并 |
 
 约束：一任务一 commit（小任务）或一分支一 PR（大任务）；开放 PR ≥ 3 时不开新任务。
 
