@@ -61,7 +61,12 @@ alternatives_blocked_if_chosen: 选 C 则无法满足「按 pack 在画廊 card 
 
 ## D. 验收证据（Verification Evidence）
 
-- （实现后由 harness-verify 填写）
+- **测试命令与结论**：
+  - `pnpm test`：通过（cli + web Vitest，含 `pack-profile-view.test.ts`）
+  - `pnpm --filter @openclaw-soul/web typecheck`：通过（依赖 `web` 包 `postinstall` / 本地 `prisma generate` 生成 `src/generated`）
+  - `pnpm --filter @openclaw-soul/web lint`：通过
+- **子系统验证**：未额外跑 e2e（与本轮改动面无关）。
+- **结果摘要**：通过
 
 ---
 
@@ -73,9 +78,9 @@ alternatives_blocked_if_chosen: 选 C 则无法满足「按 pack 在画廊 card 
 
 ## F. Done 判定（Definition of Done）
 
-- [ ] 目标与验收条件达成
-- [ ] 必要测试通过
-- [ ] 硬约束未触碰
-- [ ] 验证证据完整
-- [ ] 剩余风险已说明
+- [x] 目标与验收条件达成
+- [x] 必要测试通过
+- [x] 硬约束未触碰
+- [x] 验证证据完整
+- [x] 剩余风险已说明（RSC 重复执行可能使开发环境多计，见 spec）
 - [ ] （如失败）已产出下一轮任务
