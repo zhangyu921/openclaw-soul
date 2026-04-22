@@ -349,6 +349,7 @@
     "emptyFromWorkspace": "从本机 workspace 上架：",
     "publishCommandLine": "npx @openclaw-soul/cli publish",
     "noAvatar": "无头像",
-    "noSummary": "暂无简介"
+    "noSummary": "暂无简介",
+    "viewCount": "{count} 次浏览"
   }
 }

@@ -18,6 +18,7 @@ import { readSessionUserId } from "@/lib/session";
 import { privacyLinkClassName } from "@/lib/utils";
 import { normalizeShowcaseImageRefs } from "@/lib/showcase-refs";
 import { buildPackApplyCommand } from "@/lib/pack-apply-cmd";
+import { shouldCountPackProfileView } from "@/lib/pack-profile-view";
 import PackApplyCommand from "./pack-apply-command";
 import PackAvatarBlock from "./pack-avatar-block";
 import PackShowcase from "./pack-showcase";
@@ -58,6 +59,7 @@ export default async function PackDetailPage({ params }: Props) {
   const pack = await prisma.pack.findFirst({
     where: { slug, author: { handle } },
     select: {
+      id: true,
       slug: true,
       title: true,
       summary: true,
@@ -78,6 +80,17 @@ export default async function PackDetailPage({ params }: Props) {
   if (pack.authorDashboardHiddenAt && !isAuthor) notFound();
   if (pack.visibility === PackVisibility.UNLISTED && !isAuthor) notFound();
   const isListed = pack.visibility === PackVisibility.LISTED;
+
+  if (shouldCountPackProfileView({ sessionUserId: userId, authorId: pack.authorId })) {
+    try {
+      await prisma.pack.update({
+        where: { id: pack.id },
+        data: { profileViewCount: { increment: 1 } },
+      });
+    } catch (e) {
+      console.error("pack profileViewCount increment failed", e);
+    }
+  }
 
   const encH = encodeURIComponent(pack.author.handle);
   const encS = encodeURIComponent(pack.slug);

@@ -2,17 +2,17 @@
 
 跨 chat 恢复的唯一入口。新对话只需读此文件 + ROADMAP 即可继续。
 
-更新日期：2026-04-21
+更新日期：2026-04-22
 
 ---
 
 ## 1) 全局状态
 
 - **PR cap**：3
-- **开放 PR 数**：0
-- **IDEAS-INBOX 已读行数**：37（**P2-S / P2-T** 两行已 `*` 归入）
-- **上次 tick**：2026-04-21 — **P2-S-1** 已 squash 合并（[#17](https://github.com/zhangyu921/openclaw-soul/pull/17)）；ROADMAP P2-S / P2-S-1 已 ✅
-- **下一 tick 建议**：**P3** 取队列下一项 **P2-T-1**（画廊查看次数），或 **P4** 若暂缓
+- **开放 PR 数**：1
+- **IDEAS-INBOX 已读行数**：37
+- **上次 tick**：2026-04-22 — **P1.5 P2-T-1**：按 plan 实现已 **push** [#18](https://github.com/zhangyu921/openclaw-soul/pull/18)；`gh pr ready`；label **`status:needs-review`**（已移除 `status:plan_approved`）；task 文档 C/D 已填
+- **下一 tick 建议**：人审 **#18** → `status:ready-to-merge` + CI 绿后 **P0** squash 合并；或 **P1** 若要求改
 
 ---
 
@@ -35,6 +35,7 @@
 | P2-Q-1 | Chat 分享到对话截图 | ✅ done | — | #16 (merged) | `docs/harness/task-p2-q-1.md` |
 | P2-R-1 | Header 语言/主题按钮左移 | ✅ done | — | — | `docs/harness/task-p2-r-1.md` |
 | P2-S-1 | 详情 hero apply 复制 + CLI 文案 | ✅ done | — | #17 (merged) | `docs/harness/task-p2-s-1.md` |
+| P2-T-1 | 画廊查看次数 | 实现待审 | `harness/p2-t-1` | [#18](https://github.com/zhangyu921/openclaw-soul/pull/18) | 已 ready；`status:needs-review` |
 
 ---
 

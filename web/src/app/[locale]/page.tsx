@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Sparkles } from "lucide-react";
+import { Eye, Sparkles } from "lucide-react";
 
 import { HomeIntroStack } from "@/components/home-intro-stack";
 import { Link } from "@/i18n/navigation";
@@ -42,6 +42,7 @@ export default async function Home({ params }: Props) {
       title: true,
       summary: true,
       avatarRelPath: true,
+      profileViewCount: true,
       author: { select: { handle: true } },
     },
   });
@@ -119,7 +120,15 @@ export default async function Home({ params }: Props) {
                     )}
                   </div>
                   <CardHeader className="border-0 px-4 pb-2 pt-3">
-                    <CardTitle className="line-clamp-2 text-base leading-snug">{p.title}</CardTitle>
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="line-clamp-2 min-w-0 flex-1 text-base leading-snug">{p.title}</CardTitle>
+                      {p.profileViewCount > 10 ? (
+                        <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground tabular-nums">
+                          <Eye className="size-3.5 opacity-70" aria-hidden />
+                          {t("viewCount", { count: p.profileViewCount })}
+                        </span>
+                      ) : null}
+                    </div>
                     <CardDescription className="font-mono text-xs">
                       {h}/{p.slug}
                     </CardDescription>
