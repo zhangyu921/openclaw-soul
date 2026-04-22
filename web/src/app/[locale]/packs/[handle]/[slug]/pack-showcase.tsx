@@ -645,19 +645,19 @@ export default function PackShowcase({
         <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3 space-y-0">
           <div>
             <CardTitle className="text-base">{t("title")}</CardTitle>
-            <CardDescription>{t("subtitle")}</CardDescription>
+            {isAuthor ? <CardDescription>{t("subtitleAuthor")}</CardDescription> : null}
           </div>
         </CardHeader>
-        <CardContent className="space-y-8">
+        <CardContent className="space-y-5">
           {authorSeesEmpty ? (
             <p className="text-sm text-muted-foreground">{t("authorEmpty")}</p>
           ) : null}
 
           {hasGallery || isAuthor ? (
             <div className="space-y-3">
+              {isAuthor || imageCount > 2 ? (
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-                  <p className="shrink-0 text-sm font-medium text-muted-foreground">{t("shotsLabel")}</p>
                   {isAuthor && !showcaseEditMode ? (
                     <Button
                       type="button"
@@ -734,6 +734,7 @@ export default function PackShowcase({
                   </div>
                 ) : null}
               </div>
+              ) : null}
 
               {hasGallery || (isAuthor && showcaseEditMode) ? (
                 <div className="relative">
