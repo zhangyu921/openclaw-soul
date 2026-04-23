@@ -38,6 +38,10 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
   return {
     title: t("siteName"),
     description: t("defaultMetaDescription"),
+    icons: {
+      icon: [{ url: "/brand-mark.svg", type: "image/svg+xml" }],
+      apple: [{ url: "/brand-mark.svg", type: "image/svg+xml" }],
+    },
   };
 }
 

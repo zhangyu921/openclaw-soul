@@ -2,7 +2,7 @@
 
 跨 chat 恢复的唯一入口。新对话只需读此文件 + ROADMAP 即可继续。
 
-更新日期：2026-04-22
+更新日期：2026-04-23
 
 ---
 
@@ -10,9 +10,9 @@
 
 - **PR cap**：3
 - **开放 PR 数**：0
-- **IDEAS-INBOX 已读行数**：37
-- **上次 tick**：2026-04-22 — **P0**：squash 合并 [#18](https://github.com/zhangyu921/openclaw-soul/pull/18)（P2-T-1 画廊 `profileViewCount`）；ROADMAP P2-T / P2-T-1 已 `✅`
-- **下一 tick 建议**：**P4** 空闲（队列为空；P2-F 仍延期）或择期开 **P2-F-1** / **P3** 验证项
+- **IDEAS-INBOX 已读行数**：38
+- **上次 tick**：2026-04-23 — **P2**（favicon 行归入）+ **P3 轻量**：**P2-U-1** 共用 `brand-mark.svg`（Header `next/image` + `generateMetadata.icons`）；`pnpm test` / web typecheck / lint 通过
+- **下一 tick 建议**：**P4** 空闲（P2-F-1 仍延期）或择期补 **favicon.ico / apple-touch PNG** 若需兼容极老客户端
 
 ---
 
@@ -36,6 +36,7 @@
 | P2-R-1 | Header 语言/主题按钮左移 | ✅ done | — | — | `docs/harness/task-p2-r-1.md` |
 | P2-S-1 | 详情 hero apply 复制 + CLI 文案 | ✅ done | — | #17 (merged) | `docs/harness/task-p2-s-1.md` |
 | P2-T-1 | 画廊查看次数 | ✅ done | — | #18 (merged) | `docs/harness/task-p2-t-1.md` |
+| P2-U-1 | 全站 favicon 与 Header 品牌标统一 | ✅ done | — | — | `docs/harness/task-p2-u-1.md` |
 
 ---
 

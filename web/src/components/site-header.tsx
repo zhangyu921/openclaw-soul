@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
@@ -37,12 +38,15 @@ export function SiteHeader({ initialUser }: { initialUser: HeaderUser | null }) 
             className="group inline-flex min-w-0 flex-1 items-center gap-2 rounded-lg px-1 py-0.5 transition-colors hover:text-primary sm:flex-none sm:gap-2.5"
             title={tCommon("siteName")}
           >
-            <span
-              className="relative inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/80 via-primary/60 to-accent/80 ring-1 ring-primary/30 sm:size-8"
+            <Image
+              src="/brand-mark.svg"
+              alt=""
+              width={32}
+              height={32}
+              className="size-7 shrink-0 rounded-full ring-1 ring-primary/30 sm:size-8"
               aria-hidden
-            >
-              <span className="size-2.5 rounded-full bg-background/95 shadow-sm sm:size-3" />
-            </span>
+              unoptimized
+            />
             <span className="min-w-0 flex-1 flex-col leading-none">
               <span className="block truncate font-heading text-sm font-semibold tracking-tight text-foreground sm:text-base sm:text-lg">
                 {tCommon("siteName")}

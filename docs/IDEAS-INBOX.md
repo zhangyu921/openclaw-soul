@@ -34,3 +34,5 @@ harness 执行时会自动归入 ROADMAP：读取新行 → 提炼为任务 → 
 
 * 新增soul被查看预览次数的统计，并在画廊列表card 内展示，位置在标题行对应的右侧， > 10次展示；
 
+* 把header的logo图片作为网站的 favicon，尺寸什么的注意符合 favicon 要求；
+

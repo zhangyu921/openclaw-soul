@@ -35,6 +35,7 @@
 | ✅ | P2-R-1 | Header：语言与主题切换按钮左移（标题右侧区域） | [`docs/harness/task-p2-r-1.md`](harness/task-p2-r-1.md) |
 | ✅ | P2-S-1 | 详情页 hero：CLI apply 一键复制 + 底部 CLI 文案面向用户 | [`docs/harness/task-p2-s-1.md`](harness/task-p2-s-1.md) |
 | ✅ | P2-T-1 | 画廊：Soul 查看/预览次数统计（列表 card 标题行右侧，>10 次展示） | [`docs/harness/task-p2-t-1.md`](harness/task-p2-t-1.md) |
+| ✅ | P2-U-1 | 全站 favicon：与 Header 品牌标共用的矢量标（SVG，metadata） | [`docs/harness/task-p2-u-1.md`](harness/task-p2-u-1.md) |
 
 约束：一任务一 commit（小任务）或一分支一 PR（大任务）；开放 PR ≥ 3 时不开新任务。
 
@@ -90,6 +91,7 @@
 | ✅ | P2-R | Header 控件布局 | 语言与主题切换置于左侧、标题右侧（见 P2-R-1）。 |
 | ✅ | P2-S | 详情页 apply 入口 | 首个带头像卡片内 apply 条（muted 底、点击复制）；底部 CLI 卡片保留并弱化技术表述（P2-S-1 / #17 已合并）。 |
 | ✅ | P2-T | 画廊互动指标 | Soul 被查看次数等在列表 card 展示（P2-T-1 / #18 已合并）。 |
+| ✅ | P2-U | 品牌 favicon | Header 与站点 icon 共用 `brand-mark.svg`（P2-U-1）。 |
 
 ## P3
 
