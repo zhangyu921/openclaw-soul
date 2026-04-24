@@ -111,6 +111,7 @@ export default async function Home({ params }: Props) {
               <Link
                 key={p.id}
                 href={`/packs/${h}/${p.slug}`}
+                prefetch={false}
                 className="block break-inside-avoid"
               >
                 <Card className="card-pinterest gap-0 overflow-hidden border-0 pt-0 ring-1 ring-border/80 hover:ring-primary/25">
