@@ -59,6 +59,7 @@ import {
   ASSISTANT_ERROR_ID_PREFIX,
   isAssistantErrorMessage,
 } from "@/lib/pack-chat-assistant-error";
+import { formatPackChatErrorForDisplay } from "@/lib/pack-chat-client-error";
 import {
   buildPackChatShareImageFile,
   SHARE_IMAGE_EMPTY,
@@ -75,12 +76,6 @@ function assistantVisibleTextLength(message: UIMessage | undefined): number {
     if (p.type === "text" && p.text) raw += p.text;
   }
   return raw.trim().length;
-}
-
-function formatErrorForAssistantBubble(err: Error): string {
-  const lines = [`${err.name}: ${err.message}`];
-  if (err.stack?.trim()) lines.push("", err.stack);
-  return lines.join("\n");
 }
 
 function userMessageText(message: UIMessage): string {
@@ -124,6 +119,18 @@ export default function PackChat({
   showcaseImageCount,
 }: Props) {
   const t = useTranslations("packChat");
+  const streamErrorCopy = useMemo(
+    () => ({
+      generic: t("streamErrorGeneric"),
+      unauthorized: t("streamErrorUnauthorized"),
+      notFound: t("streamErrorNotFound"),
+      rateLimit: t("streamErrorRateLimit"),
+      serviceUnavailable: t("streamErrorUnavailable"),
+      badRequest: t("streamErrorBadRequest"),
+      network: t("streamErrorNetwork"),
+    }),
+    [t]
+  );
   const pathname = usePathname();
   const router = useRouter();
   const loginHref = `/login?next=${encodeURIComponent(pathname)}`;
@@ -226,9 +233,7 @@ export default function PackChat({
 
   useEffect(() => {
     if (!error) return;
-    const err =
-      error instanceof Error ? error : new Error(String(error));
-    const errText = formatErrorForAssistantBubble(err);
+    const errText = formatPackChatErrorForDisplay(error, streamErrorCopy);
     setMessages((prev) => {
       let base = prev;
       const last = base[base.length - 1];
@@ -248,7 +253,7 @@ export default function PackChat({
       ];
     });
     clearError();
-  }, [error, setMessages, clearError]);
+  }, [error, setMessages, clearError, streamErrorCopy]);
 
   const busy = status === "streaming" || status === "submitted";
   const showAssistantTyping = shouldShowAssistantTyping(messages, busy);
