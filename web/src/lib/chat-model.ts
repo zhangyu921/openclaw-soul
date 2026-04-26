@@ -99,8 +99,10 @@ export function resolvePackChatModel(): PackChatModelResult {
       const openai = createOpenAI({
         apiKey,
         baseURL,
+        name: "deepseek.chat",
       });
-      return { ok: true, model: openai(modelId) };
+      // 须用 .chat()：直接 openai(id) 会走 OpenAI Responses API（/responses），DeepSeek 仅支持 /chat/completions
+      return { ok: true, model: openai.chat(modelId) };
     }
     case "minimax": {
       const model = createMinimaxModel();
