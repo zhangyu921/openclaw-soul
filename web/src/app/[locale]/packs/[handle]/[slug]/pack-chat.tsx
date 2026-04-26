@@ -5,7 +5,15 @@ import { DefaultChatTransport } from "ai";
 import { Loader2, MessageSquare, RotateCcw, Share2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 const PERSIST_DEBOUNCE_MS = 400;
 
@@ -78,6 +86,20 @@ function assistantVisibleTextLength(message: UIMessage | undefined): number {
   return raw.trim().length;
 }
 
+/**
+ * DeepSeek 等会先流式输出 reasoning part 再输出正文；UI 在 reasoning 阶段用「正在打字」shimmer，不展示原文。
+ */
+function assistantReasoningTextLength(message: UIMessage | undefined): number {
+  if (!message || message.role !== "assistant") return 0;
+  let raw = "";
+  for (const p of message.parts) {
+    if (p.type === "reasoning" && "text" in p && typeof p.text === "string") {
+      raw += p.text;
+    }
+  }
+  return raw.trim().length;
+}
+
 function userMessageText(message: UIMessage): string {
   if (message.role !== "user") return "";
   return message.parts
@@ -86,13 +108,24 @@ function userMessageText(message: UIMessage): string {
     .join("");
 }
 
-/** Show dots while waiting for the first assistant tokens (submitted / streaming preamble). */
-function shouldShowAssistantTyping(messages: UIMessage[], busy: boolean): boolean {
-  if (!busy) return false;
-  const last = messages[messages.length - 1];
-  if (!last) return false;
-  if (last.role === "user") return true;
-  return assistantVisibleTextLength(last) === 0;
+function subscribePrefersReducedMotion(onChange: () => void) {
+  if (typeof window === "undefined") return () => {};
+  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
+function getPrefersReducedMotionSnapshot() {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function usePrefersReducedMotion(): boolean {
+  return useSyncExternalStore(
+    subscribePrefersReducedMotion,
+    getPrefersReducedMotionSnapshot,
+    () => false
+  );
 }
 
 type Props = {
@@ -256,7 +289,14 @@ export default function PackChat({
   }, [error, setMessages, clearError, streamErrorCopy]);
 
   const busy = status === "streaming" || status === "submitted";
-  const showAssistantTyping = shouldShowAssistantTyping(messages, busy);
+  const prefersReducedMotion = usePrefersReducedMotion();
+  /** 仅透明度交叉淡入淡出，避免位移导致「上飘」与布局抖动；略快出、慢进更易读。 */
+  const statusLineFadeIn = prefersReducedMotion
+    ? { duration: 0.01 }
+    : { duration: 0.26, ease: [0.22, 1, 0.36, 1] as const };
+  const statusLineFadeOut = prefersReducedMotion
+    ? { duration: 0.01 }
+    : { duration: 0.18, ease: [0.4, 0, 1, 1] as const };
 
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<File | null>(null);
@@ -640,14 +680,6 @@ export default function PackChat({
                   <>
                     {messages.map((message, idx) => {
                       const isLast = idx === messages.length - 1;
-                      if (
-                        message.role === "assistant" &&
-                        assistantVisibleTextLength(message) === 0 &&
-                        showAssistantTyping &&
-                        isLast
-                      ) {
-                        return null;
-                      }
                       if (message.role === "user") {
                         const nextMsg = messages[idx + 1];
                         const showRetry =
@@ -663,7 +695,7 @@ export default function PackChat({
                               return (
                                 <span
                                   key={`${message.id}-${i}`}
-                                  className="whitespace-pre-wrap break-words"
+                                  className="whitespace-pre-wrap wrap-break-word"
                                 >
                                   {part.text}
                                 </span>
@@ -714,16 +746,70 @@ export default function PackChat({
                       return (
                         <Message from={message.role} key={message.id}>
                           <MessageContent>
+                            {isLast &&
+                            busy &&
+                            assistantVisibleTextLength(message) === 0 ? (
+                              <div className="flex min-h-9 w-full shrink-0 items-center py-1">
+                                <AnimatePresence mode="wait" initial={false}>
+                                  {assistantReasoningTextLength(message) === 0 ? (
+                                    <motion.div
+                                      key="pack-chat-status-thinking"
+                                      className="flex w-full items-center"
+                                      initial={{ opacity: 0 }}
+                                      animate={{
+                                        opacity: 1,
+                                        transition: statusLineFadeIn,
+                                      }}
+                                      exit={{
+                                        opacity: 0,
+                                        transition: statusLineFadeOut,
+                                      }}
+                                      role="status"
+                                      aria-live="polite"
+                                      aria-label={t("thinkingAria")}
+                                    >
+                                      <span className="pack-chat-typing-shimmer inline-block min-w-[10ch] text-sm font-medium select-none">
+                                        {t("thinkingShimmer")}
+                                      </span>
+                                    </motion.div>
+                                  ) : (
+                                    <motion.div
+                                      key="pack-chat-status-typing"
+                                      className="flex w-full items-center"
+                                      initial={{ opacity: 0 }}
+                                      animate={{
+                                        opacity: 1,
+                                        transition: statusLineFadeIn,
+                                      }}
+                                      exit={{
+                                        opacity: 0,
+                                        transition: statusLineFadeOut,
+                                      }}
+                                      role="status"
+                                      aria-live="polite"
+                                      aria-label={t("typingAria")}
+                                    >
+                                      <span className="pack-chat-typing-shimmer inline-block min-w-[10ch] text-sm font-medium select-none">
+                                        {t("typingShimmer")}
+                                      </span>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+                            ) : null}
                             {message.parts.map((part, i) => {
+                              const partKey = `${message.id}-${i}`;
+                              if (part.type === "reasoning") {
+                                return null;
+                              }
                               if (part.type !== "text") {
                                 return null;
                               }
-                              const partKey = `${message.id}-${i}`;
                               if (isAssistantErrorMessage(message)) {
                                 return (
                                   <pre
                                     key={partKey}
-                                    className="max-w-full overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs text-destructive"
+                                    className="max-w-full overflow-x-auto whitespace-pre-wrap wrap-break-word font-mono text-xs text-destructive"
                                   >
                                     {part.text}
                                   </pre>
@@ -739,18 +825,27 @@ export default function PackChat({
                         </Message>
                       );
                     })}
-                    {showAssistantTyping ? (
-                      <Message from="assistant">
+                    {busy && messages.at(-1)?.role === "user" ? (
+                      <Message
+                        from="assistant"
+                        key="pack-chat-assistant-pending"
+                      >
                         <MessageContent>
-                          <div
-                            className="py-1"
-                            role="status"
-                            aria-live="polite"
-                            aria-label={t("typingAria")}
-                          >
-                            <span className="pack-chat-typing-shimmer text-sm font-medium select-none">
-                              {t("typingShimmer")}
-                            </span>
+                          <div className="flex min-h-9 w-full shrink-0 items-center py-1">
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{
+                                opacity: 1,
+                                transition: statusLineFadeIn,
+                              }}
+                              role="status"
+                              aria-live="polite"
+                              aria-label={t("thinkingAria")}
+                            >
+                              <span className="pack-chat-typing-shimmer inline-block min-w-[10ch] text-sm font-medium select-none">
+                                {t("thinkingShimmer")}
+                              </span>
+                            </motion.div>
                           </div>
                         </MessageContent>
                       </Message>
@@ -763,7 +858,7 @@ export default function PackChat({
             </Conversation>
           </div>
           <PromptInput
-            className="relative w-full [&_[data-slot=input-group]]:items-stretch"
+            className="relative w-full **:data-[slot=input-group]:items-stretch"
             onSubmit={handlePromptSubmit}
           >
             <PromptInputTextarea

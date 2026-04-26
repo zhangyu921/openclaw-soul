@@ -93,7 +93,7 @@ export async function POST(req: Request, { params }: Params) {
   if (!resolved.ok) {
     return NextResponse.json({ error: resolved.message }, { status: 503 });
   }
-  const languageModel = resolved.model;
+  const { model: languageModel, streamProviderOptions } = resolved;
 
   const layers = await loadPackMarkdownLayers(prisma, pack.id);
   const system = buildPackChatSystemPrompt({ ...layers, userBlock });
@@ -118,6 +118,7 @@ export async function POST(req: Request, { params }: Params) {
     model: languageModel,
     system,
     messages: modelMessages,
+    ...(streamProviderOptions ? { providerOptions: streamProviderOptions } : {}),
   });
 
   return result.toUIMessageStreamResponse();

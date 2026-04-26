@@ -88,6 +88,8 @@
     "newChatAria": "Clear the current conversation and start over",
     "typingAria": "Assistant is typing",
     "typingShimmer": "Typing…",
+    "thinkingAria": "Assistant is thinking",
+    "thinkingShimmer": "Thinking…",
     "retryAria": "Retry this message",
     "retryTooltip": "Resend this message and continue from here",
     "shareAria": "Open share options",

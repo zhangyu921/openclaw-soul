@@ -88,6 +88,8 @@
     "newChatAria": "清空当前对话并开始新对话",
     "typingAria": "对方正在打字",
     "typingShimmer": "正在打字…",
+    "thinkingAria": "模型正在思考",
+    "thinkingShimmer": "正在思考…",
     "retryAria": "重试此消息",
     "retryTooltip": "从此处重新发送该消息（将丢弃其后的对话）",
     "shareAria": "打开分享选项",

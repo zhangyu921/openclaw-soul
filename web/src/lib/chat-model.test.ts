@@ -9,6 +9,8 @@ function clearChatEnv() {
   delete process.env.DEEPSEEK_API_KEY;
   delete process.env.DEEPSEEK_BASE_URL;
   delete process.env.DEEPSEEK_CHAT_MODEL;
+  delete process.env.DEEPSEEK_THINKING;
+  delete process.env.DEEPSEEK_REASONING_EFFORT;
   delete process.env.MINIMAX_TOKEN_PLAN_API_KEY;
   delete process.env.MINIMAX_ANTHROPIC_BASE_URL;
   delete process.env.MINIMAX_CHAT_MODEL;
@@ -84,6 +86,43 @@ describe("resolvePackChatModel", () => {
     const r = resolvePackChatModel();
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.model).toBeDefined();
+  });
+
+  it("sets streamProviderOptions when DEEPSEEK_THINKING=enabled", () => {
+    process.env.PACK_CHAT_PROVIDER = "deepseek";
+    process.env.DEEPSEEK_API_KEY = "sk-test";
+    process.env.DEEPSEEK_THINKING = "enabled";
+    const r = resolvePackChatModel();
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.streamProviderOptions).toEqual({
+        deepseek: { thinking: { type: "enabled" } },
+      });
+    }
+  });
+
+  it("sets streamProviderOptions with thinking disabled when DEEPSEEK_THINKING=disabled", () => {
+    process.env.PACK_CHAT_PROVIDER = "deepseek";
+    process.env.DEEPSEEK_API_KEY = "sk-test";
+    process.env.DEEPSEEK_THINKING = "disabled";
+    const r = resolvePackChatModel();
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.streamProviderOptions).toEqual({
+        deepseek: { thinking: { type: "disabled" } },
+      });
+    }
+  });
+
+  it("omits streamProviderOptions when only DEEPSEEK_REASONING_EFFORT is set", () => {
+    process.env.PACK_CHAT_PROVIDER = "deepseek";
+    process.env.DEEPSEEK_API_KEY = "sk-test";
+    process.env.DEEPSEEK_REASONING_EFFORT = "medium";
+    const r = resolvePackChatModel();
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.streamProviderOptions).toBeUndefined();
+    }
   });
 
   it("returns credentials_missing for minimax without token key", () => {
