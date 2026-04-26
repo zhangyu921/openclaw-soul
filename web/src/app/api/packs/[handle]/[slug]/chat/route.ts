@@ -89,16 +89,11 @@ export async function POST(req: Request, { params }: Params) {
     return NextResponse.json({ error: abuse.error }, { status: abuse.status });
   }
 
-  const languageModel = resolvePackChatModel();
-  if (!languageModel) {
-    return NextResponse.json(
-      {
-        error:
-          "chat unavailable: set OLLAMA_BASE_URL for Ollama or MINIMAX_TOKEN_PLAN_API_KEY for MiniMax",
-      },
-      { status: 503 }
-    );
+  const resolved = resolvePackChatModel();
+  if (!resolved.ok) {
+    return NextResponse.json({ error: resolved.message }, { status: 503 });
   }
+  const languageModel = resolved.model;
 
   const layers = await loadPackMarkdownLayers(prisma, pack.id);
   const system = buildPackChatSystemPrompt({ ...layers, userBlock });
