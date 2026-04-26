@@ -88,6 +88,8 @@
     "newChatAria": "Clear the current conversation and start over",
     "typingAria": "Assistant is typing",
     "typingShimmer": "Typing…",
+    "thinkingAria": "Assistant is thinking",
+    "thinkingShimmer": "Thinking…",
     "retryAria": "Retry this message",
     "retryTooltip": "Resend this message and continue from here",
     "shareAria": "Open share options",
@@ -102,7 +104,14 @@
     "sharePreviewHint": "Uses one image slot (max 10). Each image up to about 2 MiB.",
     "shareConfirmUpload": "Add to Experience",
     "shareCancel": "Cancel",
-    "shareSaveImage": "Save"
+    "shareSaveImage": "Save",
+    "streamErrorGeneric": "The reply could not be completed. Please try again.",
+    "streamErrorUnauthorized": "Your session expired. Sign in again and retry.",
+    "streamErrorNotFound": "We could not load what we need for this chat. Refresh the page or check access.",
+    "streamErrorRateLimit": "Too many requests. Please wait a moment and try again.",
+    "streamErrorUnavailable": "Chat is temporarily unavailable. Try again later or check site configuration.",
+    "streamErrorBadRequest": "We could not process that request. Try shorter content or reset your USER settings.",
+    "streamErrorNetwork": "Network error. Check your connection and try again."
   },
   "tokens": {
     "pageTitle": "API tokens",

@@ -88,6 +88,8 @@
     "newChatAria": "清空当前对话并开始新对话",
     "typingAria": "对方正在打字",
     "typingShimmer": "正在打字…",
+    "thinkingAria": "模型正在思考",
+    "thinkingShimmer": "正在思考…",
     "retryAria": "重试此消息",
     "retryTooltip": "从此处重新发送该消息（将丢弃其后的对话）",
     "shareAria": "打开分享选项",
@@ -102,7 +104,14 @@
     "sharePreviewHint": "将占用一张展示图名额（最多 10 张），单张约 2 MiB 以内。",
     "shareConfirmUpload": "添加到「体验」",
     "shareCancel": "取消",
-    "shareSaveImage": "保存"
+    "shareSaveImage": "保存",
+    "streamErrorGeneric": "回复未能完成，请稍后重试。",
+    "streamErrorUnauthorized": "登录已失效，请重新登录后再试。",
+    "streamErrorNotFound": "无法加载对话所需内容，请刷新页面或确认该 Soul 仍可访问。",
+    "streamErrorRateLimit": "请求过于频繁，请稍后再试。",
+    "streamErrorUnavailable": "对话服务暂时不可用，请稍后再试或检查站点配置。",
+    "streamErrorBadRequest": "请求无法处理，可尝试缩短内容或通过「重新设定」更新 USER 后再试。",
+    "streamErrorNetwork": "网络异常，请检查连接后重试。"
   },
   "tokens": {
     "pageTitle": "API tokens",
