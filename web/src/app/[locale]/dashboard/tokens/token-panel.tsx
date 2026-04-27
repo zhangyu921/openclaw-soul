@@ -95,9 +95,7 @@ export default function TokenPanel({
 
   return (
     <div className="mx-auto max-w-lg pb-10">
-      <div className="mb-8">
-        <h1 className="font-heading text-2xl font-bold tracking-tight">{t("pageTitle")}</h1>
-      </div>
+      <h1 className="mb-8 font-heading text-2xl font-bold tracking-tight">{t("pageTitle")}</h1>
 
       {!handleDone ? (
         <Card className="mb-8 border-primary/20 bg-primary/5 shadow-sm ring-1 ring-primary/15">

@@ -25,6 +25,7 @@
     "navMySouls": "Your Souls",
     "navApiTokens": "API tokens",
     "navAriaLabel": "Dashboard",
+    "navLogOut": "Log out",
     "backToGallery": "← Back to gallery",
     "pageTitle": "Your Souls",
     "handleCardTitle": "Public handle required",
@@ -57,7 +58,8 @@
     "removeCancel": "Cancel",
     "removeConfirm": "Remove",
     "removeLoading": "Removing…",
-    "removeErrorFailed": "Could not remove"
+    "removeErrorFailed": "Could not remove",
+    "logOut": "Log out"
   },
   "packChat": {
     "emptyTitle": "Start the conversation",
@@ -116,7 +118,6 @@
   "tokens": {
     "pageTitle": "API tokens",
     "metaDescription": "Manage your public handle and CLI tokens for OpenClaw Soul.",
-    "logOut": "Log out",
     "handleCardTitle": "Set your public handle",
     "handleCardBody": "A unique handle is required for Soul URLs and publishing (lowercase letters, digits, hyphens; set once).",
     "handleLabel": "Handle",
