@@ -58,7 +58,8 @@
     "removeCancel": "取消",
     "removeConfirm": "移除",
     "removeLoading": "移除中…",
-    "removeErrorFailed": "移除失败"
+    "removeErrorFailed": "移除失败",
+    "logOut": "退出登录"
   },
   "packChat": {
     "emptyTitle": "发送第一条消息开始",
@@ -117,7 +118,6 @@
   "tokens": {
     "pageTitle": "API tokens",
     "metaDescription": "管理公开 handle 与 OpenClaw Soul 的 CLI token。",
-    "logOut": "退出登录",
     "handleCardTitle": "设置公开 handle",
     "handleCardBody": "发布 Soul 与 URL 需要唯一 handle；小写字母、数字、连字符，仅可设一次。",
     "handleLabel": "Handle",
