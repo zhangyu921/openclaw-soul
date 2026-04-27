@@ -1,3 +1,8 @@
+---
+name: /harness-go
+description: Single-tick execution protocol for harness-go — one highest-priority action per invocation
+---
+
 # HARNESS-GO SPEC
 
 定义 `/harness-go` 的单轮执行协议（"tick"）。每次调用做**一个**最高优先级动作。
