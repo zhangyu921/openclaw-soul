@@ -45,7 +45,7 @@ export function DashboardNav() {
             );
           })}
         </div>
-        <Button type="button" variant="ghost" size="sm" onClick={() => logout()}>
+        <Button type="button" variant="ghost" size="sm" className="cursor-pointer" onClick={() => logout()}>
           {t("logOut")}
         </Button>
       </div>
