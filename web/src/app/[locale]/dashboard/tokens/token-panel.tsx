@@ -71,12 +71,6 @@ export default function TokenPanel({
     }
   }
 
-  async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/");
-    router.refresh();
-  }
-
   async function saveHandle() {
     setHandleError(null);
     setHandleSaving(true);
@@ -101,12 +95,7 @@ export default function TokenPanel({
 
   return (
     <div className="mx-auto max-w-lg pb-10">
-      <div className="mb-8 flex items-center justify-between gap-4">
-        <h1 className="font-heading text-2xl font-bold tracking-tight">{t("pageTitle")}</h1>
-        <Button type="button" variant="ghost" size="sm" onClick={() => logout()}>
-          {t("logOut")}
-        </Button>
-      </div>
+      <h1 className="mb-8 font-heading text-2xl font-bold tracking-tight">{t("pageTitle")}</h1>
 
       {!handleDone ? (
         <Card className="mb-8 border-primary/20 bg-primary/5 shadow-sm ring-1 ring-primary/15">

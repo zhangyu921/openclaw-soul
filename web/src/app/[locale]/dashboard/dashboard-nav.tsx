@@ -2,8 +2,9 @@
 
 import { useTranslations } from "next-intl";
 
-import { Link, usePathname } from "@/i18n/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -13,11 +14,18 @@ const items = [
 
 export function DashboardNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const t = useTranslations("dashboard");
+
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/");
+    router.refresh();
+  }
 
   return (
     <nav className="mb-8 border-b border-border/60" aria-label={t("navAriaLabel")}>
-      <div className="mx-auto flex w-full max-w-lg flex-wrap gap-1">
+      <div className="mx-auto flex w-full max-w-lg flex-wrap items-center gap-1">
         {items.map(({ href, labelKey }) => {
           const active = pathname === href;
           return (
@@ -35,6 +43,11 @@ export function DashboardNav() {
             </Link>
           );
         })}
+        <div className="ml-auto">
+          <Button type="button" variant="ghost" size="sm" onClick={() => logout()}>
+            {t("navLogOut")}
+          </Button>
+        </div>
       </div>
     </nav>
   );
