@@ -2,18 +2,18 @@
 
 跨 chat 恢复的唯一入口。新对话只需读此文件 + ROADMAP 即可继续。
 
-更新日期：2026-04-27
+更新日期：2026-04-28
 
 ---
 
 ## 1) 全局状态
 
 - **PR cap**：3
-- **开放 PR 数**：0（推测；gh auth 过期无法确认）
+- **开放 PR 数**：0
 - **IDEAS-INBOX 已读行数**：38
-- **上次 tick**：2026-04-27 — logout button 迁移任务（`wanman/logout-btn-dashboard-nav`）代码完成，3 commits 已 push；`pnpm test`（85 pass）/ web typecheck / build 全部通过
-- **gh auth 阻断**：`gh auth login` 需要交互式重认证，当前无法创建 PR / 查询 PR 状态
-- **下一 tick 建议**：修复 gh auth → 为 logout button 创建 PR；择期推进 **P2-F 画廊检索** 或 **API route 测试覆盖**（pack CRUD/chat 路由 0 覆盖）
+- **上次 tick**：2026-04-28 — **P2-V-1** 已合并（#20），Dashboard nav 登出按钮 + cursor-pointer
+- **gh auth 阻断**（如仍存在）：`gh auth login` 需交互时，本机可能无法自动 `gh pr`；手动在 GitHub 上操作即可
+- **下一 tick 建议**：择期推进 **P2-F 画廊检索** 或 **API route 测试覆盖**（pack CRUD/chat 路由 0 覆盖）
 
 ---
 
@@ -38,13 +38,9 @@
 | P2-S-1 | 详情 hero apply 复制 + CLI 文案 | ✅ done | — | #17 (merged) | `docs/harness/task-p2-s-1.md` |
 | P2-T-1 | 画廊查看次数 | ✅ done | — | #18 (merged) | `docs/harness/task-p2-t-1.md` |
 | P2-U-1 | 全站 favicon 与 Header 品牌标统一 | ✅ done | — | — | `docs/harness/task-p2-u-1.md` |
-| P5 | 退出登录按钮移到 dashboard 导航栏 | 🚧 in_progress | `wanman/logout-btn-dashboard-nav` | 待创建（gh auth 阻断） | capsule `b77c324c`，3 commits 已 push |
+| P2-V-1 | Dashboard nav 登出按钮 + cursor-pointer | ✅ done | — | #20 (merged) | — |
 
 ---
-
-## 3) 阻断项
-
-- **gh auth 过期**：2026-04-27 检测到 `gh auth status` 失败（token invalid），需交互式 `gh auth login -h github.com`。影响：无法创建 PR、无法查询 PR 状态。
 
 ---
 
