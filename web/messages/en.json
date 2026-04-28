@@ -247,7 +247,24 @@
     "avatarTitle": "Change avatar",
     "avatarBody": "PNG, JPEG, GIF, or WebP. We compress in your browser before upload (512 KiB cap on the server).",
     "avatarPick": "Choose image",
-    "avatarSaved": "Saved."
+    "avatarSaved": "Saved.",
+    "forkFromIntro": "Forked from"
+  },
+  "packFork": {
+    "button": "Fork",
+    "dialogTitle": "Fork this Soul",
+    "dialogDescription": "Creates an unlisted copy under your account. Pick a new slug—you can edit and list it later.",
+    "slugLabel": "New slug",
+    "slugPlaceholder": "my-copy",
+    "slugEmpty": "Enter a slug.",
+    "slugTaken": "You already have a Soul with this slug.",
+    "invalidSlug": "Invalid slug (lowercase letters, digits, hyphens only).",
+    "rateLimited": "Too many attempts. Try again later.",
+    "failed": "Could not fork. Try again.",
+    "badResponse": "Unexpected response from the server.",
+    "cancel": "Cancel",
+    "submit": "Create fork",
+    "submitting": "Forking…"
   },
   "packFiles": {
     "cardTitle": "Files in this Soul",
