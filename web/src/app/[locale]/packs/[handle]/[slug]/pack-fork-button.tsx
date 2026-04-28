@@ -85,18 +85,20 @@ export default function PackForkButton({
     <>
       <TooltipProvider delay={250}>
         <Tooltip>
-          <TooltipTrigger>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="shrink-0 gap-1 text-muted-foreground"
-              onClick={() => setOpen(true)}
-            >
-              <GitFork className="size-4" aria-hidden />
-              {t("button")}
-            </Button>
-          </TooltipTrigger>
+          <TooltipTrigger
+            render={
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="shrink-0 gap-1 text-muted-foreground"
+                onClick={() => setOpen(true)}
+              >
+                <GitFork className="size-4" aria-hidden />
+                {t("button")}
+              </Button>
+            }
+          />
           <TooltipContent side="bottom" align="end">
             <p className="text-pretty">
               {t("buttonTooltip", {
