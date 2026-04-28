@@ -7,10 +7,15 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -78,16 +83,30 @@ export default function PackForkButton({
 
   return (
     <>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="gap-1.5 self-start sm:self-auto sm:shrink-0"
-        onClick={() => setOpen(true)}
-      >
-        <GitFork className="size-3.5" aria-hidden />
-        {t("button")}
-      </Button>
+      <TooltipProvider delay={250}>
+        <Tooltip>
+          <TooltipTrigger>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="shrink-0 gap-1 text-muted-foreground"
+              onClick={() => setOpen(true)}
+            >
+              <GitFork className="size-4" aria-hidden />
+              {t("button")}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" align="end">
+            <p className="text-pretty">
+              {t("buttonTooltip", {
+                handle: sourceHandle,
+                slug: sourceSlug,
+              })}
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <Dialog
         open={open}
         onOpenChange={(next) => {
@@ -103,28 +122,51 @@ export default function PackForkButton({
             <DialogTitle>{t("dialogTitle")}</DialogTitle>
             <DialogDescription>{t("dialogDescription")}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground" htmlFor="fork-slug">
-              {t("slugLabel")}
-            </label>
-            <Input
-              id="fork-slug"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              placeholder={t("slugPlaceholder")}
-              autoComplete="off"
-              spellCheck={false}
-            />
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <label
+                className="text-sm font-medium text-foreground"
+                htmlFor="fork-slug"
+              >
+                {t("slugLabel")}
+              </label>
+              <Input
+                id="fork-slug"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder={t("slugPlaceholder")}
+                className="font-mono text-sm"
+                autoComplete="off"
+                spellCheck={false}
+                disabled={loading}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void submit();
+                }}
+              />
+              {error ? (
+                <p className="text-sm text-destructive" role="alert">
+                  {error}
+                </p>
+              ) : null}
+            </div>
+            <div className="flex flex-wrap justify-end gap-2 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={loading}
+                onClick={() => setOpen(false)}
+              >
+                {t("cancel")}
+              </Button>
+              <Button
+                type="button"
+                disabled={loading}
+                onClick={() => void submit()}
+              >
+                {loading ? t("submitting") : t("submit")}
+              </Button>
+            </div>
           </div>
-          <DialogFooter className="border-0 bg-transparent p-0 sm:justify-end">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              {t("cancel")}
-            </Button>
-            <Button type="button" disabled={loading} onClick={() => void submit()}>
-              {loading ? t("submitting") : t("submit")}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

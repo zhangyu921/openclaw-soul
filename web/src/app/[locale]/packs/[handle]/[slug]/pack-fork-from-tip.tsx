@@ -1,7 +1,7 @@
 import { Link } from "@/i18n/navigation";
 
 /**
- * GitHub-style fork lineage for Souls forked from another listing (author-visible).
+ * Subtle fork lineage (author-visible), pairs with top nav row.
  */
 export default function PackForkFromTip({
   intro,
@@ -16,18 +16,20 @@ export default function PackForkFromTip({
 }) {
   const refText = `${forkedFromHandle}/${forkedFromSlug}`;
   return (
-    <div className="mb-5 rounded-lg border border-border/60 bg-muted/25 px-3 py-2 text-sm text-muted-foreground">
-      <span>{intro} </span>
+    <p className="text-right text-xs leading-snug text-muted-foreground/75">
+      <span className="whitespace-nowrap">{intro} </span>
       {sourceLinkable ? (
         <Link
-          className="font-mono text-foreground underline-offset-4 hover:text-primary hover:underline"
+          className="break-all font-mono text-[0.8125rem] text-muted-foreground/90 underline-offset-2 hover:text-foreground/80 hover:underline"
           href={`/packs/${encodeURIComponent(forkedFromHandle)}/${encodeURIComponent(forkedFromSlug)}`}
         >
           {refText}
         </Link>
       ) : (
-        <span className="font-mono text-foreground/90">{refText}</span>
+        <span className="break-all font-mono text-[0.8125rem] text-muted-foreground/85">
+          {refText}
+        </span>
       )}
-    </div>
+    </p>
   );
 }

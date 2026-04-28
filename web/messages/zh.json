@@ -252,6 +252,7 @@
   },
   "packFork": {
     "button": "Fork",
+    "buttonTooltip": "Fork {handle}/{slug} 属于你账号下的未公开副本",
     "dialogTitle": "Fork 此 Soul",
     "dialogDescription": "在你的账号下创建一份副本（默认未公开）。填写新的 slug，之后可随时编辑并上架。",
     "slugLabel": "新 slug",

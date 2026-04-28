@@ -252,6 +252,7 @@
   },
   "packFork": {
     "button": "Fork",
+    "buttonTooltip": "Fork your own copy of {handle}/{slug}",
     "dialogTitle": "Fork this Soul",
     "dialogDescription": "Creates an unlisted copy under your account. Pick a new slug—you can edit and list it later.",
     "slugLabel": "New slug",

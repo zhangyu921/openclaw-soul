@@ -147,23 +147,42 @@ export default async function PackDetailPage({ params }: Props) {
   const showForkButton =
     Boolean(userId) && !isAuthor && isListed && !pack.authorDashboardHiddenAt;
 
+  const forkTipVisible =
+    isAuthor &&
+    Boolean(pack.forkedFromHandle?.trim()) &&
+    Boolean(pack.forkedFromSlug?.trim());
+
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
-      <Button variant="ghost" size="sm" className="mb-6 gap-1 text-muted-foreground" render={<Link href="/" />}>
-        <ArrowLeft className="size-4" aria-hidden />
-        {t("backToGallery")}
-      </Button>
-
-      {isAuthor &&
-      pack.forkedFromHandle?.trim() &&
-      pack.forkedFromSlug?.trim() ? (
-        <PackForkFromTip
-          intro={t("forkFromIntro")}
-          forkedFromHandle={pack.forkedFromHandle.trim()}
-          forkedFromSlug={pack.forkedFromSlug.trim()}
-          sourceLinkable={forkSourceLinkable}
-        />
-      ) : null}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1 text-muted-foreground"
+          render={<Link href="/" />}
+        >
+          <ArrowLeft className="size-4" aria-hidden />
+          {t("backToGallery")}
+        </Button>
+        {forkTipVisible || showForkButton ? (
+          <div className="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-x-3 gap-y-1 sm:max-w-[min(100%,24rem)]">
+            {forkTipVisible ? (
+              <PackForkFromTip
+                intro={t("forkFromIntro")}
+                forkedFromHandle={pack.forkedFromHandle!.trim()}
+                forkedFromSlug={pack.forkedFromSlug!.trim()}
+                sourceLinkable={forkSourceLinkable}
+              />
+            ) : null}
+            {showForkButton ? (
+              <PackForkButton
+                sourceHandle={pack.author.handle}
+                sourceSlug={pack.slug}
+              />
+            ) : null}
+          </div>
+        ) : null}
+      </div>
 
       <Card className="overflow-hidden border-0 shadow-lg ring-1 ring-border/80">
         <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-start">
@@ -186,14 +205,8 @@ export default async function PackDetailPage({ params }: Props) {
               initialSummary={pack.summary}
               isAuthor={isAuthor}
             />
-            <div className="mt-3 flex flex-col gap-2">
+            <div className="mt-3">
               <PackApplyCommand handle={pack.author.handle} slug={pack.slug} />
-              {showForkButton ? (
-                <PackForkButton
-                  sourceHandle={pack.author.handle}
-                  sourceSlug={pack.slug}
-                />
-              ) : null}
             </div>
           </div>
         </div>
