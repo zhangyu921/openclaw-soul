@@ -28,6 +28,8 @@ import PackRevokeButton from "./pack-revoke";
 import PackSummaryEdit from "./pack-summary-edit";
 import PackTitleEdit from "./pack-title-edit";
 import PackChat from "./pack-chat";
+import PackForkButton from "./pack-fork-button";
+import PackForkFromTip from "./pack-fork-from-tip";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +72,9 @@ export default async function PackDetailPage({ params }: Props) {
       authorDashboardHiddenAt: true,
       showcaseMd: true,
       showcaseImageRefs: true,
+      forkedFromPackId: true,
+      forkedFromHandle: true,
+      forkedFromSlug: true,
       author: { select: { handle: true } },
       markdownFiles: { select: { path: true } },
       binaryFiles: { select: { path: true } },
@@ -115,12 +120,69 @@ export default async function PackDetailPage({ params }: Props) {
     r.width && r.height && r.width > 0 && r.height > 0 ? r.width / r.height : null
   );
 
+  let forkSourceLinkable = false;
+  if (
+    pack.forkedFromHandle?.trim() &&
+    pack.forkedFromSlug?.trim() &&
+    pack.forkedFromPackId
+  ) {
+    const src = await prisma.pack.findUnique({
+      where: { id: pack.forkedFromPackId },
+      select: {
+        visibility: true,
+        authorDashboardHiddenAt: true,
+        slug: true,
+        author: { select: { handle: true } },
+      },
+    });
+    forkSourceLinkable = Boolean(
+      src &&
+        src.visibility === PackVisibility.LISTED &&
+        !src.authorDashboardHiddenAt &&
+        src.slug.trim() === pack.forkedFromSlug!.trim() &&
+        src.author.handle?.trim() === pack.forkedFromHandle!.trim()
+    );
+  }
+
+  const showForkButton =
+    Boolean(userId) && !isAuthor && isListed && !pack.authorDashboardHiddenAt;
+
+  const forkTipVisible =
+    isAuthor &&
+    Boolean(pack.forkedFromHandle?.trim()) &&
+    Boolean(pack.forkedFromSlug?.trim());
+
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
-      <Button variant="ghost" size="sm" className="mb-6 gap-1 text-muted-foreground" render={<Link href="/" />}>
-        <ArrowLeft className="size-4" aria-hidden />
-        {t("backToGallery")}
-      </Button>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1 text-muted-foreground"
+          render={<Link href="/" />}
+        >
+          <ArrowLeft className="size-4" aria-hidden />
+          {t("backToGallery")}
+        </Button>
+        {forkTipVisible || showForkButton ? (
+          <div className="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-x-3 gap-y-1 sm:max-w-[min(100%,24rem)]">
+            {forkTipVisible ? (
+              <PackForkFromTip
+                intro={t("forkFromIntro")}
+                forkedFromHandle={pack.forkedFromHandle!.trim()}
+                forkedFromSlug={pack.forkedFromSlug!.trim()}
+                sourceLinkable={forkSourceLinkable}
+              />
+            ) : null}
+            {showForkButton ? (
+              <PackForkButton
+                sourceHandle={pack.author.handle}
+                sourceSlug={pack.slug}
+              />
+            ) : null}
+          </div>
+        ) : null}
+      </div>
 
       <Card className="overflow-hidden border-0 shadow-lg ring-1 ring-border/80">
         <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-start">
@@ -143,7 +205,9 @@ export default async function PackDetailPage({ params }: Props) {
               initialSummary={pack.summary}
               isAuthor={isAuthor}
             />
-            <PackApplyCommand handle={pack.author.handle} slug={pack.slug} />
+            <div className="mt-3">
+              <PackApplyCommand handle={pack.author.handle} slug={pack.slug} />
+            </div>
           </div>
         </div>
       </Card>

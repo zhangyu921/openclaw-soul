@@ -247,7 +247,25 @@
     "avatarTitle": "更换头像",
     "avatarBody": "支持 PNG / JPEG / GIF / WebP。会在你的浏览器里先压缩再上传（服务端上限 512 KiB）。",
     "avatarPick": "选择图片",
-    "avatarSaved": "已保存。"
+    "avatarSaved": "已保存。",
+    "forkFromIntro": "Fork 自"
+  },
+  "packFork": {
+    "button": "Fork",
+    "buttonTooltip": "Fork {handle}/{slug} 属于你账号下的未公开副本",
+    "dialogTitle": "Fork 此 Soul",
+    "dialogDescription": "在你的账号下创建一份副本（默认未公开）。填写新的 slug，之后可随时编辑并上架。",
+    "slugLabel": "新 slug",
+    "slugPlaceholder": "my-copy",
+    "slugEmpty": "请填写 slug。",
+    "slugTaken": "你已有一个使用该 slug 的 Soul。",
+    "invalidSlug": "slug 无效（仅小写字母、数字与短横线）。",
+    "rateLimited": "请求过多，请稍后再试。",
+    "failed": "Fork 失败，请重试。",
+    "badResponse": "服务端响应异常。",
+    "cancel": "取消",
+    "submit": "创建 Fork",
+    "submitting": "Fork 中…"
   },
   "packFiles": {
     "cardTitle": "Soul 内文件",
