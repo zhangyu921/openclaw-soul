@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 
 export default function PackForkButton({
   sourceHandle,
@@ -125,26 +125,30 @@ export default function PackForkButton({
             <DialogTitle>{t("dialogTitle")}</DialogTitle>
             <DialogDescription>{t("dialogDescription")}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
+          <div className="space-y-3">
             <label
               className="text-sm font-medium text-foreground"
               htmlFor="fork-slug"
             >
               {t("slugLabel")}
             </label>
-            <Input
-              id="fork-slug"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              placeholder={t("slugPlaceholder")}
-              className="font-mono text-sm"
-              autoComplete="off"
-              spellCheck={false}
-              disabled={loading}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") void submit();
-              }}
-            />
+            <InputGroup>
+              <InputGroupAddon align="inline-start" className="font-mono text-sm text-muted-foreground">
+                {sourceHandle}/
+              </InputGroupAddon>
+              <InputGroupInput
+                id="fork-slug"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder={t("slugPlaceholder")}
+                autoComplete="off"
+                spellCheck={false}
+                disabled={loading}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void submit();
+                }}
+              />
+            </InputGroup>
             {error ? (
               <p className="text-sm text-destructive" role="alert">
                 {error}
