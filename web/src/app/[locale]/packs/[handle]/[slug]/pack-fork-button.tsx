@@ -23,9 +23,11 @@ import {
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 
 export default function PackForkButton({
+  userHandle,
   sourceHandle,
   sourceSlug,
 }: {
+  userHandle?: string;
   sourceHandle: string;
   sourceSlug: string;
 }) {
@@ -134,7 +136,7 @@ export default function PackForkButton({
             </label>
             <InputGroup>
               <InputGroupAddon align="inline-start" className="font-mono text-sm text-muted-foreground">
-                {sourceHandle}/
+                {userHandle ?? sourceHandle}/
               </InputGroupAddon>
               <InputGroupInput
                 id="fork-slug"

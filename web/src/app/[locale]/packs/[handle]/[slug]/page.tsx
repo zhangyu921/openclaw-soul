@@ -81,6 +81,9 @@ export default async function PackDetailPage({ params }: Props) {
     },
   });
   if (!pack || !pack.author.handle) notFound();
+  const currentUser = userId
+    ? await prisma.user.findUnique({ where: { id: userId }, select: { handle: true } })
+    : null;
   const isAuthor = Boolean(userId && pack.authorId === userId);
   if (pack.authorDashboardHiddenAt && !isAuthor) notFound();
   if (pack.visibility === PackVisibility.UNLISTED && !isAuthor) notFound();
@@ -176,6 +179,7 @@ export default async function PackDetailPage({ params }: Props) {
             ) : null}
             {showForkButton ? (
               <PackForkButton
+                userHandle={currentUser?.handle ?? undefined}
                 sourceHandle={pack.author.handle}
                 sourceSlug={pack.slug}
               />
