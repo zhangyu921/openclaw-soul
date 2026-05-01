@@ -60,7 +60,7 @@ function PackChatUserDialogForm({
           </p>
         </div>
       </div>
-      <DialogFooter className="shrink-0 border-t px-6 py-4">
+      <DialogFooter className="mx-0 mb-0 shrink-0 border-t px-6 py-4 rounded-t-none">
         <Button
           type="button"
           variant="outline"

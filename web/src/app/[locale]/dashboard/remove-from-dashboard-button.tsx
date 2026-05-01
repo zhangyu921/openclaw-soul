@@ -69,7 +69,9 @@ export default function RemoveFromDashboardButton({ handle, slug }: Props) {
         <DialogContent showCloseButton>
           <DialogHeader>
             <DialogTitle>{t("removeDialogTitle")}</DialogTitle>
-            <DialogDescription>{t("removeDialogDescription", { path: `${handle}/${slug}` })}</DialogDescription>
+            <DialogDescription>
+              {t("removeDialogDescription", { path: `${handle}/${slug}` })}
+            </DialogDescription>
           </DialogHeader>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
           <DialogFooter className="gap-2 sm:gap-0">
