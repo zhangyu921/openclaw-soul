@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
 
 export default function PackForkButton({
   userHandle,
@@ -95,7 +95,11 @@ export default function PackForkButton({
                 variant="ghost"
                 size="sm"
                 className="shrink-0 gap-1 text-muted-foreground"
-                onClick={() => setOpen(true)}
+                onClick={() => {
+                  setSlug(sourceSlug);
+                  setError(null);
+                  setOpen(true);
+                }}
               >
                 <GitFork className="size-4" aria-hidden />
                 {t("button")}
@@ -116,9 +120,7 @@ export default function PackForkButton({
         open={open}
         onOpenChange={(next) => {
           setOpen(next);
-          if (next) {
-            setSlug(sourceSlug);
-          } else {
+          if (!next) {
             setError(null);
             setSlug("");
           }
@@ -138,13 +140,13 @@ export default function PackForkButton({
             </label>
             <InputGroup>
               <InputGroupAddon align="inline-start" className="font-mono text-sm text-muted-foreground/50">
-                {userHandle ?? sourceHandle}/
+                {userHandle ?? sourceHandle}
               </InputGroupAddon>
+              <InputGroupText className="text-muted-foreground/50">/</InputGroupText>
               <InputGroupInput
                 id="fork-slug"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
-                placeholder={sourceSlug}
                 autoComplete="off"
                 spellCheck={false}
                 disabled={loading}
