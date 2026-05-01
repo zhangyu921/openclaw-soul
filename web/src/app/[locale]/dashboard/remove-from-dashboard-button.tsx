@@ -7,15 +7,13 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type Props = {
   handle: string;
@@ -67,29 +65,25 @@ export default function RemoveFromDashboardButton({ handle, slug }: Props) {
       >
         <Trash2 className="size-4" aria-hidden />
       </Button>
-      <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("removeDialogTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent showCloseButton>
+          <DialogHeader>
+            <DialogTitle>{t("removeDialogTitle")}</DialogTitle>
+            <DialogDescription>
               {t("removeDialogDescription", { path: `${handle}/${slug}` })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </DialogDescription>
+          </DialogHeader>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={loading}>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
               {t("removeCancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={loading}
-              onClick={() => void confirmRemove()}
-            >
+            </Button>
+            <Button type="button" variant="destructive" onClick={() => void confirmRemove()} disabled={loading}>
               {loading ? t("removeLoading") : t("removeConfirm")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
