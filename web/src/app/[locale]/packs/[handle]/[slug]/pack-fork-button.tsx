@@ -116,7 +116,9 @@ export default function PackForkButton({
         open={open}
         onOpenChange={(next) => {
           setOpen(next);
-          if (!next) {
+          if (next) {
+            setSlug(sourceSlug);
+          } else {
             setError(null);
             setSlug("");
           }
@@ -135,14 +137,14 @@ export default function PackForkButton({
               {t("slugLabel")}
             </label>
             <InputGroup>
-              <InputGroupAddon align="inline-start" className="font-mono text-sm text-muted-foreground">
+              <InputGroupAddon align="inline-start" className="font-mono text-sm text-muted-foreground/50">
                 {userHandle ?? sourceHandle}/
               </InputGroupAddon>
               <InputGroupInput
                 id="fork-slug"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
-                placeholder={t("slugPlaceholder")}
+                placeholder={sourceSlug}
                 autoComplete="off"
                 spellCheck={false}
                 disabled={loading}
