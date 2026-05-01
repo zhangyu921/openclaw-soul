@@ -16,6 +16,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -124,51 +125,49 @@ export default function PackForkButton({
             <DialogTitle>{t("dialogTitle")}</DialogTitle>
             <DialogDescription>{t("dialogDescription")}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <label
-                className="text-sm font-medium text-foreground"
-                htmlFor="fork-slug"
-              >
-                {t("slugLabel")}
-              </label>
-              <Input
-                id="fork-slug"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder={t("slugPlaceholder")}
-                className="font-mono text-sm"
-                autoComplete="off"
-                spellCheck={false}
-                disabled={loading}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") void submit();
-                }}
-              />
-              {error ? (
-                <p className="text-sm text-destructive" role="alert">
-                  {error}
-                </p>
-              ) : null}
-            </div>
-            <div className="flex flex-wrap justify-end gap-2 pt-1">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={loading}
-                onClick={() => setOpen(false)}
-              >
-                {t("cancel")}
-              </Button>
-              <Button
-                type="button"
-                disabled={loading}
-                onClick={() => void submit()}
-              >
-                {loading ? t("submitting") : t("submit")}
-              </Button>
-            </div>
+          <div className="space-y-2">
+            <label
+              className="text-sm font-medium text-foreground"
+              htmlFor="fork-slug"
+            >
+              {t("slugLabel")}
+            </label>
+            <Input
+              id="fork-slug"
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              placeholder={t("slugPlaceholder")}
+              className="font-mono text-sm"
+              autoComplete="off"
+              spellCheck={false}
+              disabled={loading}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void submit();
+              }}
+            />
+            {error ? (
+              <p className="text-sm text-destructive" role="alert">
+                {error}
+              </p>
+            ) : null}
           </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={loading}
+              onClick={() => setOpen(false)}
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              type="button"
+              disabled={loading}
+              onClick={() => void submit()}
+            >
+              {loading ? t("submitting") : t("submit")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
