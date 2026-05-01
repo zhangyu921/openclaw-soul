@@ -25,3 +25,5 @@ docs/superpowers/experiment-log.md
 # Claude Code 个人配置（技能、记忆、本地覆盖）
 .claude/memory/
 .claude/settings.local.json
+.claude/worktrees/
+.claude/skills/
