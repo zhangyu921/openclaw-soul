@@ -21,7 +21,7 @@
 |---|---|---|---|
 | ✅ | P2-E-1 | Header 品牌与首屏视觉最小改造 | [`docs/harness/task-p2-e-1.md`](harness/task-p2-e-1.md) |
 |    | P2-F-1 | 画廊检索 MVP（延期；后续走数据库检索方案） | [`docs/harness/task-p2-f-1.md`](harness/task-p2-f-1.md) |
-| ✅ | P2-G-1 | 登录入口整合：GitHub 主入口 + 邮箱分流 /register | [`docs/HARNESS-TASK-P2-G-1.md`](HARNESS-TASK-P2-G-1.md) |
+| ✅ | P2-G-1 | 登录入口整合：GitHub 主入口 + 邮箱分流 /register | [`docs/harness/task-p2-g-1.md`](harness/task-p2-g-1.md) |
 | ✅ | P2-H-1 | 创建 pack 后自动跳转详情页 | [`docs/harness/task-p2-h-1.md`](harness/task-p2-h-1.md) |
 | ✅ | P2-I-1 | Soul 对话本地缓存 + 新对话按钮 | [`docs/harness/task-p2-i-1.md`](harness/task-p2-i-1.md) |
 | ✅ | P2-J-1 | Bug: 头像二次上传后页面未刷新 | [`docs/harness/task-p2-j-1.md`](harness/task-p2-j-1.md) |
