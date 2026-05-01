@@ -21,3 +21,7 @@ docs/superpowers/experiment-log.md
 # Superpowers 插件本地会话 / brainstorm 产物
 .superpowers/
 .wanman/
+
+# Claude Code 个人配置（技能、记忆、本地覆盖）
+.claude/memory/
+.claude/settings.local.json
