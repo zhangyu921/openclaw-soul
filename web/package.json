@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "portless",
+    "dev:app": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
     "test": "vitest run",
@@ -87,6 +88,11 @@
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "portless": "^0.13.0"
+  },
+  "portless": {
+    "name": "openclaw-soul",
+    "script": "dev:app"
   }
 }

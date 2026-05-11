@@ -24,7 +24,7 @@ Web：**Prisma ORM 7** + **PostgreSQL**（`docker-compose.yml` 将容器 `5432` 
 
 生产部署见 [`DEPLOY.md`](DEPLOY.md)。产品与路线图见 [`ROADMAP.md`](ROADMAP.md)。
 
-打开 http://localhost:3000 — **注册时需填写 public handle**（全站唯一，用于 `/packs/<handle>/<slug>` 与 CLI `apply`）。**在 monorepo 根目录**（无需先 `cd packages/cli`、也无需先 build CLI）：
+默认 `pnpm run dev` 经 **[portless](https://github.com/vercel-labs/portless)** 提供稳定域名：**https://openclaw-soul.localhost**（首次可能提示信任本地 CA、`sudo` 绑定 443）。不需要 portless 时：`pnpm --filter @openclaw-soul/web run dev:app` 仍为 **http://localhost:3000**。**注册时需填写 public handle**（全站唯一，用于 `/packs/<handle>/<slug>` 与 CLI `apply`）。**在 monorepo 根目录**（无需先 `cd packages/cli`、也无需先 build CLI）：
 
 ### Pack 即时 chat（详情页）
 

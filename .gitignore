@@ -24,3 +24,5 @@ docs/superpowers/experiment-log.md
 
 # Claude Code 个人配置
 .claude/
+
+.idea/
