@@ -9,11 +9,11 @@
 ## 1) 全局状态
 
 - **PR cap**：3
-- **开放 PR 数**：1（#24）
+- **开放 PR 数**：0
 - **IDEAS-INBOX 已读行数**：38
-- **上次 tick**：2026-05-15 — P2-V-1 已在 #20 合并；新建 PR #24（Vitest coverage + API packs 测试）
+- **上次 tick**：2026-05-15 — P2-V-1 已在 #20 合并；PR #24 已关闭（无实质变更）
 - **gh auth**：正常
-- **下一 tick 建议**：若 #24 通过 review → P0 合并；否则推进 P2-F 画廊检索
+- **下一 tick 建议**：推进 P2-F 画廊检索
 
 ---
 
@@ -39,7 +39,6 @@
 | P2-T-1 | 画廊查看次数 | ✅ done | — | #18 (merged) | `docs/harness/task-p2-t-1.md` |
 | P2-U-1 | 全站 favicon 与 Header 品牌标统一 | ✅ done | — | — | `docs/harness/task-p2-u-1.md` |
 | P2-V-1 | Dashboard nav 登出按钮 + cursor-pointer | ✅ done | — | #20 (merged) | — |
-| P2-W-1 | Vitest coverage + API packs 路由测试 | 👀 needs_review | `wanman/logout-btn-dashboard-nav` | #24 | — |
 
 ---
 

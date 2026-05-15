@@ -37,7 +37,6 @@
 | ✅ | P2-T-1 | 画廊：Soul 查看/预览次数统计（列表 card 标题行右侧，>10 次展示） | [`docs/harness/task-p2-t-1.md`](harness/task-p2-t-1.md) |
 | ✅ | P2-U-1 | 全站 favicon：与 Header 品牌标共用的矢量标（SVG，metadata） | [`docs/harness/task-p2-u-1.md`](harness/task-p2-u-1.md) |
 | ✅ | P2-V-1 | Dashboard nav 登出按钮 + cursor-pointer | — |
-| 👀 | P2-W-1 | Vitest coverage + API packs 路由测试 | — |
 
 约束：一任务一 commit（小任务）或一分支一 PR（大任务）；开放 PR ≥ 3 时不开新任务。
 
@@ -95,7 +94,6 @@
 | ✅ | P2-T | 画廊互动指标 | Soul 被查看次数等在列表 card 展示（P2-T-1 / #18 已合并）。 |
 | ✅ | P2-U | 品牌 favicon | Header 与站点 icon 共用 `brand-mark.svg`（P2-U-1）。 |
 | ✅ | P2-V | Dashboard nav 登出 | 侧栏/导航登出入口与可点击态（P2-V-1 / #20 已合并）。 |
-| 👀 | P2-W | Vitest coverage + API 测试 | web 包接入 @vitest/coverage-v8 + /api/packs 路由测试（#24）。 |
 
 ## P3
 
