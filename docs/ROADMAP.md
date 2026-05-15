@@ -21,10 +21,6 @@
 |---|---|---|---|
 | ✅ | P2-E-1 | Header 品牌与首屏视觉最小改造 | [`docs/harness/task-p2-e-1.md`](harness/task-p2-e-1.md) |
 |    | P2-F-1 | 画廊检索 MVP（延期；后续走数据库检索方案） | [`docs/harness/task-p2-f-1.md`](harness/task-p2-f-1.md) |
-|    | P2-W-1 | Chat 预设场景模板：替代空白 USER.md 弹窗 | — |
-|    | P2-X-1 | Guest 免登录限次体验（N 条后引导注册） | — |
-|    | P2-Y-1 | ChatThread 持久化：服务端保存对话历史 | — |
-|    | P2-Z-1 | 独立聊天页 `/packs/{handle}/{slug}/chat` | — |
 | ✅ | P2-G-1 | 登录入口整合：GitHub 主入口 + 邮箱分流 /register | [`docs/harness/task-p2-g-1.md`](harness/task-p2-g-1.md) |
 | ✅ | P2-H-1 | 创建 pack 后自动跳转详情页 | [`docs/harness/task-p2-h-1.md`](harness/task-p2-h-1.md) |
 | ✅ | P2-I-1 | Soul 对话本地缓存 + 新对话按钮 | [`docs/harness/task-p2-i-1.md`](harness/task-p2-i-1.md) |
@@ -98,10 +94,6 @@
 | ✅ | P2-T | 画廊互动指标 | Soul 被查看次数等在列表 card 展示（P2-T-1 / #18 已合并）。 |
 | ✅ | P2-U | 品牌 favicon | Header 与站点 icon 共用 `brand-mark.svg`（P2-U-1）。 |
 | ✅ | P2-V | Dashboard nav 登出 | 侧栏/导航登出入口与可点击态（P2-V-1 / #20 已合并）。 |
-|    | P2-W | Chat 预设场景 | USER.md 弹窗改为场景卡片选择（倾诉/创作/讨论/自定义）。 |
-|    | P2-X | Guest 免登录 | 未登录可发 N 条消息，限额后引导注册；会话可继承。 |
-|    | P2-Y | ChatThread 持久化 | 对话线程 + 消息落库，跨设备同步，localStorage 降级为缓存。 |
-|    | P2-Z | 独立聊天页 | `/packs/{handle}/{slug}/chat` 全屏聊天，可分享链接直达。 |
 
 ## P3
 

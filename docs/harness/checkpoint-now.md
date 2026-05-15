@@ -10,10 +10,10 @@
 
 - **PR cap**：3
 - **开放 PR 数**：0
-- **IDEAS-INBOX 已读行数**：9
-- **上次 tick**：2026-05-15 — CEO 视角战略规划，ROADMAP 新增 P2-W~P2-Z 四项即时体验与记忆任务
+- **IDEAS-INBOX 已读行数**：38
+- **上次 tick**：2026-05-15 — P2-V-1 已在 #20 合并；PR #24 已关闭（无实质变更）
 - **gh auth**：正常
-- **下一 tick 建议**：推进 P2-W-1（Chat 预设场景模板）或 P2-F-1（画廊检索）
+- **下一 tick 建议**：推进 P2-F 画廊检索
 
 ---
 
@@ -39,10 +39,6 @@
 | P2-T-1 | 画廊查看次数 | ✅ done | — | #18 (merged) | `docs/harness/task-p2-t-1.md` |
 | P2-U-1 | 全站 favicon 与 Header 品牌标统一 | ✅ done | — | — | `docs/harness/task-p2-u-1.md` |
 | P2-V-1 | Dashboard nav 登出按钮 + cursor-pointer | ✅ done | — | #20 (merged) | — |
-| P2-W-1 | Chat 预设场景模板 | todo | — | — | 替代空白 USER.md 弹窗 |
-| P2-X-1 | Guest 免登录限次体验 | todo | — | — | N 条后引导注册 |
-| P2-Y-1 | ChatThread 持久化 | todo | — | — | 对话线程 + 消息落库 |
-| P2-Z-1 | 独立聊天页 | todo | — | — | `/packs/{handle}/{slug}/chat` |
 
 ---
 
