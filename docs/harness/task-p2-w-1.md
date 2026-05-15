@@ -54,13 +54,21 @@ alternatives_blocked_if_chosen: none
 
 ## C. 实施记录（Implementation Log）
 
-（待执行后填写）
+- **实际改动文件**：
+  - `web/src/app/[locale]/packs/[handle]/[slug]/pack-chat-user-dialog.tsx` — 新增 ScenarioCards 选择步骤
+  - `web/messages/en.json` — 新增 `packChat.scenarios` + `scenarioStepTitle` / `scenarioStepHint`
+  - `web/messages/zh.json` — 同上
+- **关键实现说明**：Dialog 内部用 `step` 状态（`scenarios` | `custom`）控制两阶段 UI；预设场景点击后直接拼接 `## 场景名\n\n预览文案\n` 作为 userBlock → 调用 `onConfirm` → 关闭弹窗（跳过 textarea）；「自定义」卡片和底部文字按钮均进入现有自由编辑模式；`key={open ? initialMarkdown : "closed"}` 确保每次打开 Dialog 回到场景选择步骤。
+- **与硬约束对齐说明**：仅前端 UI 改动，无 CLI 操作，无隐私影响。
 
 ---
 
 ## D. 验收证据（Verification Evidence）
 
-（待执行后填写）
+- `pnpm test`：125 通过（21 CLI + 104 web）
+- `pnpm --filter @openclaw-soul/web typecheck`：通过
+- `pnpm --filter @openclaw-soul/web lint`：通过
+- **结果摘要**：通过
 
 ---
 

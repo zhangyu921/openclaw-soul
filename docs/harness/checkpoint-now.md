@@ -11,9 +11,9 @@
 - **PR cap**：3
 - **开放 PR 数**：0
 - **IDEAS-INBOX 已读行数**：38
-- **上次 tick**：2026-05-15 — CEO 视角即时体验 + 记忆研究；产出 task-p2-w-1.md（预设场景模板）与 task-p2-y-1.md（ChatThread 持久化）
+- **上次 tick**：2026-05-15 — P2-W-1 预设场景模板已完成（轻量模式，main commit `6ab3e1f`）
 - **gh auth**：正常
-- **下一 tick 建议**：推进 P2-W-1 预设场景模板（低分歧度，1-2 文件）或 P2-F-1 画廊检索
+- **下一 tick 建议**：推进 P2-Y-1 ChatThread 持久化（medium 分歧度）或 P2-F-1 画廊检索
 
 ---
 
@@ -39,7 +39,7 @@
 | P2-T-1 | 画廊查看次数 | ✅ done | — | #18 (merged) | `docs/harness/task-p2-t-1.md` |
 | P2-U-1 | 全站 favicon 与 Header 品牌标统一 | ✅ done | — | — | `docs/harness/task-p2-u-1.md` |
 | P2-V-1 | Dashboard nav 登出按钮 + cursor-pointer | ✅ done | — | #20 (merged) | — |
-| P2-W-1 | Chat 预设场景模板 | todo | — | — | `docs/harness/task-p2-w-1.md` |
+| P2-W-1 | Chat 预设场景模板 | ✅ done | — | — | `docs/harness/task-p2-w-1.md` |
 | P2-Y-1 | ChatThread 持久化 | todo | — | — | `docs/harness/task-p2-y-1.md` |
 
 ---
