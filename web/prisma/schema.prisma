@@ -48,6 +48,13 @@ model Pack {
   showcaseImageRefs    Json      @default("[]")
   authorId             String
   author               User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  /// Registry fork: parent pack id; cleared if source is deleted.
+  forkedFromPackId     String?
+  forkedFromPack       Pack?     @relation("PackForkLineage", fields: [forkedFromPackId], references: [id], onDelete: SetNull)
+  forkChildren         Pack[]    @relation("PackForkLineage")
+  /// Snapshot at fork time (`Forked from handle/slug` tip); survives source deletion.
+  forkedFromHandle     String?
+  forkedFromSlug       String?
   /// Set when the author removes this Soul from「我的 Souls」: row kept, slug rewritten to release handle/slug for a new pack.
   authorDashboardHiddenAt DateTime?
   slugBeforeDashboardHide String?

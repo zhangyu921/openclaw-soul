@@ -52,7 +52,6 @@
   - `package.json`
   - `.github/workflows/ci.yml`
   - `docs/DEPLOY.md`
-  - `docs/GITHUB-OAUTH-SANDBOX-CHECKLIST.md`
 - **关键实现说明（为什么这样做）**：
   - 保持现有 session 体系不变，只在登录入口增加 GitHub OAuth 分支，避免引入大规模认证重构。
   - 新增 `auth-redirect` helper 统一处理 locale 与 `next` 路径安全，避免 open redirect 与跳转到 API 路径。
@@ -85,7 +84,7 @@
   1. GitHub OAuth app 回调 URL 与环境不一致
   2. 认证密钥或 session 配置不完整
   3. 中间件对登录后路由放行逻辑缺失
-- **下一轮最小任务（<=0.5 天）**：补充真实 GitHub sandbox 联调清单（含回调域名、权限、失败分支截图）✅ 已产出并更新为自动化优先：`docs/GITHUB-OAUTH-SANDBOX-CHECKLIST.md`
+- **下一轮最小任务（<=0.5 天）**：补充真实 GitHub sandbox 联调清单（含回调域名、权限、失败分支截图）✅ 后续以自动化测试与 `docs/DEPLOY.md` 环境说明为主（旧独立清单已移除）。
 - **需要新增的测试/CI 守门**：已补 callback 失败分支、未登录跳转、callback 成功设置 session 与重定向断言
 
 ---

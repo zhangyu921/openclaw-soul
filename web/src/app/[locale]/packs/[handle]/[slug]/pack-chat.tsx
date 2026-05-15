@@ -722,19 +722,21 @@ export default function PackChat({
                               {userBubble}
                             </Message>
                             <Tooltip>
-                              <TooltipTrigger>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  className="mt-1 shrink-0 text-muted-foreground hover:text-foreground"
-                                  disabled={busy}
-                                  aria-label={t("retryAria")}
-                                  onClick={() => retryFromUserMessage(idx)}
-                                >
-                                  <RotateCcw className="size-4" aria-hidden />
-                                </Button>
-                              </TooltipTrigger>
+                              <TooltipTrigger
+                                render={
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className="mt-1 shrink-0 text-muted-foreground hover:text-foreground"
+                                    disabled={busy}
+                                    aria-label={t("retryAria")}
+                                    onClick={() => retryFromUserMessage(idx)}
+                                  >
+                                    <RotateCcw className="size-4" aria-hidden />
+                                  </Button>
+                                }
+                              />
                               <TooltipContent>
                                 <p>{t("retryTooltip")}</p>
                               </TooltipContent>

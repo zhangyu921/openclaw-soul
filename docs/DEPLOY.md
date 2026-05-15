@@ -46,7 +46,7 @@ cd .. && pnpm run dev
 
 生产若不用 Blob，须保证运行环境有**持久可写盘**（多数 Serverless 无持久盘，请用 Blob / S3 等）。
 
-GitHub OAuth 真实联调步骤与失败分支验收，可直接按 `docs/GITHUB-OAUTH-SANDBOX-CHECKLIST.md` 执行。
+GitHub OAuth 生产联调：在 GitHub OAuth App 中配置与本站域名一致的回调 URL，并与上表 `GITHUB_CLIENT_ID`、`GITHUB_CLIENT_SECRET`、`OPENCLAW_SOUL_SITE_URL` 对齐；核心成功/失败分支可由 `web` 包内自动化测试覆盖。
 
 **上传体积**：pack zip 上限 **2 MiB**、头像 **512 KiB** 由 API 最终校验；头像在**用户浏览器**与 **CLI `npx @openclaw-soul/cli publish` 本机**会先压缩再上传，部署侧**不必**装 `sharp` 等图像库。
 
