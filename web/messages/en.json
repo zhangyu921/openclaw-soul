@@ -113,7 +113,27 @@
     "streamErrorRateLimit": "Too many requests. Please wait a moment and try again.",
     "streamErrorUnavailable": "Chat is temporarily unavailable. Try again later or check site configuration.",
     "streamErrorBadRequest": "We could not process that request. Try shorter content or reset your USER settings.",
-    "streamErrorNetwork": "Network error. Check your connection and try again."
+    "streamErrorNetwork": "Network error. Check your connection and try again.",
+    "scenarios": {
+      "vent": {
+        "label": "Share thoughts",
+        "preview": "I have something on my mind…"
+      },
+      "create": {
+        "label": "Create together",
+        "preview": "Help me write or build something…"
+      },
+      "discuss": {
+        "label": "Deep dive",
+        "preview": "I want to explore a topic in depth…"
+      },
+      "custom": {
+        "label": "Custom",
+        "preview": "Write your own USER.md"
+      }
+    },
+    "scenarioStepTitle": "What brings you here?",
+    "scenarioStepHint": "Pick a scenario to get started faster — the Soul will receive context matching your intent."
   },
   "tokens": {
     "pageTitle": "API tokens",

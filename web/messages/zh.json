@@ -113,7 +113,27 @@
     "streamErrorRateLimit": "请求过于频繁，请稍后再试。",
     "streamErrorUnavailable": "对话服务暂时不可用，请稍后再试或检查站点配置。",
     "streamErrorBadRequest": "请求无法处理，可尝试缩短内容或通过「重新设定」更新 USER 后再试。",
-    "streamErrorNetwork": "网络异常，请检查连接后重试。"
+    "streamErrorNetwork": "网络异常，请检查连接后重试。",
+    "scenarios": {
+      "vent": {
+        "label": "倾诉心事",
+        "preview": "最近有些心事想聊聊…"
+      },
+      "create": {
+        "label": "创作搭档",
+        "preview": "帮我一起写点东西…"
+      },
+      "discuss": {
+        "label": "深度讨论",
+        "preview": "我想深入探讨一个话题…"
+      },
+      "custom": {
+        "label": "自定义",
+        "preview": "自己编写 USER.md"
+      }
+    },
+    "scenarioStepTitle": "你想做什么？",
+    "scenarioStepHint": "选择一个场景快速开始——Soul 会收到与你意图匹配的上下文。"
   },
   "tokens": {
     "pageTitle": "API tokens",
